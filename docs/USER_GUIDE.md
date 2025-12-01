@@ -1,34 +1,36 @@
 # Panduan Penggunaan (User Guide)
 
-Selamat datang di **Cartify (MVP)**. Aplikasi ini dirancang untuk menjadi kalkulator belanja suara Anda yang sederhana dan cepat.
+Selamat datang di **Cartify**. Aplikasi ini menggunakan kecerdasan buatan canggih (Google Gemini AI) untuk membantu Anda mencatat belanjaan tanpa mengetik dan tanpa memindai barcode.
 
-## Alur Penggunaan Utama
+## Cara Kerja Baru: "3-Input" Voice Command
+Karena kami tidak menggunakan barcode, Anda memiliki kendali penuh atas harga. Cukup ucapkan **Berapa Banyak**, **Apa Barangnya**, dan **Berapa Harganya** dalam satu tarikan napas.
 
-### 1. Masuk (Login)
--   Buka aplikasi.
--   Masuk menggunakan akun email Anda (atau daftar jika belum punya akun).
--   Login diperlukan agar riwayat belanja Anda tersimpan aman.
+### Pola Perintah
+> **" [JUMLAH] ... [NAMA BARANG] ... [HARGA] "**
 
-### 2. Tetapkan Anggaran (Set Budget)
--   Sebelum mulai belanja, layar **"Set Budget"** akan muncul.
--   Masukkan nominal batas belanja Anda hari ini (contoh: `500000`).
--   Tekan **"Mulai Belanja"**.
+---
 
-### 3. Masukkan Barang dengan Suara (Speak)
--   Di layar utama, tekan tombol **Mikrofon Besar** di tengah bawah.
--   Ucapkan nama barang dan jumlahnya dengan jelas.
-    -   *Contoh:* **"Dua kotak susu"** atau **"Minyak Goreng"**.
--   Aplikasi akan mencari produk di database.
-    -   **Jika ketemu:** Barang masuk keranjang, harga otomatis terisi.
-    -   **Jika tidak ketemu:** Aplikasi akan meminta Anda memasukkan harga barang tersebut secara manual.
+## Langkah Demi Langkah
 
-### 4. Pantau Anggaran (Monitor)
--   Perhatikan **Bar Progres** di bagian atas layar.
--   **Hijau:** Aman.
--   **Kuning:** Mendekati batas.
--   **Merah:** Anggaran kritis atau terlampaui.
--   Dengarkan peringatan suara dari aplikasi jika Anda terlalu boros.
+### 1. Persiapan (Setup)
+-   Pastikan internet menyala (AI membutuhkan koneksi data).
+-   Masuk (Login) dan Tetapkan Anggaran Harian Anda (misal: Rp 200.000).
 
-### 5. Selesai (Finish)
--   Setelah selesai belanja dan bayar di kasir, tekan tombol **"Selesai Belanja"**.
--   Sesi akan disimpan ke Riwayat (*History*) untuk Anda tinjau kembali nanti.
+### 2. Merekam Belanjaan
+1.  Tekan tombol **Mikrofon** besar di layar utama.
+2.  Ucapkan perintah belanja Anda dengan pola di atas.
+    -   *Contoh 1:* **"Dua Roti Lima Ribu"**
+        -   (Artinya: Beli 2 bungkus Roti, harga satuannya Rp 5.000)
+    -   *Contoh 2:* **"Satu Kotak Susu Dua Puluh Ribu Lima Ratus"**
+    -   *Contoh 3 (Tanpa Jumlah):* **"Sabun Mandi Tiga Ribu"**
+        -   (Otomatis dianggap beli 1 buah)
+3.  Tunggu sejenak (animasi *loading*), AI akan menerjemahkan suara Anda.
+4.  Item akan muncul di daftar. Periksa apakah Jumlah dan Harga sudah benar.
+
+### 3. Koreksi (Jika Perlu)
+Terkadang AI bisa salah dengar di lingkungan yang sangat berisik.
+-   Jika salah, ketuk item tersebut di daftar, lalu ubah angka atau harganya secara manual.
+
+### 4. Selesai Belanja
+-   Pantau terus indikator sisa anggaran Anda.
+-   Jika sudah selesai, tekan tombol **"Selesai"** untuk menyimpan riwayat belanja.

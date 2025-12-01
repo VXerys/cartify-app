@@ -1,44 +1,42 @@
-# Skema Database (SQLite)
+# Skema Database (SQLite) - Versi GenAI
 
-Dokumen ini mendefinisikan struktur database lokal **SQLite** untuk Cartify versi MVP Voice-First. Struktur ini dioptimalkan untuk pencarian teks cepat (*keyword search*) dan pelacakan anggaran.
+Dokumen ini mendefinisikan struktur database lokal **SQLite** untuk Cartify V2.0. Struktur ini disederhanakan untuk mendukung arsitektur *Cloud-Native GenAI* di mana harga didikte oleh pengguna (*User-Dictated Price*), bukan diambil dari database master produk.
+
+## Perubahan Utama
+-   Tabel `products` (Master Data) menjadi **tidak wajib** untuk fungsi inti (opsional untuk *autocomplete* di masa depan).
+-   Tabel `cart_items` digantikan/diperbarui menjadi `session_items` dengan kolom yang cocok dengan output JSON dari Gemini.
 
 ## Spesifikasi Tabel
 
-### 1. `products`
-Tabel referensi utama untuk pencocokan suara. Kolom `barcode` telah dihapus dan digantikan dengan `keywords` untuk mendukung pencarian fleksibel.
+### 1. `shopping_sessions`
+Mencatat sesi belanja (satu kunjungan toko).
 
 | Kolom | Tipe Data | Keterangan |
 | :--- | :--- | :--- |
-| `id` | INTEGER PRIMARY KEY | ID unik produk. |
-| `name` | TEXT | Nama lengkap produk (misal: "Susu Ultra Milk Coklat 250ml"). |
-| `price` | REAL | Harga satuan produk. |
-| `keywords` | TEXT | Kata kunci untuk pencarian suara (misal: "susu, ultra, coklat, milk"). |
-| `category` | TEXT | Kategori produk (opsional, untuk pengembangan masa depan). |
+| `id` | INTEGER PRIMARY KEY | ID unik sesi (Auto Increment). |
+| `user_id` | TEXT | ID pengguna (Firebase Auth UID). |
+| `created_at` | TEXT | Timestamp sesi dimulai (ISO 8601). |
+| `budget_limit` | REAL | Batas anggaran yang ditetapkan pengguna (misal: 500000). |
+| `total_spent` | REAL | Total aktual (Aggregasi dari `session_items`). |
+| `status` | TEXT | Status: 'ACTIVE', 'COMPLETED', 'ARCHIVED'. |
 
-### 2. `shopping_sessions` (Dahulu: Transactions)
-Tabel ini mencatat riwayat setiap perjalanan belanja, fokus pada performa anggaran.
-
-| Kolom | Tipe Data | Keterangan |
-| :--- | :--- | :--- |
-| `id` | INTEGER PRIMARY KEY | ID unik sesi belanja. |
-| `user_id` | TEXT | ID pengguna (dari Firebase Auth). |
-| `date` | TEXT | Tanggal dan waktu belanja (ISO 8601). |
-| `budget_limit` | REAL | Batas anggaran yang ditetapkan pengguna di awal sesi. |
-| `total_spent` | REAL | Total aktual yang dibelanjakan. |
-| `status` | TEXT | Status sesi (misal: "COMPLETED", "ABORTED"). |
-
-### 3. `cart_items`
-Item detil yang ada dalam satu sesi belanja aktif atau tersimpan.
+### 2. `session_items` (Inti Data)
+Menyimpan item hasil parsing AI. Kolom disesuaikan dengan output JSON Gemini.
 
 | Kolom | Tipe Data | Keterangan |
 | :--- | :--- | :--- |
 | `id` | INTEGER PRIMARY KEY | ID unik item. |
-| `session_id` | INTEGER | *Foreign Key* ke tabel `shopping_sessions`. |
-| `product_name` | TEXT | Nama produk (disalin dari tabel `products` atau input manual). |
-| `price_at_purchase` | REAL | Harga saat transaksi terjadi (untuk menangani perubahan harga). |
-| `quantity` | INTEGER | Jumlah barang. |
-| `subtotal` | REAL | `price_at_purchase` * `quantity`. |
+| `session_id` | INTEGER | *Foreign Key* ke `shopping_sessions`. |
+| `qty` | INTEGER | Jumlah barang (Parsed from Voice). Default: 1. |
+| `product_name` | TEXT | Nama produk (Parsed from Voice). |
+| `user_input_price`| INTEGER | Harga satuan yang diucapkan pengguna. |
+| `subtotal` | INTEGER | `qty` * `user_input_price`. |
+| `confidence` | REAL | (Opsional) Skor keyakinan AI jika tersedia, untuk validasi. |
 
-## Relasi & Optimasi
--   **Pencarian Suara:** Kolom `keywords` pada tabel `products` diindeks (jika memungkinkan di SQLite Expo) atau dibaca ke memori saat inisialisasi untuk mempercepat pencocokan algoritma Levenshtein Distance.
--   **Relasi:** `shopping_sessions` (One) -> `cart_items` (Many).
+## Hubungan Data (ERD Sederhana)
+`shopping_sessions` **(1)** ---- **(N)** `session_items`
+
+## Logika "Tanpa Master Harga"
+Dalam arsitektur ini, tidak ada relasi wajib ke tabel `products` master.
+-   **Kelebihan:** Fleksibilitas maksimal. Pengguna bisa membeli "Gorengan Abang-abang" yang tidak mungkin ada di database barcode supermarket, dan tetap bisa melacak anggarannya.
+-   **Kekurangan:** Pengguna harus menyebutkan harga setiap kali membeli (namun ini diselesaikan dengan kemudahan input suara "3-Input").

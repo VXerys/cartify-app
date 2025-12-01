@@ -1,45 +1,43 @@
-# Arsitektur Teknis
+# Arsitektur Teknis: Cloud-Native GenAI
 
-Dokumen ini menjelaskan tumpukan teknologi (*Tech Stack*) dan strategi arsitektur yang digunakan dalam pengembangan **Cartify (MVP Voice-First)**.
+Dokumen ini menjelaskan transformasi arsitektur **Cartify** menjadi sistem *Cloud-Native Generative AI* (Versi 2.0).
+Perubahan mendasar terletak pada pemindahan "otak" pemrosesan dari logika lokal (*Fuzzy Logic*) ke *Multimodal AI* di Cloud menggunakan **Google Gemini 1.5 Flash**.
 
-## 1. Teknologi (Tech Stack)
+## 1. Filosofi Desain: "Dumb Client, Genius Cloud"
+Untuk menjaga aplikasi tetap ringan (*lightweight*) dan hemat baterai, perangkat seluler hanya bertugas sebagai alat perekam dan penampil data. Seluruh beban kognitif (memahami ucapan, memisahkan entitas, mengonversi angka) diserahkan kepada API Gemini.
 
-| Kategori | Teknologi | Keterangan |
-| :--- | :--- | :--- |
-| **Framework** | **React Native (Expo)** | Framework pengembangan lintas platform (*Cross-Platform*). |
-| **Bahasa** | **TypeScript** | Superset JavaScript untuk keamanan tipe data (*Type Safety*). |
-| **Styling** | **NativeWind** | Utilitas styling berbasis Tailwind CSS untuk React Native. |
-| **Database Lokal** | **SQLite (expo-sqlite)** | Penyimpanan data produk dan sesi belanja secara lokal. |
-| **Autentikasi** | **Firebase Auth** | Layanan manajemen pengguna (Login/Register). |
-| **Voice Input** | **@react-native-voice/voice** | Menangkap audio pengguna dan mengubahnya menjadi teks. |
-| **Voice Output** | **Expo Speech** | Memberikan umpan balik audio (TTS) kepada pengguna. |
-| **Algoritma** | **Levenshtein Distance** | Logika *Fuzzy Matching* untuk pencocokan nama produk. |
+## 2. Diagram Alur Data (Data Flow)
 
-## 2. Struktur Proyek & Pemrosesan Suara
+```mermaid
+graph TD
+    User(User Voice) -->|Input: '2 Susu 5 Ribu'| Mic[Device: Expo AV]
+    Mic -->|Raw Audio File .m4a| Cloud[Google Gemini 1.5 Flash API]
+    Cloud -->|Processing: Speech-to-JSON| JSON[Parsed Data]
+    JSON -->|{qty: 2, item: 'Susu', price: 5000}| SQLite[Device: Local DB]
+    SQLite -->|Update UI| UI[Budget Progress Bar]
+```
 
-Aplikasi ini disusun dalam lapisan-lapisan (*layers*) pemrosesan untuk menangani input suara yang tidak terstruktur menjadi data transaksi yang valid.
+## 3. Komponen Utama
 
-### Layer 1: Persepsi (Perception Layer)
-Lapisan ini bertanggung jawab untuk menangkap input fisik dari pengguna.
--   **Teknologi:** `@react-native-voice/voice` dan `expo-speech`.
--   **Fungsi:** Mendengarkan frasa pengguna (misal: "Beli dua liter minyak") dan mengubahnya menjadi string mentah (*Raw String*).
+### Layer 1: Persepsi Pasif (Device Side)
+-   **Teknologi:** `expo-av` (React Native Audio).
+-   **Fungsi:** Merekam suara pengguna secara efisien.
+-   **Karakteristik:** "Bodoh" (*Dumb*). Tidak ada pemrosesan AI, tidak ada *Levenshtein Distance*, tidak ada model ML di perangkat. Hanya memastikan kualitas audio cukup jernih untuk dikirim.
 
-### Layer 2: Kognisi (Cognition Layer)
-Lapisan kecerdasan yang menerjemahkan string mentah menjadi maksud (*intent*) dan data terstruktur.
--   **Teknologi:** JavaScript Logic & Fuzzy Search (Levenshtein).
--   **Logika:**
-    1.  **Parsing:** Memisahkan kuantitas (angka) dari nama barang.
-        -   Input: "Lima Indomie" -> Qty: 5, Item: "Indomie".
-    2.  **Matching:** Mencocokkan kata kunci "Indomie" dengan database lokal.
-        -   Jika user mengucap "Indomi", algoritma Levenshtein akan mencari kecocokan terdekat di tabel `products` (misal: "Indomie Goreng") berdasarkan skor kemiripan.
-    3.  **Fallback:** Jika produk tidak ditemukan, sistem meminta pengguna memasukkan harga secara manual.
+### Layer 2: Kognisi Generatif (Cloud Side)
+-   **Teknologi:** **Google Gemini 1.5 Flash** (via REST API).
+-   **Kemampuan:** *Native Audio Understanding* (Multimodal).
+-   **Mengapa Gemini 1.5 Flash?**
+    -   **Kecepatan:** Model "Flash" dioptimalkan untuk latensi rendah, krusial untuk UX belanja real-time.
+    -   **Akurasi Konteks:** Mampu membedakan antara "Tiga" (Jumlah) dan "Tiga Roda" (Nama Barang) jauh lebih baik daripada penggabungan STT + Regex tradisional.
+    -   **Efisiensi Biaya:** Menghilangkan kebutuhan akan layanan STT terpisah (seperti Google Cloud Speech) dan layanan NLP terpisah.
 
-### Layer 3: Persistensi (Persistence Layer)
-Lapisan penyimpanan data offline.
--   **Teknologi:** SQLite.
--   **Fungsi:** Menyimpan data produk, keranjang belanja, dan riwayat sesi secara lokal di perangkat.
+### Layer 3: Penyimpanan Data (Persistence)
+-   **Teknologi:** **SQLite**.
+-   **Fungsi:** Menyimpan hasil *parsing* JSON dari Gemini ke dalam tabel `session_items`.
+-   **Penting:** Data harga tidak diambil dari "Master Produk", melainkan disimpan berdasarkan apa yang diucapkan pengguna (*User-Dictated Price*). Ini memberikan fleksibilitas total tanpa perlu memelihara database harga produk yang masif dan sering kedaluwarsa.
 
-## 3. Strategi Hybrid Offline-First
-Meskipun fokus pada Suara, prinsip offline tetap dipertahankan:
--   **Autentikasi (Online):** Firebase Auth digunakan di awal sesi untuk identitas.
--   **Operasi Inti (Offline):** Seluruh proses pengenalan suara (jika didukung OS secara offline) dan pencarian database produk dilakukan secara lokal untuk kecepatan respons instan.
+## 4. Keuntungan Arsitektur Baru
+1.  **Tanpa Ketergantungan Barcode:** Pengguna mendiktekan harga, mengatasi masalah produk tanpa barcode atau barcode rusak.
+2.  **Ukuran Aplikasi Kecil:** Tidak perlu membundel model ML berat (TensorFlow Lite) di dalam aplikasi.
+3.  **Skalabilitas:** Pembaruan logika pemahaman bahasa dapat dilakukan di sisi *Prompting* tanpa perlu merilis ulang aplikasi di Play Store.

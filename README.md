@@ -21,7 +21,7 @@
 ---
 
 ## 🎙️ Pengantar: Voice-First MVP
-**Cartify** adalah asisten belanja yang berfokus pada **Interaksi Suara Murni**. Dalam versi *Minimum Viable Product (MVP)* ini, kami menghilangkan fitur pemindaian barcode untuk menguji hipotesis bahwa input suara (*Voice Command*) adalah cara tercepat dan paling efisien untuk mencatat belanjaan sambil bergerak. Aplikasi ini menggabungkan **Natural Language Processing (NLP)** sederhana dengan database lokal **SQLite** untuk memberikan pengalaman belanja yang cepat, *hands-free*, dan sadar anggaran.
+**Cartify** adalah asisten belanja yang berfokus pada **Interaksi Suara Murni**. Dalam versi *Minimum Viable Product (MVP)* ini, kami menguji hipotesis bahwa input suara (*Voice Command*) adalah cara tercepat dan paling efisien untuk mencatat belanjaan sambil bergerak. Aplikasi ini menggabungkan **Natural Language Processing (NLP)** sederhana dengan database lokal **SQLite** untuk memberikan pengalaman belanja yang cepat, *hands-free*, dan sadar anggaran.
 
 ## 📚 Indeks Dokumentasi
 Berikut adalah dokumentasi lengkap pengembangan proyek ini:

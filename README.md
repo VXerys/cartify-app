@@ -1,4 +1,4 @@
-# Cartify - Smart Voice Shopping
+# Cartify - Smart Voice Shopping (MVP)
 
 [![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-1B1F23?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
@@ -20,19 +20,20 @@
 
 ---
 
-## 📱 Pengantar
-**Cartify** adalah asisten belanja cerdas yang dirancang untuk membantu konsumen ritel fisik mengelola pengeluaran mereka secara *real-time*. Dengan fitur utama **Perintah Suara (Voice Command)**, aplikasi ini memecahkan masalah kerepotan mengetik saat membawa barang belanjaan. Aplikasi ini dibangun dengan arsitektur **Hybrid Offline-First**, memastikan fungsi belanja inti tetap berjalan lancar menggunakan **SQLite** bahkan saat berada di area "blind spot" sinyal di dalam supermarket.
+## 🎙️ Pengantar: Voice-First MVP
+**Cartify** adalah asisten belanja yang berfokus pada **Interaksi Suara Murni**. Dalam versi *Minimum Viable Product (MVP)* ini, kami menguji hipotesis bahwa input suara (*Voice Command*) adalah cara tercepat dan paling efisien untuk mencatat belanjaan sambil bergerak. Aplikasi ini menggabungkan **Natural Language Processing (NLP)** sederhana dengan database lokal **SQLite** untuk memberikan pengalaman belanja yang cepat, *hands-free*, dan sadar anggaran.
 
 ## 📚 Indeks Dokumentasi
-Berikut adalah dokumentasi lengkap pengembangan proyek ini untuk memenuhi standar Akademik dan Teknis:
+Berikut adalah dokumentasi lengkap pengembangan proyek ini:
 
-- [🆔 **Identitas & Abstrak**](./docs/PROJECT_IDENTITY.md) - Ringkasan proyek dan rumusan masalah.
-- [🔄 **Metodologi (SDLC)**](./docs/SDLC_METHODOLOGY.md) - Penerapan model *Prototyping* dalam pengembangan.
-- [🏗️ **Arsitektur Teknis**](./docs/TECHNICAL_ARCHITECTURE.md) - Tech stack dan strategi *Hybrid Offline-First*.
-- [🗄️ **Skema Database**](./docs/DATABASE_SCHEMA.md) - Struktur tabel SQLite untuk penyimpanan lokal.
-- [🧪 **Strategi Pengujian**](./docs/TESTING_STRATEGY.md) - UAT, Unit Test, dan Validasi Hipotesis (H1, H2, H3).
-- [🌿 **Strategi Git**](./docs/GIT_STRATEGY.md) - Manajemen *source code* dan percabangan.
-- [📖 **Panduan Penggunaan**](./docs/USER_GUIDE.md) - Cara menggunakan fitur suara, scan, dan anggaran.
+- [🆔 **Identitas & Abstrak**](./docs/PROJECT_IDENTITY.md) - Fokus penelitian pada "Voice-First Calculator".
+- [🔄 **Metodologi (SDLC)**](./docs/SDLC_METHODOLOGY.md) - Penerapan model *Prototyping*.
+- [🏗️ **Arsitektur Teknis**](./docs/TECHNICAL_ARCHITECTURE.md) - Layer Persepsi & Kognisi (Fuzzy Logic).
+- [🗄️ **Skema Database**](./docs/DATABASE_SCHEMA.md) - Struktur SQLite untuk pencarian kata kunci.
+- [🧪 **Strategi Pengujian**](./docs/TESTING_STRATEGY.md) - Validasi hipotesis akurasi suara & efisiensi.
+- [🔮 **Peta Jalan (Roadmap)**](./docs/FUTURE_ROADMAP.md) - Rencana pengembangan ke depan (Visual & Hardware).
+- [🌿 **Strategi Git**](./docs/GIT_STRATEGY.md) - Manajemen kode.
+- [📖 **Panduan Penggunaan**](./docs/USER_GUIDE.md) - Alur Login -> Budget -> Speak.
 
 ## 🚀 Instalasi & Menjalankan Aplikasi
 
@@ -50,4 +51,4 @@ npm install
 npx expo start
 ```
 
-Pindai kode QR yang muncul dengan aplikasi **Expo Go** (Android/iOS) untuk mencoba Cartify di perangkat fisik Anda.
+Gunakan aplikasi **Expo Go** untuk menjalankan proyek ini di perangkat fisik Android/iOS Anda.

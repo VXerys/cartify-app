@@ -1,45 +1,44 @@
 # Skema Database (SQLite)
 
-Dokumen ini mendefinisikan struktur database lokal yang digunakan oleh **Cartify**. Karena fokus pada performa *offline*, **SQLite** dipilih sebagai mesin database utama.
-
-## Konsep
-Database SQLite disimpan secara lokal di perangkat pengguna. Ini memungkinkan operasi CRUD (*Create, Read, Update, Delete*) yang sangat cepat tanpa latensi jaringan. Database ini diinisialisasi saat aplikasi pertama kali dijalankan.
+Dokumen ini mendefinisikan struktur database lokal **SQLite** untuk Cartify versi MVP Voice-First. Struktur ini dioptimalkan untuk pencarian teks cepat (*keyword search*) dan pelacakan anggaran.
 
 ## Spesifikasi Tabel
 
 ### 1. `products`
-Menyimpan data produk yang tersedia atau pernah dipindai. Tabel ini bisa diisi awal (*seed*) atau bertambah seiring pengguna memindai barang baru.
+Tabel referensi utama untuk pencocokan suara. Kolom `barcode` telah dihapus dan digantikan dengan `keywords` untuk mendukung pencarian fleksibel.
 
 | Kolom | Tipe Data | Keterangan |
 | :--- | :--- | :--- |
-| `id` | INTEGER PRIMARY KEY | ID unik produk (Auto Increment). |
-| `barcode` | TEXT UNIQUE | Kode batang produk (hasil scan). |
-| `name` | TEXT | Nama produk. |
+| `id` | INTEGER PRIMARY KEY | ID unik produk. |
+| `name` | TEXT | Nama lengkap produk (misal: "Susu Ultra Milk Coklat 250ml"). |
 | `price` | REAL | Harga satuan produk. |
-| `stock` | INTEGER | (Opsional) Jumlah stok tersedia. |
-| `created_at` | TEXT | Tanggal data dibuat (ISO 8601). |
+| `keywords` | TEXT | Kata kunci untuk pencarian suara (misal: "susu, ultra, coklat, milk"). |
+| `category` | TEXT | Kategori produk (opsional, untuk pengembangan masa depan). |
 
-### 2. `cart_items`
-Menyimpan item yang saat ini ada dalam keranjang belanja aktif pengguna.
-
-| Kolom | Tipe Data | Keterangan |
-| :--- | :--- | :--- |
-| `id` | INTEGER PRIMARY KEY | ID unik item keranjang. |
-| `product_id` | INTEGER | *Foreign Key* merujuk ke tabel `products`. |
-| `quantity` | INTEGER | Jumlah barang yang dibeli. |
-| `subtotal` | REAL | Hasil perhitungan `price` * `quantity`. |
-
-### 3. `transactions`
-Menyimpan riwayat belanja yang telah selesai (*checkout*).
+### 2. `shopping_sessions` (Dahulu: Transactions)
+Tabel ini mencatat riwayat setiap perjalanan belanja, fokus pada performa anggaran.
 
 | Kolom | Tipe Data | Keterangan |
 | :--- | :--- | :--- |
-| `id` | INTEGER PRIMARY KEY | ID unik transaksi. |
-| `total_amount` | REAL | Total akhir belanjaan. |
-| `payment_method`| TEXT | Metode pembayaran (misal: "Cash", "QRIS"). |
-| `date` | TEXT | Tanggal transaksi selesai. |
+| `id` | INTEGER PRIMARY KEY | ID unik sesi belanja. |
+| `user_id` | TEXT | ID pengguna (dari Firebase Auth). |
+| `date` | TEXT | Tanggal dan waktu belanja (ISO 8601). |
+| `budget_limit` | REAL | Batas anggaran yang ditetapkan pengguna di awal sesi. |
+| `total_spent` | REAL | Total aktual yang dibelanjakan. |
+| `status` | TEXT | Status sesi (misal: "COMPLETED", "ABORTED"). |
 
-## Relasi Antar Tabel
--   **`products` ke `cart_items`**: Relasi **One-to-Many**. Satu produk dapat muncul di banyak entri keranjang (namun dalam konteks satu sesi belanja aktif, biasanya unik per sesi, tetapi secara struktur database memungkinkan relasi ini).
-    -   *Constraint:* `FOREIGN KEY (product_id) REFERENCES products (id)`
--   (Opsional) **`transactions` ke `cart_items`**: Jika ingin menyimpan detail historis item per transaksi, tabel `cart_items` dapat memiliki kolom `transaction_id`. Untuk versi saat ini, riwayat hanya menyimpan total per transaksi untuk efisiensi.
+### 3. `cart_items`
+Item detil yang ada dalam satu sesi belanja aktif atau tersimpan.
+
+| Kolom | Tipe Data | Keterangan |
+| :--- | :--- | :--- |
+| `id` | INTEGER PRIMARY KEY | ID unik item. |
+| `session_id` | INTEGER | *Foreign Key* ke tabel `shopping_sessions`. |
+| `product_name` | TEXT | Nama produk (disalin dari tabel `products` atau input manual). |
+| `price_at_purchase` | REAL | Harga saat transaksi terjadi (untuk menangani perubahan harga). |
+| `quantity` | INTEGER | Jumlah barang. |
+| `subtotal` | REAL | `price_at_purchase` * `quantity`. |
+
+## Relasi & Optimasi
+-   **Pencarian Suara:** Kolom `keywords` pada tabel `products` diindeks (jika memungkinkan di SQLite Expo) atau dibaca ke memori saat inisialisasi untuk mempercepat pencocokan algoritma Levenshtein Distance.
+-   **Relasi:** `shopping_sessions` (One) -> `cart_items` (Many).

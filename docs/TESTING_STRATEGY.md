@@ -1,31 +1,27 @@
 # Strategi Pengujian (Testing Strategy)
 
-Dokumen ini menjelaskan strategi pengujian untuk memvalidasi fungsi teknis dan hipotesis penelitian **Cartify**.
+Dokumen ini menjelaskan strategi pengujian untuk memvalidasi fungsi "Voice-First" dan hipotesis penelitian Cartify MVP.
 
-## 1. Pengujian Unit (Unit Testing)
-Pengujian unit dilakukan untuk memverifikasi logika bisnis terkecil secara terisolasi. Kami menggunakan framework **Jest**.
+## Hipotesis Penelitian (Revised for MVP)
+Fokus penelitian bergeser sepenuhnya pada interaksi suara dan kontrol anggaran.
 
-### Lingkup Pengujian:
--   **Kalkulasi Keranjang:** Memastikan fungsi penambahan, pengurangan, dan perhitungan subtotal berjalan akurat.
--   **Validasi Anggaran:** Memastikan logika peringatan (*alert*) aktif tepat saat total melebihi batas anggaran yang ditetapkan.
--   **Parsing Perintah Suara:** Menguji fungsi pemrosesan string hasil input suara menjadi aksi (misal: "Dua Apel" -> `{item: "Apel", qty: 2}`).
+-   **H1 (Akurasi Suara/Voice Accuracy):** Sistem *Natural Language Understanding* (NLU) mampu mengidentifikasi produk dengan benar dari database lokal meskipun terdapat variasi pengucapan atau kesalahan kecil (*mispronunciation*).
+-   **H2 (Efisiensi Waktu/Budget Speed):** Penggunaan input suara memungkinkan pengguna mencatat item belanja dan menghitung total pengeluaran lebih cepat dibandingkan metode pengetikan manual pada perangkat seluler.
+-   **H3 (Kepatuhan Anggaran/Budget Adherence):** Kombinasi peringatan audio (*Auditory Warning*) dan visual saat anggaran menipis efektif mencegah pengguna menambahkan item impulsif yang tidak direncanakan.
 
-## 2. User Acceptance Testing (UAT) & Validasi Hipotesis
-UAT dilakukan untuk memvalidasi apakah aplikasi memenuhi kebutuhan pengguna dan membuktikan hipotesis penelitian.
+## Skenario Pengujian (UAT)
 
-### Hipotesis Penelitian
-Pengujian ini dirancang untuk menjawab tiga hipotesis utama:
--   **H1 (Efisiensi):** Interaksi suara mengurangi waktu input dibandingkan dengan pengetikan manual.
--   **H2 (Kendali Anggaran):** Peringatan *real-time* mencegah pengeluaran berlebih (*overspending*).
--   **H3 (Reliabilitas Hibrida):** Arsitektur "Offline-First" (SQLite) menjamin pengalaman belanja tidak terputus meskipun koneksi internet hilang, sementara Firebase menjaga keamanan data.
-
-### Checklist UAT
-
-| Skenario Pengujian | Langkah Pengujian | Hasil yang Diharapkan | Hipotesis Terkait | Status |
+| Kode | Fitur | Skenario Uji | Kriteria Sukses | Hipotesis |
 | :--- | :--- | :--- | :--- | :--- |
-| **Input Suara** | Ucapkan "Masukan 2 Susu" | Item "Susu" dengan jumlah 2 masuk ke keranjang. | **H1** | [ ] |
-| **Peringatan Anggaran** | Tambah item hingga total > Limit | Muncul notifikasi suara/visual "Anggaran Terlampaui". | **H2** | [ ] |
-| **Mode Offline** | Matikan Data/WiFi -> Scan Produk | Produk tetap terdeteksi dan masuk keranjang (data dari SQLite). | **H3** | [ ] |
-| **Login Online** | Nyalakan Data -> Login Firebase | Login berhasil dan masuk ke halaman utama. | **H3** | [ ] |
-| **Scan Barcode** | Scan barcode produk fisik | Nama dan harga produk muncul otomatis. | - | [ ] |
-| **Hapus Item** | Geser/Tekan tombol hapus | Item hilang dari keranjang dan total berkurang. | - | [ ] |
+| **TC-01** | **Voice Match** | Ucapkan "Minyak Bimoli" (Database: "Minyak Goreng Bimoli") | Sistem mendeteksi "Minyak Goreng Bimoli" sebagai kandidat terkuat dan menambahkannya ke keranjang. | **H1** |
+| **TC-02** | **Voice Qty** | Ucapkan "Tiga Sabun Mandi" | Sistem menambahkan item "Sabun Mandi" dengan jumlah (Qty) = 3. | **H1** |
+| **TC-03** | **Unknown Item** | Ucapkan nama barang yang tidak ada di database | Sistem memberikan respons suara "Barang tidak ditemukan, silakan input harga manual". | **H1** |
+| **TC-04** | **Budget Alert** | Tambahkan item hingga sisa anggaran < 10% | Bar progres berubah merah dan ada peringatan suara "Hati-hati, anggaran Anda menipis". | **H3** |
+| **TC-05** | **Over Budget** | Tambahkan item hingga total > Limit | Sistem memperingatkan "Anggaran terlampaui" dan meminta konfirmasi ulang. | **H3** |
+| **TC-06** | **Rapid Input** | Input 5 item berturut-turut via suara vs ketik | Waktu total input suara harus lebih rendah secara signifikan. | **H2** |
+
+## Metode Pengukuran H2 (Efisiensi)
+Untuk membuktikan Hipotesis 2, akan dilakukan pengujian A/B sederhana:
+1.  Pengguna diminta memasukkan daftar 10 barang belanjaan menggunakan mode **Ketik Manual**. Catat waktunya.
+2.  Pengguna diminta memasukkan daftar 10 barang yang sama menggunakan **Perintah Suara**. Catat waktunya.
+3.  Bandingkan selisih waktu rata-rata.

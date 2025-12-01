@@ -1,6 +1,6 @@
 # Arsitektur Teknis
 
-Dokumen ini menjelaskan tumpukan teknologi (*Tech Stack*) dan strategi arsitektur yang digunakan dalam pengembangan **Cartify**.
+Dokumen ini menjelaskan tumpukan teknologi (*Tech Stack*) dan strategi arsitektur yang digunakan dalam pengembangan **Cartify (MVP Voice-First)**.
 
 ## 1. Teknologi (Tech Stack)
 
@@ -9,43 +9,37 @@ Dokumen ini menjelaskan tumpukan teknologi (*Tech Stack*) dan strategi arsitektu
 | **Framework** | **React Native (Expo)** | Framework pengembangan lintas platform (*Cross-Platform*). |
 | **Bahasa** | **TypeScript** | Superset JavaScript untuk keamanan tipe data (*Type Safety*). |
 | **Styling** | **NativeWind** | Utilitas styling berbasis Tailwind CSS untuk React Native. |
-| **Database Lokal** | **SQLite (expo-sqlite)** | Penyimpanan data relasional lokal untuk fitur *offline*. |
-| **Autentikasi** | **Firebase Auth** | Layanan manajemen pengguna berbasis *cloud* (memerlukan internet). |
-| **Suara (Input)** | **@react-native-voice/voice** | *Speech-to-Text* (STT) untuk mengenali perintah suara pengguna. |
-| **Suara (Output)** | **Expo Speech** | *Text-to-Speech* (TTS) untuk memberikan umpan balik audio. |
+| **Database Lokal** | **SQLite (expo-sqlite)** | Penyimpanan data produk dan sesi belanja secara lokal. |
+| **Autentikasi** | **Firebase Auth** | Layanan manajemen pengguna (Login/Register). |
+| **Voice Input** | **@react-native-voice/voice** | Menangkap audio pengguna dan mengubahnya menjadi teks. |
+| **Voice Output** | **Expo Speech** | Memberikan umpan balik audio (TTS) kepada pengguna. |
+| **Algoritma** | **Levenshtein Distance** | Logika *Fuzzy Matching* untuk pencocokan nama produk. |
 
-## 2. Struktur Proyek (Feature-Based)
-Aplikasi ini diorganisasikan menggunakan pendekatan *Feature-Based Architecture*. Struktur ini mengelompokkan kode berdasarkan fitur bisnis, bukan berdasarkan jenis file, untuk meningkatkan skalabilitas dan kemudahan perawatan (*maintainability*).
+## 2. Struktur Proyek & Pemrosesan Suara
 
-```
-src/
-├── features/               # Modul fitur utama
-│   ├── auth/               # Logika Login/Register (Firebase)
-│   ├── cart/               # Logika Keranjang & Penghitungan Total
-│   ├── products/           # Manajemen Produk & Barcode Scanner
-│   └── voice/              # Mesin pemrosesan perintah suara
-├── services/               # Layanan eksternal/global
-│   ├── database.ts         # Konfigurasi & Koneksi SQLite
-│   ├── firebase.ts         # Konfigurasi Firebase Auth
-│   └── api.ts              # (Opsional) Panggilan API eksternal
-├── components/             # Komponen UI yang dapat digunakan kembali (Shared)
-└── screens/                # Halaman/Layar utama aplikasi
-```
+Aplikasi ini disusun dalam lapisan-lapisan (*layers*) pemrosesan untuk menangani input suara yang tidak terstruktur menjadi data transaksi yang valid.
+
+### Layer 1: Persepsi (Perception Layer)
+Lapisan ini bertanggung jawab untuk menangkap input fisik dari pengguna.
+-   **Teknologi:** `@react-native-voice/voice` dan `expo-speech`.
+-   **Fungsi:** Mendengarkan frasa pengguna (misal: "Beli dua liter minyak") dan mengubahnya menjadi string mentah (*Raw String*).
+
+### Layer 2: Kognisi (Cognition Layer)
+Lapisan kecerdasan yang menerjemahkan string mentah menjadi maksud (*intent*) dan data terstruktur.
+-   **Teknologi:** JavaScript Logic & Fuzzy Search (Levenshtein).
+-   **Logika:**
+    1.  **Parsing:** Memisahkan kuantitas (angka) dari nama barang.
+        -   Input: "Lima Indomie" -> Qty: 5, Item: "Indomie".
+    2.  **Matching:** Mencocokkan kata kunci "Indomie" dengan database lokal.
+        -   Jika user mengucap "Indomi", algoritma Levenshtein akan mencari kecocokan terdekat di tabel `products` (misal: "Indomie Goreng") berdasarkan skor kemiripan.
+    3.  **Fallback:** Jika produk tidak ditemukan, sistem meminta pengguna memasukkan harga secara manual.
+
+### Layer 3: Persistensi (Persistence Layer)
+Lapisan penyimpanan data offline.
+-   **Teknologi:** SQLite.
+-   **Fungsi:** Menyimpan data produk, keranjang belanja, dan riwayat sesi secara lokal di perangkat.
 
 ## 3. Strategi Hybrid Offline-First
-Cartify menerapkan strategi arsitektur **Hybrid Offline-First** untuk menjawab tantangan konektivitas di dalam gedung ritel (supermarket).
-
-### Prinsip Kerja
-1.  **Online (Autentikasi & Sinkronisasi Awal):**
-    -   Pengguna memerlukan koneksi internet untuk **Login** atau **Register** menggunakan Firebase Auth.
-    -   Ini memastikan keamanan data pengguna dan profil yang valid.
-
-2.  **Offline (Inti Pengalaman Belanja):**
-    -   Setelah pengguna masuk (*logged in*), seluruh aktivitas belanja (memindai barang, perintah suara, menambah ke keranjang, menghitung total) dilakukan menggunakan **SQLite**.
-    -   Data produk dan transaksi disimpan secara lokal di perangkat.
-    -   **Alasan:** Sinyal seluler sering kali lemah atau terblokir di dalam supermarket besar. Ketergantungan pada API server untuk setiap tambah barang akan menyebabkan latensi tinggi atau kegagalan fungsi.
-
-### Alur Data
-`User Action (Voice/Scan)` -> `Local Processing (JS)` -> `Local DB (SQLite)` -> `Update UI`
-
-Pendekatan ini menjamin aplikasi tetap responsif (*snappy*) dan fungsional 100% saat pengguna berada di lorong belanja, terlepas dari kondisi jaringan.
+Meskipun fokus pada Suara, prinsip offline tetap dipertahankan:
+-   **Autentikasi (Online):** Firebase Auth digunakan di awal sesi untuk identitas.
+-   **Operasi Inti (Offline):** Seluruh proses pengenalan suara (jika didukung OS secara offline) dan pencarian database produk dilakukan secara lokal untuk kecepatan respons instan.

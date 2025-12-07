@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
-import { FlatList, Platform, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BudgetCard } from '@/src/components/home/BudgetCard';
+import { BudgetModal } from '@/src/components/home/BudgetModal';
+import { HomeHeader } from '@/src/components/home/HomeHeader';
+import { StatsRow } from '@/src/components/home/StatsRow';
 import { VoiceFloatingButton } from '@/src/components/VoiceFloatingButton';
 import { VoiceShoppingCard } from '@/src/components/VoiceShoppingCard';
 import { useVoiceInput } from '@/src/hooks/useVoiceInput';
@@ -10,6 +15,11 @@ export default function HomeScreen() {
   const { isListening, transcript, finalResult, startRecording, stopRecording, error: voiceError } = useVoiceInput();
   const [items, setItems] = useState<ParsedItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Budget State
+  const [budget, setBudget] = useState(500000); // Default IDR 500k
+  const [isBudgetModalVisible, setIsBudgetModalVisible] = useState(false);
+  const spent = items.reduce((sum, item) => sum + item.price, 0);
 
   // Handle Voice Result
   useEffect(() => {
@@ -26,7 +36,6 @@ export default function HomeScreen() {
       if (result) {
         setItems((prev) => [result, ...prev]);
       } else {
-        // Handle "could not parse" case (optional: show toast)
         console.warn("Could not parse voice input");
       }
     } catch (err) {
@@ -43,41 +52,74 @@ export default function HomeScreen() {
       startRecording();
     }
   };
+  
+  const handleEditBudget = () => {
+    setIsBudgetModalVisible(true);
+  };
+
+  const handleDeleteItem = (index: number) => {
+    setItems((prev) => {
+        const newItems = [...prev];
+        newItems.splice(index, 1);
+        return newItems;
+    });
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
       
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Voice Shopping Cart</Text>
-        <Text style={styles.headerSubtitle}>Tap the mic & speak "Item price..."</Text>
+      <View style={styles.fixedContent}>
+        <HomeHeader />
+
+        <View style={styles.budgetWrapper}>
+            <BudgetCard 
+                budget={budget} 
+                spent={spent} 
+                onEditBudget={handleEditBudget}
+            >
+                <StatsRow 
+                    orders={items.length} 
+                    items={items.reduce((acc, curr) => acc + (curr.qty || 1), 0)} 
+                />
+            </BudgetCard>
+        </View>
+
+        {items.length > 0 && (
+            <View style={styles.titleWrapper}>
+                <Text style={styles.sectionTitle}>Recent Items</Text>
+            </View>
+        )}
       </View>
 
-      {/* Main Content */}
-      <View style={styles.content}>
-        {items.length === 0 && !isListening && !isProcessing ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>Cart is empty</Text>
-            <Text style={styles.emptySubText}>
-              Try saying: "Indomie Goreng tiga ribu lima ratus"
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            data={items}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item }) => (
+      <FlatList
+        style={{ flex: 1 }}
+        data={items}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item, index }) => (
+          <View style={styles.itemWrapper}>
               <VoiceShoppingCard 
                 productName={item.product_name} 
                 price={item.price} 
                 qty={item.qty} 
+                category={item.category}
+                index={index}
+                onDelete={() => handleDeleteItem(index)}
               />
-            )}
-            contentContainerStyle={styles.listContent}
-          />
+          </View>
         )}
-      </View>
+        contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+            !isProcessing && items.length === 0 ? (
+                <View style={styles.emptyState}>
+                    <Text style={styles.emptyText}>Cart is empty</Text>
+                    <Text style={styles.emptySubText}>
+                        Tap the mic to add items to your budget.
+                    </Text>
+                </View>
+            ) : null
+        }
+      />
 
       {/* Live Transcript Overlay */}
       {isListening && (
@@ -85,6 +127,13 @@ export default function HomeScreen() {
           <Text style={styles.transcriptLabel}>Listening...</Text>
           <Text style={styles.transcriptText}>{transcript}</Text>
         </View>
+      )}
+
+      {/* Processing Indicator */}
+      {isProcessing && (
+         <View style={styles.transcriptContainer}>
+          <Text style={styles.transcriptText}>Processing...</Text>
+        </View> 
       )}
 
       {/* Error Overlay */}
@@ -95,10 +144,18 @@ export default function HomeScreen() {
       )}
 
       {/* Voice Controls */}
+      {/* Voice Controls */}
       <VoiceFloatingButton 
         isListening={isListening} 
-        isProcessing={isProcessing} 
+        isProcessing={isProcessing}
         onPress={toggleRecording} 
+      />
+
+      <BudgetModal 
+        visible={isBudgetModalVisible}
+        currentBudget={budget}
+        onClose={() => setIsBudgetModalVisible(false)}
+        onSetBudget={setBudget}
       />
 
     </SafeAreaView>
@@ -109,59 +166,62 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8F9FA',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    paddingTop: 0,
   },
-  header: {
-    padding: 24,
-    backgroundColor: '#FFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+  fixedContent: {
+      backgroundColor: '#F8F9FA',
+      zIndex: 10,
+      paddingBottom: 4, 
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#1A1A1A',
-    marginBottom: 4,
+  budgetWrapper: {
+      marginBottom: 8,
   },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#666',
-  },
-  content: {
-    flex: 1,
+  titleWrapper: {
+      paddingBottom: 8,
+      backgroundColor: '#F8F9FA',
+      zIndex: 10,
   },
   listContent: {
-    padding: 16,
     paddingBottom: 100, // Space for FAB
+    paddingTop: 8,
+  },
+  sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#1A1A1A',
+      marginLeft: 24,
+      marginTop: 8,
+      marginBottom: 0, 
+  },
+  itemWrapper: {
+      paddingHorizontal: 24,
+      marginBottom: 16, // Increased spacing for better card separation
   },
   emptyState: {
-    flex: 1,
-    justifyContent: 'center',
+    marginTop: 40,
     alignItems: 'center',
-    padding: 32,
     opacity: 0.6,
   },
   emptyText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 8,
   },
   emptySubText: {
     fontSize: 14,
     color: '#666',
-    textAlign: 'center',
-    lineHeight: 20,
+    marginTop: 4,
   },
   transcriptContainer: {
     position: 'absolute',
-    bottom: 110,
-    left: 16,
-    right: 16,
+    top: 600, // Moved to top to avoid overlap with bottom button
+    left: 24,
+    right: 24,
     backgroundColor: 'rgba(0,0,0,0.8)',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
+    zIndex: 998, // Below the button z-index
   },
   transcriptLabel: {
     color: '#AAA',
@@ -171,13 +231,13 @@ const styles = StyleSheet.create({
   },
   transcriptText: {
     color: '#FFF',
-    fontSize: 18,
+    fontSize: 16,
     textAlign: 'center',
     fontWeight: '500',
   },
   errorContainer: {
     position: 'absolute',
-    top: 100,
+    top: 595, // Align with transcript position
     left: 16,
     right: 16,
     backgroundColor: '#FEE2E2',
@@ -185,6 +245,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#EF4444',
+    alignItems: 'center',
+    zIndex: 10,
   },
   errorText: {
     color: '#B91C1C',

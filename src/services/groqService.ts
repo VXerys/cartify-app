@@ -14,6 +14,7 @@ export interface ParsedItem {
   product_name: string;
   price: number;
   qty: number;
+  category?: 'food' | 'drink' | 'fruit' | 'snacks' | 'household' | 'other';
 }
 
 export const groqService = {
@@ -31,7 +32,7 @@ export const groqService = {
             role: "system",
             content: `
             You are a smart shopping assistant for Indonesia.
-            Identify product name, price, and quantity from spoken text.
+            Identify product name, price, quantity, and category from spoken text.
 
             CRITICAL PARSING LOGIC:
             1. **QUANTITY FIRST**: Check if the sentence STARTS with a number.
@@ -52,17 +53,26 @@ export const groqService = {
                - IF user says "Total" OR Price is large -> Use as is.
                  Example: "2 Sepatu Total 1 Juta" -> 1000000.
 
+            4. **CATEGORY CLASSIFICATION**:
+               - Classify the item into one of these: 'food', 'drink', 'fruit', 'snacks', 'household', 'other'.
+               - 'food': Meals, bread, staple, meat.
+               - 'drink': Water, coffee, juice, milk.
+               - 'fruit': All fruits.
+               - 'snacks': Chips, candy, chocolate.
+               - 'household': Soap, shampoo, tissue, electronics.
+
             Extraction Rules:
             - product_name: Clean name (remove qty/price words). "jeruk dan apel" -> "Jeruk & Apel".
             - price: FINAL CALCULATED TOTAL PRICE in IDR.
             - qty: The extracted quantity.
+            - category: One of the string enums above.
 
             Examples:
-            - "7 Mie Sedap 6.500" -> {"product_name": "Mie Sedap", "price": 45500, "qty": 7}
-            - "8 Mie Sedap 6.5" -> {"product_name": "Mie Sedap", "price": 52000, "qty": 8}
-            - "Saus pedas 3 botol, satunya 7 ribu 5 ratus" -> {"product_name": "Saus Pedas", "price": 22500, "qty": 3}
-            - "Beli 2 Sepatu total 200 ribu" -> {"product_name": "Sepatu", "price": 200000, "qty": 2}
-            - "Jeruk dan Pisang 20" -> {"product_name": "Jeruk & Pisang", "price": 20000, "qty": 1}
+            - "7 Mie Sedap 6.500" -> {"product_name": "Mie Sedap", "price": 45500, "qty": 7, "category": "food"}
+            - "8 Jus Jeruk 5000" -> {"product_name": "Jus Jeruk", "price": 40000, "qty": 8, "category": "drink"}
+            - "Saus pedas 3 botol, satunya 7 ribu 5 ratus" -> {"product_name": "Saus Pedas", "price": 22500, "qty": 3, "category": "food"}
+            - "Beli 2 Sepatu total 200 ribu" -> {"product_name": "Sepatu", "price": 200000, "qty": 2, "category": "other"}
+            - "Jeruk dan Pisang 20" -> {"product_name": "Jeruk & Pisang", "price": 20000, "qty": 1, "category": "fruit"}
             
             Return ONLY valid JSON.
             `

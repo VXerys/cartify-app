@@ -34,6 +34,7 @@ export function useVoiceInput(): UseVoiceInputResult {
       setFinalResult(null);
       setTranscript('');
       setError(null);
+      
       const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
       if (!result.granted) {
         setError("Microphone permission not granted");
@@ -45,15 +46,23 @@ export function useVoiceInput(): UseVoiceInputResult {
         interimResults: true,
         maxAlternatives: 1,
       });
-    } catch (err: any) {
-        setError(err.message);
+    } catch (err) {
+        if (err instanceof Error) {
+            setError(err.message);
+        } else {
+            setError('An unexpected error occurred.');
+        }
+        setIsListening(false);
     }
   }, []);
 
   const stopRecording = useCallback(() => {
     try {
         ExpoSpeechRecognitionModule.stop();
-    } catch (err) {}
+    } catch (err) {
+        // Ignore stop errors or log them if critical
+        console.warn("Stop recording failed", err);
+    }
   }, []);
 
   return {

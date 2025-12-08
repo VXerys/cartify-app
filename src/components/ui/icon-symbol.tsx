@@ -39,6 +39,11 @@ const MAPPING = {
   'xmark': 'close',
   'bag.fill': 'shopping-bag',
   'slider.horizontal.3': 'tune',
+  'house': 'home',
+  'chevron.left': 'chevron-left',
+  'calendar': 'calendar-today',
+  'xmark.circle.fill': 'cancel',
+  'list.bullet': 'format-list-bulleted',
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],

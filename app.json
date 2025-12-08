@@ -48,7 +48,8 @@
         {
           "microphonePermission": "Izinkan Cartify mengakses mikrofon untuk fitur suara."
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,

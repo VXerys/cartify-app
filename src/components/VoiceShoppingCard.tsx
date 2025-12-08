@@ -13,6 +13,7 @@ interface VoiceShoppingCardProps {
   onDecrement?: () => void;
   onEdit?: () => void;
   index?: number;
+  readOnly?: boolean;
 }
 
 const getCategoryIcon = (category: string = 'other'): IconSymbolName => {
@@ -45,7 +46,8 @@ export function VoiceShoppingCard({
   onIncrement, 
   onDecrement, 
   onEdit,
-  index = 0 
+  index = 0,
+  readOnly = false
 }: VoiceShoppingCardProps) {
   const iconName = getCategoryIcon(category);
   const accentColor = getCategoryColor(category);
@@ -59,8 +61,8 @@ export function VoiceShoppingCard({
     >
       <TouchableOpacity 
           style={styles.card} 
-          activeOpacity={0.9} 
-          onPress={onEdit}
+          activeOpacity={readOnly ? 1 : 0.9} 
+          onPress={readOnly ? undefined : onEdit}
       >
         <View style={[styles.leftAccent, { backgroundColor: accentColor }]} />
         
@@ -74,31 +76,37 @@ export function VoiceShoppingCard({
             
             <View style={styles.detailsRow}>
               <Text style={styles.unitPrice}>
-                  {formatCurrency(price / qty)}
+                  {formatCurrency(price / (qty || 1))}
                   <Text style={styles.unitLabel}> / unit</Text>
               </Text>
 
-              <View style={styles.quantityControl}>
-                  <TouchableOpacity 
-                    onPress={onDecrement} 
-                    style={styles.qtyButton}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                      <IconSymbol name="minus" size={14} color="#1F2937" />
-                  </TouchableOpacity>
-                  
-                  <View style={styles.qtyBadge}>
-                    <Text style={styles.qtyText}>{qty}</Text>
+              {readOnly ? (
+                  <View style={styles.readOnlyQtyBadge}>
+                    <Text style={styles.readOnlyQtyText}>Qty: {qty}</Text>
                   </View>
+              ) : (
+                <View style={styles.quantityControl}>
+                    <TouchableOpacity 
+                        onPress={onDecrement} 
+                        style={styles.qtyButton}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                        <IconSymbol name="minus" size={14} color="#1F2937" />
+                    </TouchableOpacity>
+                    
+                    <View style={styles.qtyBadge}>
+                        <Text style={styles.qtyText}>{qty}</Text>
+                    </View>
 
-                  <TouchableOpacity 
-                    onPress={onIncrement} 
-                    style={styles.qtyButton}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                      <IconSymbol name="plus" size={14} color="#1F2937" />
-                  </TouchableOpacity>
-              </View>
+                    <TouchableOpacity 
+                        onPress={onIncrement} 
+                        style={styles.qtyButton}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                        <IconSymbol name="plus" size={14} color="#1F2937" />
+                    </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
 
@@ -111,7 +119,7 @@ export function VoiceShoppingCard({
             </View>
           </View>
 
-          {onDelete && (
+          {!readOnly && onDelete && (
              <TouchableOpacity 
                 onPress={onDelete} 
                 style={styles.deleteButton} 
@@ -260,5 +268,16 @@ const styles = StyleSheet.create({
       backgroundColor: '#FEF2F2',
       borderRadius: 10,
       marginTop: 4, 
+  },
+  readOnlyQtyBadge: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  readOnlyQtyText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4B5563',
   }
 });

@@ -1,6 +1,6 @@
 import { Layout } from '@/src/constants/Layout';
 import { useEffect, useState } from 'react';
-import { FlatList, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BudgetCard } from '@/src/components/home/BudgetCard';
@@ -9,10 +9,14 @@ import { CategorySlider } from '@/src/components/home/CategorySlider';
 import { EditItemModal } from '@/src/components/home/EditItemModal';
 import { HomeHeader } from '@/src/components/home/HomeHeader';
 import { StatsRow } from '@/src/components/home/StatsRow';
+import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import { VoiceFloatingButton } from '@/src/components/VoiceFloatingButton';
 import { VoiceShoppingCard } from '@/src/components/VoiceShoppingCard';
 import { useVoiceInput } from '@/src/hooks/useVoiceInput';
+import { insertTransaction, Transaction } from '@/src/services/db';
 import { groqService as geminiService, ParsedItem } from '@/src/services/groqService';
+import { useSQLiteContext } from 'expo-sqlite';
+import { toast } from 'sonner-native';
 
 export default function HomeScreen() {
   const { isListening, transcript, finalResult, startRecording, stopRecording, error: voiceError } = useVoiceInput();
@@ -38,6 +42,40 @@ export default function HomeScreen() {
       handleAnalyze(finalResult);
     }
   }, [finalResult]);
+
+  // Database
+    const db = useSQLiteContext();
+
+    const handleFinishShopping = async () => {
+        if (items.length === 0) return;
+
+        try {
+            const transaction: Transaction = {
+                date: new Date().toISOString(),
+                total_amount: spent,
+                note: 'Shopping Session',
+                items: items.map(item => ({
+                    item_name: item.product_name,
+                    item_price: item.qty > 0 ? (item.price / item.qty) : item.price,
+                    quantity: item.qty,
+                    category: item.category || 'Other',
+                    total_price: item.price
+                }))
+            };
+
+            await insertTransaction(db, transaction);
+            
+            setItems([]);
+            toast.success('Shopping saved successfully!', {
+                description: 'Check your history for details.',
+                duration: 3000,
+            });
+
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to save shopping session');
+        }
+    };
 
   const handleAnalyze = async (text: string) => {
     setIsProcessing(true);
@@ -179,6 +217,20 @@ export default function HomeScreen() {
                     <Text style={styles.emptySubText}>
                         Tap the mic to add items to your budget.
                     </Text>
+                </View>
+            ) : null
+        }
+        ListFooterComponent={
+            items.length > 0 ? (
+                <View style={styles.footerContainer}>
+                    <TouchableOpacity 
+                        style={styles.finishButton}
+                        onPress={handleFinishShopping}
+                        activeOpacity={0.8}
+                    >
+                        <IconSymbol name="checkmark.circle.fill" size={24} color="#FFFFFF" />
+                        <Text style={styles.finishButtonText}>Finish Shopping</Text>
+                    </TouchableOpacity>
                 </View>
             ) : null
         }
@@ -326,5 +378,30 @@ const styles = StyleSheet.create({
     color: '#B91C1C',
     textAlign: 'center',
     fontSize: 14,
+  },
+  footerContainer: {
+      paddingHorizontal: 24,
+      marginTop: 8,
+      marginBottom: 20,
+  },
+  finishButton: {
+      backgroundColor: Layout.colors.primary,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 16,
+      borderRadius: 20,
+      shadowColor: Layout.colors.primary,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 15,
+      elevation: 8,
+      gap: 12,
+  },
+  finishButtonText: {
+      color: '#FFFFFF',
+      fontSize: 18,
+      fontWeight: 'bold',
+      letterSpacing: 0.5,
   },
 });

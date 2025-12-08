@@ -1,21 +1,21 @@
 import React from 'react';
 import {
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
-    ViewStyle
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+  ViewStyle
 } from 'react-native';
 import Animated, {
-    FadeInDown,
-    ZoomIn,
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring
+  FadeInDown,
+  ZoomIn,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring
 } from 'react-native-reanimated';
 
 interface AppModalProps {
@@ -25,9 +25,10 @@ interface AppModalProps {
   onClose: () => void;
   onSave?: () => void;
   saveLabel?: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   headerIcon?: React.ReactNode;
   contentStyle?: ViewStyle;
+  variant?: 'default' | 'danger';
 }
 
 export function AppModal({ 
@@ -38,7 +39,8 @@ export function AppModal({
   onSave, 
   saveLabel = 'Save',
   children,
-  headerIcon
+  headerIcon,
+  variant = 'default'
 }: AppModalProps) {
   
   // Button Animation State
@@ -57,6 +59,10 @@ export function AppModal({
   };
 
   if (!visible) return null;
+
+  // Colors based on variant
+  const primaryColor = variant === 'danger' ? '#EF4444' : '#059669';
+  const lightColor = variant === 'danger' ? '#FEE2E2' : '#ECFDF5';
 
   return (
     <Modal
@@ -77,10 +83,10 @@ export function AppModal({
           entering={ZoomIn.duration(300).springify()}
           style={styles.modalView}
         >
-          <View style={styles.headerDecoration} />
+          <View style={[styles.headerDecoration, { backgroundColor: primaryColor }]} />
           
           {headerIcon && (
-              <View style={styles.iconContainer}>
+              <View style={[styles.iconContainer, { backgroundColor: lightColor }]}>
                   {headerIcon}
               </View>
           )}
@@ -101,12 +107,14 @@ export function AppModal({
             </Animated.Text>
           )}
           
-          <Animated.View 
-            entering={FadeInDown.delay(300).springify()}
-            style={styles.contentContainer}
-          >
-            {children}
-          </Animated.View>
+          {children && (
+            <Animated.View 
+                entering={FadeInDown.delay(300).springify()}
+                style={styles.contentContainer}
+            >
+                {children}
+            </Animated.View>
+          )}
 
           <View style={styles.buttonRow}>
             <TouchableOpacity 
@@ -120,7 +128,17 @@ export function AppModal({
             {onSave && (
                 <Animated.View style={[styles.buttonContainer, animatedButtonStyle]}>
                 <TouchableOpacity 
-                    style={[styles.button, styles.buttonSave]} 
+                    style={[
+                        styles.button, 
+                        { 
+                            backgroundColor: primaryColor,
+                            shadowColor: primaryColor,
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.3,
+                            shadowRadius: 8,
+                            elevation: 4,
+                        } 
+                    ]} 
                     onPress={onSave}
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}
@@ -167,12 +185,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 6,
-    backgroundColor: '#059669', // Emerald for edits, or generic primary
   },
   iconContainer: {
       marginBottom: 12,
       padding: 12,
-      backgroundColor: '#ECFDF5',
       borderRadius: 16,
   },
   modalTitle: {
@@ -215,17 +231,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
     borderWidth: 1,
     borderColor: 'transparent',
-  },
-  buttonSave: {
-    backgroundColor: '#059669',
-    shadowColor: "#059669",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
   },
   textCancel: {
     color: '#8E8E93',

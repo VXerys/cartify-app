@@ -58,7 +58,7 @@ export function EditItemModal({
             onClose={onClose}
             onSave={handleSave}
             saveLabel="Save Changes"
-            headerIcon={<IconSymbol name="pencil" size={24} color="#059669" />}
+            headerIcon={<IconSymbol name="pencil" size={24} color="#81BFBC" />}
         >
             <View style={styles.inputGroup}>
                 <Text style={styles.label}>Product Name</Text>

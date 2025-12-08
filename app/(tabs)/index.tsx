@@ -1,9 +1,11 @@
+import { Layout } from '@/src/constants/Layout';
 import { useEffect, useState } from 'react';
 import { FlatList, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BudgetCard } from '@/src/components/home/BudgetCard';
 import { BudgetModal } from '@/src/components/home/BudgetModal';
+import { CategorySlider } from '@/src/components/home/CategorySlider';
 import { EditItemModal } from '@/src/components/home/EditItemModal';
 import { HomeHeader } from '@/src/components/home/HomeHeader';
 import { StatsRow } from '@/src/components/home/StatsRow';
@@ -16,6 +18,13 @@ export default function HomeScreen() {
   const { isListening, transcript, finalResult, startRecording, stopRecording, error: voiceError } = useVoiceInput();
   const [items, setItems] = useState<ParsedItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const categories = ['All', 'Food', 'Drink', 'Fruit', 'Snacks', 'Household', 'Other'];
+
+  const filteredItems = selectedCategory === 'All' 
+    ? items 
+    : items.filter(item => item.category?.toLowerCase() === selectedCategory.toLowerCase());
   
   // Budget State
   const [budget, setBudget] = useState(500000); // Default IDR 500k
@@ -110,13 +119,13 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
+      <StatusBar barStyle="light-content" backgroundColor={Layout.colors.primary} />
       
       <View style={styles.fixedContent}>
         <HomeHeader />
 
         <View style={styles.budgetWrapper}>
-            <BudgetCard 
+              <BudgetCard 
                 budget={budget} 
                 spent={spent} 
                 onEditBudget={handleEditBudget}
@@ -128,16 +137,24 @@ export default function HomeScreen() {
             </BudgetCard>
         </View>
 
+        <CategorySlider 
+            categories={categories} 
+            selectedCategory={selectedCategory} 
+            onSelectCategory={setSelectedCategory} 
+        />
+
         {items.length > 0 && (
             <View style={styles.titleWrapper}>
-                <Text style={styles.sectionTitle}>Recent Items</Text>
+                <Text style={styles.sectionTitle}>
+                    {selectedCategory === 'All' ? 'Recent Items' : `${selectedCategory} Items`}
+                </Text>
             </View>
         )}
       </View>
 
       <FlatList
         style={{ flex: 1 }}
-        data={items}
+        data={filteredItems}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item, index }) => (
           <View style={styles.itemWrapper}>
@@ -190,7 +207,6 @@ export default function HomeScreen() {
       )}
 
       {/* Voice Controls */}
-      {/* Voice Controls */}
       <VoiceFloatingButton 
         isListening={isListening} 
         isProcessing={isProcessing}
@@ -221,20 +237,22 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#F2F9F9', // Faint teal tint to match brand
     paddingTop: 0,
   },
   fixedContent: {
-      backgroundColor: '#F8F9FA',
+      backgroundColor: 'transparent',
       zIndex: 10,
       paddingBottom: 4, 
   },
   budgetWrapper: {
       marginBottom: 8,
+      marginTop: -24,
+      zIndex: 20,
   },
   titleWrapper: {
       paddingBottom: 8,
-      backgroundColor: '#F8F9FA',
+      backgroundColor: '#F2F9F9',
       zIndex: 10,
   },
   listContent: {

@@ -1,4 +1,5 @@
 import { Layout } from '@/src/constants/Layout';
+import { MaterialIcons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -25,34 +26,11 @@ export function HomeHeader() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
+      <View style={styles.decorativeCircle1} />
+      <View style={styles.decorativeCircle2} />
+
       <View style={styles.contentContainer}>
-        <View style={styles.textContainer}>
-          <Animated.Text 
-            entering={FadeInDown.delay(100).springify()} 
-            style={styles.greeting}
-          >
-            {greeting},
-          </Animated.Text>
-          <Animated.Text 
-            entering={FadeInDown.delay(200).springify()} 
-            style={styles.name}
-          >
-            Sarah Johnson
-          </Animated.Text>
-           <Animated.Text 
-            entering={FadeInDown.delay(300).springify()} 
-            style={styles.date}
-          >
-            {dateStr}
-          </Animated.Text>
-        </View>
-
-        <Animated.View 
-            entering={FadeInDown.delay(400).springify()} 
-            style={styles.rightSection}
-        >
-
-
+        <View style={styles.leftSection}>
             <TouchableOpacity style={styles.avatarContainer} activeOpacity={0.8}>
                 <Image 
                     source={{ uri: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' }} 
@@ -60,6 +38,31 @@ export function HomeHeader() {
                 />
                 <View style={styles.onlineIndicator} />
             </TouchableOpacity>
+            
+            <View style={styles.textContainer}>
+                <Animated.Text 
+                    entering={FadeInDown.delay(100).springify()} 
+                    style={styles.greeting}
+                >
+                    {greeting},
+                </Animated.Text>
+                <Animated.Text 
+                    entering={FadeInDown.delay(200).springify()} 
+                    style={styles.name}
+                >
+                    Sarah Johnson
+                </Animated.Text>
+            </View>
+        </View>
+
+        <Animated.View 
+            entering={FadeInDown.delay(300).springify()} 
+            style={styles.dateContainer}
+        >
+            <MaterialIcons name="event" size={14} color="rgba(255,255,255,0.9)" />
+            <Animated.Text style={styles.date}>
+              {dateStr}
+            </Animated.Text>
         </Animated.View>
       </View>
     </View>
@@ -68,96 +71,101 @@ export function HomeHeader() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: Layout.spacing.l,
+    paddingHorizontal: Layout.spacing.m,
     paddingBottom: Layout.spacing.m,
-    backgroundColor: '#F8F9FA', // Keep light background
+    paddingTop: Layout.spacing.s, // Handled by inline style but good to have base
+    backgroundColor: Layout.colors.primary, 
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
     zIndex: 10,
+    overflow: 'hidden',
+    ...Layout.shadows.medium,
+  },
+  decorativeCircle1: {
+      position: 'absolute',
+      bottom: -30,
+      left: -30,
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  decorativeCircle2: {
+      position: 'absolute',
+      top: -60,
+      right: -20, 
+      width: 200,
+      height: 200,
+      borderRadius: 100,
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   contentContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
   },
-  textContainer: {
+  leftSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     flex: 1,
-  },
-  greeting: {
-    fontSize: 28,
-    lineHeight: 34,
-    fontWeight: '800',
-    color: '#1A1A1A',
-    letterSpacing: -0.5,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#666',
-    marginTop: 2,
-    marginBottom: 4,
-  },
-  date: {
-      fontSize: 13,
-      fontWeight: '600',
-      color: Layout.colors.primary, // Integrating brand color
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
-  },
-  rightSection: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      marginTop: 4, 
-  },
-  iconButton: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: '#FFF',
-      justifyContent: 'center',
-      alignItems: 'center',
-      // Subtle shadow
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.05,
-      shadowRadius: 4,
-      elevation: 2,
-      borderWidth: 1,
-      borderColor: 'rgba(0,0,0,0.03)',
-  },
-  badge: {
-      position: 'absolute',
-      top: 10,
-      right: 12,
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: '#FF5252',
-      borderWidth: 1.5,
-      borderColor: '#FFF',
   },
   avatarContainer: {
     position: 'relative',
-    padding: 3, // Create a border effect
-    backgroundColor: 'rgba(255,255,255,0.8)', // Semi-transparent
-    borderRadius: 18, // Squircle-ish
+    padding: 3, 
+    backgroundColor: 'rgba(255,255,255,0.15)', 
+    borderRadius: 50, 
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   avatar: {
     width: 48,
     height: 48,
-    borderRadius: 14,
+    borderRadius: 24,
     backgroundColor: '#E1E1E1',
   },
   onlineIndicator: {
     position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+    bottom: 2,
+    right: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     backgroundColor: '#2ECC71',
     borderWidth: 2,
-    borderColor: '#FFF',
+    borderColor: Layout.colors.primary,
+  },
+  textContainer: {
+    justifyContent: 'center',
+  },
+  greeting: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.9)', 
+    marginBottom: 2,
+    letterSpacing: 0.3,
+  },
+  name: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFF',
+    letterSpacing: -0.5,
+  },
+  dateContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: 'rgba(255, 255, 255, 0.15)', 
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.1)',
+      gap: 6,
+  },
+  date: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: '#FFF',
+      letterSpacing: 0.5,
   },
 });

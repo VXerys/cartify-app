@@ -129,6 +129,7 @@ export function VoiceShoppingCard({
 
 const styles = StyleSheet.create({
   container: {
+    
     marginBottom: 1,
   },
   card: {

@@ -12,25 +12,31 @@ export function StatsRow({ orders, items }: StatsRowProps) {
   return (
     <Animated.View 
       entering={FadeInDown.delay(700).springify()}
-      style={styles.container}
+      style={styles.root}
     >
-      <View style={styles.card}>
-        <View style={styles.iconContainer}>
-            <IconSymbol name="cart.fill" size={18} color="#FFFFFF" />
+      <View style={styles.container}>
+        {/* Orders Section */}
+        <View style={styles.statSection}>
+            <View style={styles.iconContainer}>
+               <IconSymbol name="cart.fill" size={18} color="#2A9D8F" />
+            </View>
+            <View style={styles.info}>
+                <Text style={styles.value}>{orders}</Text>
+                <Text style={styles.label}>Orders</Text>
+            </View>
         </View>
-        <View style={styles.textContainer}>
-            <Text style={styles.value} numberOfLines={1} adjustsFontSizeToFit>{orders}</Text>
-            <Text style={styles.label}>Orders</Text>
-        </View>
-      </View>
-      
-      <View style={styles.card}>
-        <View style={styles.iconContainer}>
-            <IconSymbol name="cube.box.fill" size={18} color="#FFFFFF" />
-        </View>
-        <View style={styles.textContainer}>
-             <Text style={styles.value} numberOfLines={1} adjustsFontSizeToFit>{items}</Text>
-             <Text style={styles.label}>Items</Text>
+
+        <View style={styles.divider} />
+
+        {/* Items Section */}
+        <View style={styles.statSection}>
+            <View style={styles.iconContainer}>
+               <IconSymbol name="bag.fill" size={18} color="#2A9D8F" />
+            </View>
+             <View style={styles.info}>
+                <Text style={styles.value}>{items}</Text>
+                <Text style={styles.label}>Items</Text>
+            </View>
         </View>
       </View>
     </Animated.View>
@@ -38,56 +44,62 @@ export function StatsRow({ orders, items }: StatsRowProps) {
 }
 
 const styles = StyleSheet.create({
+  root: {
+    marginTop: 8,
+  },
   container: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-    width: '100%',
-  },
-  card: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)', 
-    borderRadius: 18,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    flexDirection: 'row', 
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    shadowColor: "rgba(0,0,0,0.1)",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)', 
+  statSection: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    gap: 12,
   },
-  textContainer: {
-    flex: 1,
+  iconContainer: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
     justifyContent: 'center',
-    gap: 0,
+    shadowColor: "rgba(0,0,0,0.1)",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  info: {
+      justifyContent: 'center',
+      alignItems: 'flex-start',
   },
   value: {
-    fontSize: 19,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '800',
     color: '#FFFFFF',
-    marginBottom: 0,
+    marginBottom: -2,
     includeFontPadding: false,
-    letterSpacing: -0.5,
+    textShadowColor: 'rgba(0,0,0,0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   label: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.85)',
-    fontWeight: '500',
-    includeFontPadding: false,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
+  divider: {
+    width: 1,
+    height: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    marginHorizontal: 4,
+  }
 });

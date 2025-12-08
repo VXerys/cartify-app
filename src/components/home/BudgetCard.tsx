@@ -20,16 +20,21 @@ interface BudgetCardProps {
   onEditBudget?: () => void;
 }
 
-
-
 export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCardProps) {
   const percentage = Math.min(spent / budget, 1);
   const progressWidth = useSharedValue(0);
   
   // Dynamic color logic
   let progressColor = '#FFFFFF';
-  if (percentage > 0.85) progressColor = '#FF6B6B'; // Red warning
-  else if (percentage > 0.5) progressColor = '#FFD93D'; // Yellow caution
+  let progressShadowColor = 'rgba(255, 255, 255, 0.5)';
+  
+  if (percentage > 0.85) {
+      progressColor = '#FF8A8A'; // Softer Red
+      progressShadowColor = 'rgba(255, 138, 138, 0.6)';
+  } else if (percentage > 0.5) {
+      progressColor = '#FFD93D'; // Yellow
+      progressShadowColor = 'rgba(255, 217, 61, 0.6)';
+  }
 
   useEffect(() => {
     progressWidth.value = withDelay(500, withSpring(percentage * 100, {
@@ -43,6 +48,12 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
     return {
       width: `${progressWidth.value}%`,
       backgroundColor: progressColor,
+      shadowColor: progressShadowColor,
+      shadowOpacity: 0.6,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 0 },
+      // Elevation for Android glow effect not supported directly on View consistently, but helpful
+      elevation: 4, 
     };
   });
 
@@ -54,8 +65,9 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
       <Animated.View
         style={[styles.card, { backgroundColor: '#2A9D8F' }]}
       >
-        {/* Decorative background circle for premium feel */}
+        {/* Decorative background elements for premium feel */}
         <View style={styles.decorativeCircle} />
+        <View style={styles.decorativeCircleSmall} />
 
         <View style={styles.header}>
           <View>
@@ -63,7 +75,7 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
                 entering={FadeInDown.delay(200).springify()} 
                 style={styles.label}
             >
-                Monthly Budget
+                MONTHLY BUDGET
             </Animated.Text>
             <Animated.Text 
                 entering={FadeInDown.delay(300).springify()} 
@@ -76,11 +88,10 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
             style={styles.walletButton} 
             onPress={onEditBudget}
             activeOpacity={0.8}
-
           >
              <IconSymbol 
-              size={22} 
-              name="wallet.pass.fill" 
+              size={20} 
+              name="slider.horizontal.3" 
               color={Layout.colors.primary} 
              />
           </TouchableOpacity>
@@ -92,7 +103,7 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
                 entering={FadeInDown.delay(400)} 
                 style={styles.spentLabel}
             >
-                Spent this month
+                Total Spent
             </Animated.Text>
             <Animated.Text 
                 entering={FadeInDown.delay(500)} 
@@ -110,11 +121,10 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
             entering={FadeInUp.delay(600)} 
             style={styles.percentageText}
           >
-            {Math.round(percentage * 100)}% of budget used
+            {Math.round(percentage * 100)}% of your budget used
           </Animated.Text>
         </View>
 
-        {/* Stats Row Container - handled by children but styled via prop containment if needed */}
         {children && (
              <Animated.View entering={FadeInDown.delay(700)} style={styles.childrenContainer}>
                 {children}
@@ -129,45 +139,60 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
 const styles = StyleSheet.create({
   containerShadow: {
     marginHorizontal: 20,
-    marginTop: 4, // Reduced top margin
+    marginTop: 50,
     marginBottom: 12,
-    ...Layout.shadows.float, 
-    borderRadius: 24, // Slightly tighter radius
-    backgroundColor: 'transparent', 
+    shadowColor: "#2A9D8F", // Colored shadow
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.35,
+    shadowRadius: 24,
+    elevation: 12,
+    borderRadius: 28,
+    backgroundColor: 'transparent',
   },
   card: {
-    borderRadius: 24,
-    padding: 18, // Reduced padding
+    borderRadius: 28,
+    padding: 24,
     position: 'relative',
     overflow: 'hidden', 
   },
   decorativeCircle: {
       position: 'absolute',
-      top: -50,
-      right: -50,
-      width: 200,
-      height: 200,
-      borderRadius: 100,
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      top: -60,
+      right: -60,
+      width: 220,
+      height: 220,
+      borderRadius: 110,
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      zIndex: 0,
+  },
+  decorativeCircleSmall: {
+      position: 'absolute',
+      bottom: -40,
+      left: -40,
+      width: 140,
+      height: 140,
+      borderRadius: 70,
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
       zIndex: 0,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12, // Reduced margin
+    marginBottom: 20,
     zIndex: 1,
   },
   label: {
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 14, // Slightly smaller
-    fontWeight: '500',
-    marginBottom: 2, // Tighter
-    letterSpacing: 0.5,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 12, 
+    fontWeight: '700',
+    marginBottom: 4,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   budgetAmount: {
     color: '#FFFFFF',
-    fontSize: 28, // Reduced from 34
+    fontSize: 32, // Large and readable
     fontWeight: '800',
     letterSpacing: -1,
     textShadowColor: 'rgba(0,0,0,0.1)',
@@ -175,62 +200,57 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   walletButton: {
-    
     backgroundColor: '#FFFFFF',
-    width: 38, // Smaller button
-    height: 38,
-    borderRadius: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: "#000",
+    shadowColor: "rgba(0,0,0,0.2)",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
   progressContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 16,
-    padding: 12, // Reduced padding
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     zIndex: 1,
+    marginBottom: 4,
   },
   progressTextRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginBottom: 6, // Reduced margin
+    alignItems: 'flex-end',
+    marginBottom: 8,
   },
   spentLabel: {
-    color: 'rgba(255, 255, 255, 0.95)',
-    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 14,
     fontWeight: '500',
   },
   spentAmount: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
     letterSpacing: -0.5,
   },
   progressBarBg: {
-    height: 6, // Slightly thinner
-    backgroundColor: 'rgba(0, 0, 0, 0.1)', 
-    borderRadius: 3,
+    height: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)', 
+    borderRadius: 4,
     overflow: 'hidden',
-    marginBottom: 6, // Reduced margin
+    marginBottom: 8,
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 4,
   },
   percentageText: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 12,
     fontWeight: '500',
   },
   childrenContainer: {
-      marginTop: 10, // Tighter spacing
+      marginTop: 12,
       zIndex: 1,
   }
 });

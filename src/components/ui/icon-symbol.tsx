@@ -37,6 +37,8 @@ const MAPPING = {
   'bell.fill': 'notifications',
   'pencil': 'edit',
   'xmark': 'close',
+  'bag.fill': 'shopping-bag',
+  'slider.horizontal.3': 'tune',
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],

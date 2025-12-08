@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BudgetCard } from '@/src/components/home/BudgetCard';
 import { BudgetModal } from '@/src/components/home/BudgetModal';
+import { EditItemModal } from '@/src/components/home/EditItemModal';
 import { HomeHeader } from '@/src/components/home/HomeHeader';
 import { StatsRow } from '@/src/components/home/StatsRow';
 import { VoiceFloatingButton } from '@/src/components/VoiceFloatingButton';
@@ -19,6 +20,7 @@ export default function HomeScreen() {
   // Budget State
   const [budget, setBudget] = useState(500000); // Default IDR 500k
   const [isBudgetModalVisible, setIsBudgetModalVisible] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const spent = items.reduce((sum, item) => sum + item.price, 0);
 
   // Handle Voice Result
@@ -65,6 +67,47 @@ export default function HomeScreen() {
     });
   };
 
+  const handleUpdateQuantity = (index: number, change: number) => {
+    setItems((prevItems) => {
+      const newItems = [...prevItems];
+      const item = newItems[index];
+      
+      if (!item) return prevItems;
+
+      const unitPrice = item.qty > 0 ? (item.price / item.qty) : 0;
+      const newQty = item.qty + change;
+
+      if (newQty < 1) return prevItems;
+
+      newItems[index] = {
+        ...item,
+        qty: newQty,
+        price: Math.round(unitPrice * newQty)
+      };
+      
+      return newItems;
+    });
+  };
+
+  const handleSaveItem = (name: string, unitPrice: number) => {
+    if (editingIndex === null) return;
+    
+    setItems((prev) => {
+      const newItems = [...prev];
+      const item = newItems[editingIndex];
+      // Recalculate total price based on new unit price
+      const newTotalPrice = unitPrice * item.qty;
+      
+      newItems[editingIndex] = {
+        ...item,
+        product_name: name,
+        price: newTotalPrice
+      };
+      return newItems;
+    });
+    setEditingIndex(null);
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
@@ -105,6 +148,9 @@ export default function HomeScreen() {
                 category={item.category}
                 index={index}
                 onDelete={() => handleDeleteItem(index)}
+                onIncrement={() => handleUpdateQuantity(index, 1)}
+                onDecrement={() => handleUpdateQuantity(index, -1)}
+                onEdit={() => setEditingIndex(index)}
               />
           </View>
         )}
@@ -157,6 +203,16 @@ export default function HomeScreen() {
         onClose={() => setIsBudgetModalVisible(false)}
         onSetBudget={setBudget}
       />
+
+      {items.length > 0 && editingIndex !== null && items[editingIndex] && (
+        <EditItemModal
+            visible={editingIndex !== null}
+            initialName={items[editingIndex].product_name}
+            initialPrice={items[editingIndex].qty > 0 ? (items[editingIndex].price / items[editingIndex].qty) : 0}
+            onClose={() => setEditingIndex(null)}
+            onSave={handleSaveItem}
+        />
+      )}
 
     </SafeAreaView>
   );

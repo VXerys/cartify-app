@@ -9,6 +9,9 @@ interface VoiceShoppingCardProps {
   qty: number;
   category?: string;
   onDelete?: () => void;
+  onIncrement?: () => void;
+  onDecrement?: () => void;
+  onEdit?: () => void;
   index?: number;
 }
 
@@ -33,7 +36,17 @@ const getCategoryColor = (category: string = 'other'): string => {
     }
 };
 
-export function VoiceShoppingCard({ productName, price, qty, category, onDelete, index = 0 }: VoiceShoppingCardProps) {
+export function VoiceShoppingCard({ 
+  productName, 
+  price, 
+  qty, 
+  category, 
+  onDelete, 
+  onIncrement, 
+  onDecrement, 
+  onEdit,
+  index = 0 
+}: VoiceShoppingCardProps) {
   const iconName = getCategoryIcon(category);
   const accentColor = getCategoryColor(category);
 
@@ -44,23 +57,48 @@ export function VoiceShoppingCard({ productName, price, qty, category, onDelete,
       layout={Layout.springify()}
       style={styles.container}
     >
-      <View style={styles.card}>
+      <TouchableOpacity 
+          style={styles.card} 
+          activeOpacity={0.9} 
+          onPress={onEdit}
+      >
         <View style={[styles.leftAccent, { backgroundColor: accentColor }]} />
         
-        <View style={styles.contentContainer}>
+        <View style={styles.touchableCard}>
           <View style={[styles.iconContainer, { backgroundColor: `${accentColor}20` }]}>
              <IconSymbol name={iconName} size={22} color={accentColor} />
           </View>
 
           <View style={styles.info}>
-            <Text style={styles.title}>{productName}</Text>
-            <View style={styles.metaRow}>
-                <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{qty}x</Text>
-                </View>
-                <Text style={styles.unitPrice}>
-                    @ {formatCurrency(price / qty)}
-                </Text>
+            <Text style={styles.title} numberOfLines={2}>{productName}</Text>
+            
+            <View style={styles.detailsRow}>
+              <Text style={styles.unitPrice}>
+                  {formatCurrency(price / qty)}
+                  <Text style={styles.unitLabel}> / unit</Text>
+              </Text>
+
+              <View style={styles.quantityControl}>
+                  <TouchableOpacity 
+                    onPress={onDecrement} 
+                    style={styles.qtyButton}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                      <IconSymbol name="minus" size={14} color="#1F2937" />
+                  </TouchableOpacity>
+                  
+                  <View style={styles.qtyBadge}>
+                    <Text style={styles.qtyText}>{qty}</Text>
+                  </View>
+
+                  <TouchableOpacity 
+                    onPress={onIncrement} 
+                    style={styles.qtyButton}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                      <IconSymbol name="plus" size={14} color="#1F2937" />
+                  </TouchableOpacity>
+              </View>
             </View>
           </View>
 
@@ -84,7 +122,7 @@ export function VoiceShoppingCard({ productName, price, qty, category, onDelete,
              </TouchableOpacity>
           )}
         </View>
-      </View>
+      </TouchableOpacity>
     </Animated.View>
   );
 }
@@ -106,17 +144,18 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     minHeight: 80,
   },
-  leftAccent: {
-    width: 5,
-    height: '100%',
-  },
-  contentContainer: {
+  touchableCard: {
     flex: 1,
     flexDirection: 'row',
     padding: 12,
     alignItems: 'center',
     gap: 12,
   },
+  leftAccent: {
+    width: 5,
+    height: '100%',
+  },
+
   iconContainer: {
     width: 40,
     height: 40,
@@ -124,64 +163,101 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   info: {
     flex: 1, 
     justifyContent: 'center',
-    marginRight: 8, // Enforce spacing from right section
+    marginRight: 4, 
   },
   title: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 4,
-    letterSpacing: -0.2,
+    color: '#111827',
+    marginBottom: 6,
+    letterSpacing: -0.3,
+    lineHeight: 20,
   },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  detailsRow: {
+    flexDirection: 'column', 
+    alignItems: 'flex-start',
+    gap: 8,
   },
-  badge: {
+  unitPrice: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
     backgroundColor: '#F3F4F6',
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: 6,
+    overflow: 'hidden',
   },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#4B5563',
+  unitLabel: {
+      fontWeight: '400',
+      color: '#9CA3AF',
+      fontSize: 11,
   },
-  unitPrice: {
-    fontSize: 11,
-    color: '#9CA3AF',
-    flexShrink: 1, 
+  quantityControl: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#F9FAFB',
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: '#E5E7EB',
+      padding: 2,
+  },
+  qtyButton: {
+      width: 24,
+      height: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#FFFFFF',
+      borderRadius: 6,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 1,
+      elevation: 1,
+  },
+  qtyBadge: {
+      minWidth: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 4,
+  },
+  qtyText: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: '#111827',
   },
   rightSection: {
-    justifyContent: 'center',
+    justifyContent: 'space-between', 
     alignItems: 'flex-end',
-    minWidth: 80, // Reserve space for price
+    paddingVertical: 4,
   },
   priceContainer: {
     alignItems: 'flex-end',
+    justifyContent: 'center',
+    flex: 1,
   },
   priceLabel: {
-    fontSize: 9,
+    fontSize: 10,
     color: '#9CA3AF',
     marginBottom: 2,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   price: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '800',
-    color: '#1A1A1A',
+    color: '#059669', // Uses a nice green for price
     letterSpacing: -0.5,
   },
   deleteButton: {
       padding: 8,
       backgroundColor: '#FEF2F2',
       borderRadius: 10,
-      marginLeft: 4,
+      marginTop: 4, 
   }
 });

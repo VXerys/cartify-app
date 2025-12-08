@@ -28,10 +28,15 @@ const MAPPING = {
   'mic.fill': 'mic',
   'waveform': 'graphic-eq',
   'plus': 'add', // For the custom button
+  'minus': 'remove',
+  'plus.circle.fill': 'add-circle',
+  'minus.circle.fill': 'remove-circle',
   'trash.fill': 'delete',
   'home.fill': 'home',
   'house.fill': 'home',
   'bell.fill': 'notifications',
+  'pencil': 'edit',
+  'xmark': 'close',
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],

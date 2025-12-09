@@ -10,6 +10,7 @@ import { EditItemModal } from '@/src/components/home/EditItemModal';
 import { HomeHeader } from '@/src/components/home/HomeHeader';
 import { StatsRow } from '@/src/components/home/StatsRow';
 import { IconSymbol } from '@/src/components/ui/icon-symbol';
+import { VoiceFeedback } from '@/src/components/voice/VoiceFeedback';
 import { VoiceFloatingButton } from '@/src/components/VoiceFloatingButton';
 import { VoiceShoppingCard } from '@/src/components/VoiceShoppingCard';
 import { useVoiceInput } from '@/src/hooks/useVoiceInput';
@@ -186,6 +187,14 @@ export default function HomeScreen() {
                 <Text style={styles.sectionTitle}>
                     {selectedCategory === 'All' ? 'Recent Items' : `${selectedCategory} Items`}
                 </Text>
+                <TouchableOpacity 
+                    style={styles.headerFinishButton} 
+                    onPress={handleFinishShopping}
+                    activeOpacity={0.7}
+                >
+                    <IconSymbol name="checkmark" size={16} color="#FFFFFF" weight="bold" />
+                    <Text style={styles.headerFinishText}>Finish</Text>
+                </TouchableOpacity>
             </View>
         )}
       </View>
@@ -220,43 +229,16 @@ export default function HomeScreen() {
                 </View>
             ) : null
         }
-        ListFooterComponent={
-            items.length > 0 ? (
-                <View style={styles.footerContainer}>
-                    <TouchableOpacity 
-                        style={styles.finishButton}
-                        onPress={handleFinishShopping}
-                        activeOpacity={0.8}
-                    >
-                        <IconSymbol name="checkmark.circle.fill" size={24} color="#FFFFFF" />
-                        <Text style={styles.finishButtonText}>Finish Shopping</Text>
-                    </TouchableOpacity>
-                </View>
-            ) : null
-        }
+        ListFooterComponent={ <View style={{ height: 20 }} /> }
       />
 
-      {/* Live Transcript Overlay */}
-      {isListening && (
-        <View style={styles.transcriptContainer}>
-          <Text style={styles.transcriptLabel}>Listening...</Text>
-          <Text style={styles.transcriptText}>{transcript}</Text>
-        </View>
-      )}
-
-      {/* Processing Indicator */}
-      {isProcessing && (
-         <View style={styles.transcriptContainer}>
-          <Text style={styles.transcriptText}>Processing...</Text>
-        </View> 
-      )}
-
-      {/* Error Overlay */}
-      {voiceError && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{voiceError}</Text>
-        </View>
-      )}
+      <VoiceFeedback 
+        isListening={isListening}
+        isProcessing={isProcessing}
+        transcript={transcript}
+        error={voiceError}
+        onRetry={startRecording}
+      />
 
       {/* Voice Controls */}
       <VoiceFloatingButton 
@@ -303,25 +285,47 @@ const styles = StyleSheet.create({
       zIndex: 20,
   },
   titleWrapper: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 24,
       paddingBottom: 8,
+      marginTop: 8,
       backgroundColor: '#F2F9F9',
       zIndex: 10,
-  },
-  listContent: {
-    paddingBottom: 100, // Space for FAB
-    paddingTop: 8,
   },
   sectionTitle: {
       fontSize: 18,
       fontWeight: 'bold',
       color: '#1A1A1A',
-      marginLeft: 24,
-      marginTop: 8,
-      marginBottom: 0, 
+  },
+  headerFinishButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: Layout.colors.primary,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 20,
+      gap: 6,
+      shadowColor: Layout.colors.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 3,
+  },
+  headerFinishText: {
+      color: '#FFFFFF',
+      fontSize: 13,
+      fontWeight: '700',
+      letterSpacing: 0.3,
+  },
+  listContent: {
+    paddingBottom: 100, // Space for FAB
+    paddingTop: 8,
   },
   itemWrapper: {
       paddingHorizontal: 24,
-      marginBottom: 16, // Increased spacing for better card separation
+      marginBottom: 16, 
   },
   emptyState: {
     marginTop: 40,
@@ -338,70 +342,10 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 4,
   },
-  transcriptContainer: {
-    position: 'absolute',
-    top: 600, // Moved to top to avoid overlap with bottom button
-    left: 24,
-    right: 24,
-    backgroundColor: 'rgba(0,0,0,0.8)',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    zIndex: 998, // Below the button z-index
-  },
-  transcriptLabel: {
-    color: '#AAA',
-    fontSize: 12,
-    marginBottom: 4,
-    textTransform: 'uppercase',
-  },
-  transcriptText: {
-    color: '#FFF',
-    fontSize: 16,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  errorContainer: {
-    position: 'absolute',
-    top: 595, // Align with transcript position
-    left: 16,
-    right: 16,
-    backgroundColor: '#FEE2E2',
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#EF4444',
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  errorText: {
-    color: '#B91C1C',
-    textAlign: 'center',
-    fontSize: 14,
-  },
+
   footerContainer: {
       paddingHorizontal: 24,
       marginTop: 8,
       marginBottom: 20,
-  },
-  finishButton: {
-      backgroundColor: Layout.colors.primary,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 16,
-      borderRadius: 20,
-      shadowColor: Layout.colors.primary,
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.3,
-      shadowRadius: 15,
-      elevation: 8,
-      gap: 12,
-  },
-  finishButtonText: {
-      color: '#FFFFFF',
-      fontSize: 18,
-      fontWeight: 'bold',
-      letterSpacing: 0.5,
   },
 });

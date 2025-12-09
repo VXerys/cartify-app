@@ -44,6 +44,9 @@ const MAPPING = {
   'calendar': 'calendar-today',
   'xmark.circle.fill': 'cancel',
   'list.bullet': 'format-list-bulleted',
+  'checkmark': 'check',
+  'checkmark.circle.fill': 'check-circle',
+  'arrow.clockwise': 'refresh',
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],

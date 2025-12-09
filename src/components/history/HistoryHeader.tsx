@@ -8,7 +8,7 @@ export function HistoryHeader() {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 16 }]}>
+    <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
       <View style={styles.decorativeCircle1} />
       <View style={styles.decorativeCircle2} />
 
@@ -34,7 +34,7 @@ export function HistoryHeader() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: Layout.spacing.l,
+    paddingHorizontal: Layout.spacing.m,
     paddingBottom: Layout.spacing.l,
     backgroundColor: Layout.colors.primary, 
     borderBottomLeftRadius: 28,
@@ -70,16 +70,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   greeting: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
     color: 'rgba(255, 255, 255, 0.9)', 
-    marginBottom: 4,
+    marginBottom: 2,
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   title: {
-    fontSize: 28,
-    fontWeight: '800',
+    fontSize: 22,
+    fontWeight: '700',
     color: '#FFF',
     letterSpacing: -0.5,
   },

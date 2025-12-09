@@ -47,6 +47,15 @@ const MAPPING = {
   'checkmark': 'check',
   'checkmark.circle.fill': 'check-circle',
   'arrow.clockwise': 'refresh',
+  'moon.fill': 'nightlight-round',
+  'globe': 'language',
+  'lock.fill': 'lock',
+  'questionmark.circle.fill': 'help',
+  'doc.text.fill': 'description',
+  'arrow.right.square.fill': 'logout',
+  'camera.fill': 'camera-alt',
+  'shield.fill': 'security',
+  'crown.fill': 'workspace-premium',
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],

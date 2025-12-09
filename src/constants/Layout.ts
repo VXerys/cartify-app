@@ -18,6 +18,14 @@ export const Layout = {
   isSmallDevice: width < 375,
   colors: {
     primary: '#2A9D8F',
+    secondary: '#10B981',
+    background: '#F2F2F7',
+    card: '#FFFFFF',
+    text: '#1C1C1E',
+    subtext: '#8E8E93',
+    border: '#E5E5EA',
+    danger: '#EF4444',
+    success: '#34C759',
   },
   spacing: {
       xs: 4,

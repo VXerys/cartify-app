@@ -69,28 +69,33 @@ export function HistoryCard({ item, index, onPress, onDelete }: HistoryCardProps
             activeOpacity={0.7}
             onPress={onPress}
           >
-            <View style={styles.headerRow}>
-                <View style={styles.iconWrapper}>
-                    <IconSymbol name="bag.fill" size={18} color={Layout.colors.primary} />
-                </View>
-                <View style={styles.dateInfo}>
-                    <Text style={styles.dateText}>{dateStr}</Text>
-                    <Text style={styles.timeText}>{timeStr}</Text>
-                </View>
-                <View style={styles.statusContainer}>
-                    <Text style={styles.statusText}>Completed</Text>
-                </View>
-            </View>
+            {/* Left Accent Strip */}
+            <View style={styles.leftAccent} />
 
-            <View style={styles.contentRow}>
-                <Text style={styles.itemsLabel} numberOfLines={2}>
+            <View style={styles.contentContainer}>
+                <View style={styles.headerRow}>
+                    <View style={styles.dateContainer}>
+                        <View style={styles.calendarIcon}>
+                            <IconSymbol name="calendar" size={14} color={Layout.colors.primary} />
+                        </View>
+                        <View>
+                            <Text style={styles.dateText}>{dateStr}</Text>
+                            <Text style={styles.timeText}>{timeStr}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.statusContainer}>
+                        <Text style={styles.statusText}>Completed</Text>
+                    </View>
+                </View>
+
+                <Text style={styles.itemsLabel} numberOfLines={2} ellipsizeMode="tail">
                     {item.items.map(i => i.name).join(', ')}
                 </Text>
-            </View>
 
-            <View style={styles.footerRow}>
-                <Text style={styles.itemsCount}>{item.totalItems} Items</Text>
-                <Text style={styles.price}>{formatCurrency(item.totalPrice)}</Text>
+                <View style={styles.footerRow}>
+                    <Text style={styles.itemsCount}>{item.totalItems} Items</Text>
+                    <Text style={styles.price}>{formatCurrency(item.totalPrice)}</Text>
+                </View>
             </View>
           </TouchableOpacity>
       </Swipeable>
@@ -101,46 +106,56 @@ export function HistoryCard({ item, index, onPress, onDelete }: HistoryCardProps
 const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
-    paddingHorizontal: 20,
+    marginHorizontal: 20,
+    backgroundColor: 'transparent',
+    // Strong "Floating" Shadow Effect
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3, // Increased to make it clearly visible
+    shadowRadius: 20,
+    elevation: 12, // High elevation for prominent android shadow
   },
   swipeableContainer: {
-      borderRadius: 24,
+      borderRadius: 20,
       overflow: 'hidden',
+      backgroundColor: '#FFF',
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 20,
-    shadowColor: '#64748B',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: '#F8FAFC',
+    padding: 16,
+    flexDirection: 'row',
+  },
+  leftAccent: {
+      width: 6,
+      backgroundColor: Layout.colors.primary,
+      borderRadius: 4,
+      marginRight: 16,
+      height: '100%',
+  },
+  contentContainer: {
+      flex: 1,
+      gap: 12,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'space-between',
   },
-  iconWrapper: {
-      width: 40,
-      height: 40,
-      borderRadius: 12,
-      backgroundColor: '#F0FDF4', // Light primary
-      justifyContent: 'center',
+  dateContainer: {
+      flexDirection: 'row',
       alignItems: 'center',
-      marginRight: 12,
+      gap: 8,
   },
-  dateInfo: {
-      flex: 1,
+  calendarIcon: {
+      backgroundColor: '#E6FFFA', // Light Teal to match Primary
+      padding: 6,
+      borderRadius: 8,
   },
   dateText: {
-      fontSize: 15,
+      fontSize: 16,
       fontWeight: '700',
       color: '#1E293B',
-      marginBottom: 2,
+      letterSpacing: -0.5,
   },
   timeText: {
       fontSize: 12,
@@ -149,41 +164,43 @@ const styles = StyleSheet.create({
   },
   statusContainer: {
       backgroundColor: '#DCFCE7',
-      paddingHorizontal: 10,
+      paddingHorizontal: 8,
       paddingVertical: 4,
-      borderRadius: 20,
+      borderRadius: 8,
   },
   statusText: {
-      fontSize: 11,
+      fontSize: 10,
       fontWeight: '700',
       color: '#16A34A',
       textTransform: 'uppercase',
       letterSpacing: 0.5,
   },
-  contentRow: {
-      marginBottom: 16,
-  },
   itemsLabel: {
-      fontSize: 15,
-      color: '#475569',
-      fontWeight: '500',
-      lineHeight: 22,
+      fontSize: 14,
+      color: '#64748B',
+      lineHeight: 20,
   },
   footerRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingTop: 16,
+      marginTop: 4,
+      paddingTop: 12,
       borderTopWidth: 1,
       borderTopColor: '#F1F5F9',
   },
   itemsCount: {
       fontSize: 13,
       fontWeight: '600',
-      color: '#64748B',
+      color: '#94A3B8',
+      backgroundColor: '#F8FAFC',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 6,
+      overflow: 'hidden',
   },
   price: {
-      fontSize: 18,
+      fontSize: 20,
       fontWeight: '800',
       color: Layout.colors.primary,
       letterSpacing: -0.5,
@@ -192,11 +209,8 @@ const styles = StyleSheet.create({
       backgroundColor: '#EF4444',
       justifyContent: 'center',
       alignItems: 'center',
-      width: 100,
+      width: 90,
       height: '100%',
-      marginLeft: -24, // Pull slightly to overlap the border radius visually if desirable, or keep 0.
-      // However, since we are inside `overflow: hidden` Swipeable container which is also rounded, we need to match height.
-      // Swipeable handles height automatically usually.
   },
   deleteButtonContent: {
       justifyContent: 'center',

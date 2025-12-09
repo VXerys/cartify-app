@@ -3,10 +3,9 @@ import { Layout } from '@/src/constants/Layout';
 import { formatCurrency } from '@/src/utils/currency';
 
 import React, { useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
   FadeInDown,
-  FadeInUp,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
@@ -52,7 +51,6 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
       shadowOpacity: 0.6,
       shadowRadius: 8,
       shadowOffset: { width: 0, height: 0 },
-      // Elevation for Android glow effect not supported directly on View consistently, but helpful
       elevation: 4, 
     };
   });
@@ -65,11 +63,12 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
       <Animated.View
         style={[styles.card, { backgroundColor: '#2A9D8F' }]}
       >
-        {/* Decorative background elements for premium feel */}
+        {/* Decorative background elements */}
         <View style={styles.decorativeCircle} />
         <View style={styles.decorativeCircleSmall} />
 
-        <View style={styles.header}>
+        {/* Top Section: Title & Edit */}
+        <View style={styles.topRow}>
           <View>
             <Animated.Text 
                 entering={FadeInDown.delay(200).springify()} 
@@ -90,43 +89,31 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
             activeOpacity={0.8}
           >
              <IconSymbol 
-              size={20} 
+              size={18} 
               name="slider.horizontal.3" 
               color={Layout.colors.primary} 
              />
           </TouchableOpacity>
         </View>
 
+        {/* Progress Section */}
         <View style={styles.progressContainer}>
-          <View style={styles.progressTextRow}>
-            <Animated.Text 
-                entering={FadeInDown.delay(400)} 
-                style={styles.spentLabel}
-            >
-                Total Spent
+          <View style={styles.infoRow}>
+            <Animated.Text entering={FadeInDown.delay(400)} style={styles.spentText}>
+                Total Spent <Text style={styles.spentAmountHighlight}>{formatCurrency(spent)}</Text>
             </Animated.Text>
-            <Animated.Text 
-                entering={FadeInDown.delay(500)} 
-                style={styles.spentAmount}
-            >
-                {formatCurrency(spent)}
+            <Animated.Text entering={FadeInDown.delay(500)} style={styles.percentageText}>
+                {Math.round(percentage * 100)}%
             </Animated.Text>
           </View>
           
           <View style={styles.progressBarBg}>
             <Animated.View style={[styles.progressBarFill, progressStyle]} />
           </View>
-          
-          <Animated.Text 
-            entering={FadeInUp.delay(600)} 
-            style={styles.percentageText}
-          >
-            {Math.round(percentage * 100)}% of your budget used
-          </Animated.Text>
         </View>
 
         {children && (
-             <Animated.View entering={FadeInDown.delay(700)} style={styles.childrenContainer}>
+             <Animated.View entering={FadeInDown.delay(600)} style={styles.childrenContainer}>
                 {children}
              </Animated.View>
         )}
@@ -139,118 +126,116 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
 const styles = StyleSheet.create({
   containerShadow: {
     marginHorizontal: 20,
-    marginTop: 50,
-    marginBottom: 12,
-    shadowColor: "#2A9D8F", // Colored shadow
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.35,
-    shadowRadius: 24,
-    elevation: 12,
-    borderRadius: 28,
+    marginTop: 40, // Significantly reduced from 50
+    marginBottom: 8,
+    shadowColor: "#2A9D8F",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+    borderRadius: 24,
     backgroundColor: 'transparent',
   },
   card: {
-    borderRadius: 28,
-    padding: 24,
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
     position: 'relative',
     overflow: 'hidden', 
   },
   decorativeCircle: {
       position: 'absolute',
-      top: -60,
-      right: -60,
-      width: 220,
-      height: 220,
-      borderRadius: 110,
+      top: -50,
+      right: -50,
+      width: 180,
+      height: 180,
+      borderRadius: 90,
       backgroundColor: 'rgba(255, 255, 255, 0.08)',
       zIndex: 0,
   },
   decorativeCircleSmall: {
       position: 'absolute',
-      bottom: -40,
-      left: -40,
-      width: 140,
-      height: 140,
-      borderRadius: 70,
+      bottom: -30,
+      left: -30,
+      width: 100,
+      height: 100,
+      borderRadius: 50,
       backgroundColor: 'rgba(255, 255, 255, 0.05)',
       zIndex: 0,
   },
-  header: {
+  topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 20,
+    marginBottom: 16,
     zIndex: 1,
   },
   label: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 12, 
+    color: 'rgba(255, 255, 255, 0.85)',
+    fontSize: 11, 
     fontWeight: '700',
-    marginBottom: 4,
-    letterSpacing: 1,
+    marginBottom: 2,
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   budgetAmount: {
     color: '#FFFFFF',
-    fontSize: 32, // Large and readable
+    fontSize: 26, // Slightly reduced for compactness but still prominent
     fontWeight: '800',
-    letterSpacing: -1,
+    letterSpacing: -0.5,
     textShadowColor: 'rgba(0,0,0,0.1)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
   walletButton: {
     backgroundColor: '#FFFFFF',
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 36, // Smaller button
+    height: 36,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: "rgba(0,0,0,0.2)",
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: "rgba(0,0,0,0.15)",
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 4,
+    elevation: 2,
   },
   progressContainer: {
     zIndex: 1,
-    marginBottom: 4,
+    marginBottom: 6,
   },
-  progressTextRow: {
+  infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginBottom: 8,
+    alignItems: 'center',
+    marginBottom: 6,
   },
-  spentLabel: {
+  spentText: {
     color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
   },
-  spentAmount: {
-    color: '#FFFFFF',
-    fontSize: 18,
+  spentAmountHighlight: {
+      fontWeight: '700',
+      color: '#FFF',
+  },
+  percentageText: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 13,
     fontWeight: '700',
-    letterSpacing: -0.5,
   },
   progressBarBg: {
-    height: 8,
+    height: 6, // Thinner bar
     backgroundColor: 'rgba(0, 0, 0, 0.2)', 
-    borderRadius: 4,
+    borderRadius: 3,
     overflow: 'hidden',
-    marginBottom: 8,
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 4,
-  },
-  percentageText: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 12,
-    fontWeight: '500',
+    borderRadius: 3,
   },
   childrenContainer: {
-      marginTop: 12,
+      marginTop: 10,
       zIndex: 1,
   }
 });

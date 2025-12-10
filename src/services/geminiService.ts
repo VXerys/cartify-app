@@ -39,18 +39,32 @@ export const geminiService = {
         - If "ribu" is said, use it (e.g., "lima ribu" -> 5000).
         - If fully clear, use exact (e.g., "seratus perak" -> 100).
         
+        RULES FOR QUANTITY & TOTAL CALCULATION (IMPORTANT):
+        - The 'price' field MUST ALWAYS be the **TOTAL PRICE**.
+        - If the user specifies a **UNIT PRICE** (using words like "masing-masing", "satuan", "@", "per item", "per bungkus", "satuannya"), you **MUST MULTIPLY** the Unit Price by the Quantity.
+          Formula: price = unit_price * qty.
+        - If no unit price indicator is found, assume the mentioned price is already the total price.
+
         Extraction Rules:
         - product_name: The item. Correct spelling/slang ("mih"->"mie").
         - **Handling Multiple Items**: If user says "X dan Y", combine them with "&" (e.g. "Ayam dan Nasi" -> "Ayam & Nasi").
-        - price: Numeric IDR.
+        - price: Numeric IDR (Total Price).
         - qty: Default 1. Be smart ("dua bungkus" -> qty: 2).
 
         Examples:
         - "Semangka dua puluh ribu" -> {"product_name": "Semangka", "price": 20000, "qty": 1}
         - "Indomie 3500" -> {"product_name": "Indomie", "price": 3500, "qty": 1}
         - "Mie Sedap 21" -> {"product_name": "Mie Sedap", "price": 21000, "qty": 1}
-        - "Roti dua 5" -> {"product_name": "Roti", "price": 5000, "qty": 2}
+        - "Roti dua 5" -> {"product_name": "Roti", "price": 5000, "qty": 2} (Assumed 5 is total)
         - "Jeruk dan Pisang 21.600" -> {"product_name": "Jeruk & Pisang", "price": 21600, "qty": 1}
+        
+        **Unit Price Calculation Examples (User Specific Logic):**
+        - "4 saus botol pedas yang masing-masingnya delapan ribu" -> {"product_name": "saus botol pedas", "price": 32000, "qty": 4} (Calculation: 4 * 8000)
+        - "2 kopi @ 15 ribu" -> {"product_name": "kopi", "price": 30000, "qty": 2} (Calculation: 2 * 15000)
+        - "3 nasi goreng per bungkus 12 ribu" -> {"product_name": "nasi goreng", "price": 36000, "qty": 3} (Calculation: 3 * 12000)
+        - "3 nasi goreng satunya itu 15 ribu" -> {"product_name": "nasi goreng", "price": 45000, "qty": 3} (Calculation: 3 * 15000)
+        - "beli 5 buku tulis satuannya 3 ribu" -> {"product_name": "buku tulis", "price": 15000, "qty": 5} (Calculation: 5 * 3000)
+        - "10 gorengan, satuny 2 ribu rupiah" -> {"product_name": "gorengan", "price": 20000, "qty": 10}
 
         Input: "${text}"
       `;

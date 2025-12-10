@@ -37,7 +37,10 @@ export function useVoiceInput(): UseVoiceInputResult {
   const [transcript, setTranscript] = useState('');
   const [finalResult, setFinalResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
   const transcriptRef = useRef('');
+  const silenceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const SILENCE_DURATION_MS = 1500; // 1.5s of silence triggers auto-stop
 
   // Auto-clear error after 3 seconds
   useEffect(() => {
@@ -49,6 +52,13 @@ export function useVoiceInput(): UseVoiceInputResult {
     }
   }, [error]);
 
+  const clearSilenceTimer = useCallback(() => {
+     if (silenceTimer.current) {
+         clearTimeout(silenceTimer.current);
+         silenceTimer.current = null;
+     }
+  }, []);
+
   useSpeechRecognitionEvent('start', () => {
       setIsListening(true);
       setError(null);
@@ -56,6 +66,7 @@ export function useVoiceInput(): UseVoiceInputResult {
   
   useSpeechRecognitionEvent('end', () => {
       setIsListening(false);
+      clearSilenceTimer();
       // On end, we commit the final text
       if (transcriptRef.current) {
           setFinalResult(transcriptRef.current);
@@ -66,12 +77,17 @@ export function useVoiceInput(): UseVoiceInputResult {
     const text = event.results[0]?.transcript || '';
     transcriptRef.current = text;
     setTranscript(text);
-    // Note: We do NOT set finalResult here because we want to wait 
-    // for the user to manually stop or for the continuous session to end.
+    
+    // Reset Silence Timer
+    clearSilenceTimer();
+    silenceTimer.current = setTimeout(() => {
+        stopRecording();
+    }, SILENCE_DURATION_MS);
   });
 
   useSpeechRecognitionEvent('error', (event) => {
     const errorMsg = String(event.error);
+    clearSilenceTimer();
     // Ignore aborted errors
     if (!errorMsg.toLowerCase().includes('aborted')) {
         setError(getFriendlyErrorMessage(errorMsg));
@@ -85,6 +101,7 @@ export function useVoiceInput(): UseVoiceInputResult {
       setTranscript('');
       transcriptRef.current = '';
       setError(null);
+      clearSilenceTimer();
       
       const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
       if (!result.granted) {
@@ -96,7 +113,7 @@ export function useVoiceInput(): UseVoiceInputResult {
         lang: "id-ID", 
         interimResults: true,
         maxAlternatives: 1,
-        continuous: true, // Enable continuous mode to prevent auto-stop
+        continuous: true, // Keep continuous to allow pauses
       });
     } catch (err) {
         if (err instanceof Error) {
@@ -106,15 +123,16 @@ export function useVoiceInput(): UseVoiceInputResult {
         }
         setIsListening(false);
     }
-  }, []);
+  }, [clearSilenceTimer]);
 
   const stopRecording = useCallback(() => {
     try {
+        clearSilenceTimer();
         ExpoSpeechRecognitionModule.stop();
     } catch (err) {
         console.warn("Stop recording failed", err);
     }
-  }, []);
+  }, [clearSilenceTimer]);
 
   return {
     isListening,

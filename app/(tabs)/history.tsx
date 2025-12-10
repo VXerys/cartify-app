@@ -30,7 +30,16 @@ export default function HistoryScreen() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [selectedDate, setSelectedDate] = useState('');
+  // Helper to get local date string YYYY-MM-DD
+  const getLocalToday = () => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+  };
+
+  const [selectedDate, setSelectedDate] = useState(getLocalToday());
 
   // Delete Modal State
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -65,18 +74,31 @@ export default function HistoryScreen() {
     try {
       const data = await getTransactionsWithItems(db);
       setTransactions(data);
-      if (selectedDate) {
-        setFilteredTransactions(data.filter(t => t.date.startsWith(selectedDate)));
-      } else {
-        setFilteredTransactions(data);
-      }
+      // Filter is handled by useEffect or here? 
+      // The original code filtered here based on state, but also had a useEffect [selectedDate, transactions].
+      // We'll let the useEffect handle the filtering to keep it reactive.
     } catch (error) {
       console.error(error);
     }
   };
 
+  // Auto-update date on focus if it was "yesterday"
   useFocusEffect(
     React.useCallback(() => {
+      const today = getLocalToday();
+      
+      // Calculate yesterday
+      const yesterdayDate = new Date();
+      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+      const year = yesterdayDate.getFullYear();
+      const month = String(yesterdayDate.getMonth() + 1).padStart(2, '0');
+      const day = String(yesterdayDate.getDate()).padStart(2, '0');
+      const yesterday = `${year}-${month}-${day}`;
+
+      if (selectedDate === yesterday) {
+          setSelectedDate(today);
+      }
+      
       fetchTransactions();
     }, [selectedDate])
   );
@@ -103,6 +125,7 @@ export default function HistoryScreen() {
      if (selectedDate) {
          setFilteredTransactions(transactions.filter(t => t.date.startsWith(selectedDate)));
      } else {
+         // Should not happen if we always have a date, but good as fallback
          setFilteredTransactions(transactions);
      }
   }, [selectedDate, transactions]);

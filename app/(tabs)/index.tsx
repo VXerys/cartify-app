@@ -1,4 +1,5 @@
 import { Layout } from '@/src/constants/Layout';
+import { useResponsive } from '@/src/hooks/useResponsive';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -26,6 +27,7 @@ export default function HomeScreen() {
   const [items, setItems] = useState<ParsedItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const { clampedNormalize, isTablet, centerContentStyle, width } = useResponsive();
 
   const categories = [
       { key: 'All', label: t('categories.all') },
@@ -210,10 +212,10 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <StatusBar barStyle="light-content" backgroundColor={Layout.colors.primary} />
       
-      <View style={styles.fixedContent}>
+      <View style={[styles.fixedContent, { width: '100%', alignItems: 'center' }]}>
         <HomeHeader />
 
-        <View style={styles.budgetWrapper}>
+        <View style={[styles.budgetWrapper, centerContentStyle, { marginTop: clampedNormalize(-24) }]}>
               <BudgetCard 
                 budget={budget} 
                 spent={spent} 
@@ -226,37 +228,39 @@ export default function HomeScreen() {
             </BudgetCard>
         </View>
 
-        <CategorySlider 
-            categories={categories} 
-            selectedCategory={selectedCategory} 
-            onSelectCategory={setSelectedCategory} 
-        />
+        <View style={[{ width: '100%' }, centerContentStyle]}>
+            <CategorySlider 
+                categories={categories} 
+                selectedCategory={selectedCategory} 
+                onSelectCategory={setSelectedCategory} 
+            />
+        </View>
 
         {items.length > 0 && (
-            <View style={styles.titleWrapper}>
-                <Text style={styles.sectionTitle}>
+            <View style={[styles.titleWrapper, centerContentStyle, { paddingHorizontal: isTablet ? 0 : 24 }]}>
+                <Text style={[styles.sectionTitle, { fontSize: clampedNormalize(18) }]}>
                     {selectedCategory === 'All' 
                         ? t('home.recentItems') 
                         : `${categories.find(c => c.key === selectedCategory)?.label || selectedCategory} Items`}
                 </Text>
                 <TouchableOpacity 
-                    style={styles.headerFinishButton} 
+                    style={[styles.headerFinishButton, { paddingVertical: clampedNormalize(8), paddingHorizontal: clampedNormalize(16), borderRadius: clampedNormalize(20) }]} 
                     onPress={handleFinishShopping}
                     activeOpacity={0.7}
                 >
-                    <IconSymbol name="checkmark" size={16} color="#FFFFFF" weight="bold" />
-                    <Text style={styles.headerFinishText}>{t('home.finish')}</Text>
+                    <IconSymbol name="checkmark" size={clampedNormalize(16)} color="#FFFFFF" weight="bold" />
+                    <Text style={[styles.headerFinishText, { fontSize: clampedNormalize(13) }]}>{t('home.finish')}</Text>
                 </TouchableOpacity>
             </View>
         )}
       </View>
 
       <FlatList
-        style={{ flex: 1 }}
+        style={{ flex: 1, width: '100%' }}
         data={filteredItems}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item, index }) => (
-          <View style={styles.itemWrapper}>
+          <View style={[styles.itemWrapper, centerContentStyle]}>
               <VoiceShoppingCard 
                 productName={item.product_name} 
                 price={item.price} 
@@ -273,9 +277,9 @@ export default function HomeScreen() {
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
             !isProcessing && items.length === 0 ? (
-                <View style={styles.emptyState}>
-                    <Text style={styles.emptyText}>{t('home.cartEmpty')}</Text>
-                    <Text style={styles.emptySubText}>
+                <View style={[styles.emptyState, { marginTop: clampedNormalize(40) }]}>
+                    <Text style={[styles.emptyText, { fontSize: clampedNormalize(18) }]}>{t('home.cartEmpty')}</Text>
+                    <Text style={[styles.emptySubText, { fontSize: clampedNormalize(14) }]}>
                         {t('home.tapMic')}
                     </Text>
                 </View>
@@ -333,21 +337,20 @@ const styles = StyleSheet.create({
   },
   budgetWrapper: {
       marginBottom: 8,
-      marginTop: -24,
       zIndex: 20,
+      width: '100%',
   },
   titleWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingHorizontal: 24,
       paddingBottom: 8,
       marginTop: 8,
       backgroundColor: '#F2F9F9',
       zIndex: 10,
+      width: '100%',
   },
   sectionTitle: {
-      fontSize: 18,
       fontWeight: 'bold',
       color: '#1A1A1A',
   },
@@ -355,9 +358,6 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: Layout.colors.primary,
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-      borderRadius: 20,
       gap: 6,
       shadowColor: Layout.colors.primary,
       shadowOffset: { width: 0, height: 2 },
@@ -367,7 +367,6 @@ const styles = StyleSheet.create({
   },
   headerFinishText: {
       color: '#FFFFFF',
-      fontSize: 13,
       fontWeight: '700',
       letterSpacing: 0.3,
   },
@@ -378,19 +377,17 @@ const styles = StyleSheet.create({
   itemWrapper: {
       paddingHorizontal: 24,
       marginBottom: 16, 
+      width: '100%',
   },
   emptyState: {
-    marginTop: 40,
     alignItems: 'center',
     opacity: 0.6,
   },
   emptyText: {
-    fontSize: 18,
     fontWeight: '600',
     color: '#333',
   },
   emptySubText: {
-    fontSize: 14,
     color: '#666',
     marginTop: 4,
   },
@@ -401,3 +398,4 @@ const styles = StyleSheet.create({
       marginBottom: 20,
   },
 });
+

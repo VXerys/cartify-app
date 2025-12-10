@@ -1,5 +1,6 @@
 import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import { Layout } from '@/src/constants/Layout';
+import { useResponsive } from '@/src/hooks/useResponsive';
 import { formatCurrency } from '@/src/utils/currency';
 import { useTranslation } from 'react-i18next';
 
@@ -22,6 +23,7 @@ interface BudgetCardProps {
 
 export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCardProps) {
   const { t } = useTranslation();
+  const { clampedNormalize, isTablet, centerContentStyle } = useResponsive();
   const percentage = Math.min(spent / budget, 1);
   const progressWidth = useSharedValue(0);
   
@@ -60,38 +62,38 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
   return (
     <Animated.View 
         entering={FadeInDown.delay(100).springify()} 
-        style={styles.containerShadow}
+        style={[styles.containerShadow, centerContentStyle]} // Apply centerContentStyle for tablet width constraint
     >
       <Animated.View
-        style={[styles.card, { backgroundColor: '#2A9D8F' }]}
+        style={[styles.card, { backgroundColor: '#2A9D8F', paddingHorizontal: clampedNormalize(20), paddingVertical: clampedNormalize(18) }]}
       >
-        {/* Decorative background elements */}
-        <View style={styles.decorativeCircle} />
-        <View style={styles.decorativeCircleSmall} />
+        {/* Decorative background elements - Dynamic */}
+        <View style={[styles.decorativeCircle, { width: clampedNormalize(180), height: clampedNormalize(180), borderRadius: clampedNormalize(90) }]} />
+        <View style={[styles.decorativeCircleSmall, { width: clampedNormalize(100), height: clampedNormalize(100), borderRadius: clampedNormalize(50) }]} />
 
         {/* Top Section: Title & Edit */}
         <View style={styles.topRow}>
           <View>
             <Animated.Text 
                 entering={FadeInDown.delay(200).springify()} 
-                style={styles.label}
+                style={[styles.label, { fontSize: clampedNormalize(11) }]}
             >
                 {t('home.monthlyBudget')}
             </Animated.Text>
             <Animated.Text 
                 entering={FadeInDown.delay(300).springify()} 
-                style={styles.budgetAmount}
+                style={[styles.budgetAmount, { fontSize: clampedNormalize(26) }]}
             >
                 {formatCurrency(budget)}
             </Animated.Text>
           </View>
           <TouchableOpacity 
-            style={styles.walletButton} 
+            style={[styles.walletButton, { width: clampedNormalize(36), height: clampedNormalize(36), borderRadius: clampedNormalize(12) }]} 
             onPress={onEditBudget}
             activeOpacity={0.8}
           >
              <IconSymbol 
-              size={18} 
+              size={clampedNormalize(18)} 
               name="slider.horizontal.3" 
               color={Layout.colors.primary} 
              />
@@ -101,16 +103,16 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
         {/* Progress Section */}
         <View style={styles.progressContainer}>
           <View style={styles.infoRow}>
-            <Animated.Text entering={FadeInDown.delay(400)} style={styles.spentText}>
+            <Animated.Text entering={FadeInDown.delay(400)} style={[styles.spentText, { fontSize: clampedNormalize(13) }]}>
                 {t('home.totalSpent')} <Text style={styles.spentAmountHighlight}>{formatCurrency(spent)}</Text>
             </Animated.Text>
-            <Animated.Text entering={FadeInDown.delay(500)} style={styles.percentageText}>
+            <Animated.Text entering={FadeInDown.delay(500)} style={[styles.percentageText, { fontSize: clampedNormalize(13) }]}>
                 {Math.round(percentage * 100)}%
             </Animated.Text>
           </View>
           
-          <View style={styles.progressBarBg}>
-            <Animated.View style={[styles.progressBarFill, progressStyle]} />
+          <View style={[styles.progressBarBg, { height: clampedNormalize(6), borderRadius: clampedNormalize(3) }]}>
+            <Animated.View style={[styles.progressBarFill, progressStyle, { borderRadius: clampedNormalize(3) }]} />
           </View>
         </View>
 
@@ -127,8 +129,8 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
 
 const styles = StyleSheet.create({
   containerShadow: {
-    marginHorizontal: 20,
-    marginTop: 40, // Significantly reduced from 50
+    marginHorizontal: 20, 
+    marginTop: 40,
     marginBottom: 8,
     shadowColor: "#2A9D8F",
     shadowOffset: { width: 0, height: 8 },
@@ -140,8 +142,6 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: 24,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
     position: 'relative',
     overflow: 'hidden', 
   },
@@ -149,9 +149,6 @@ const styles = StyleSheet.create({
       position: 'absolute',
       top: -50,
       right: -50,
-      width: 180,
-      height: 180,
-      borderRadius: 90,
       backgroundColor: 'rgba(255, 255, 255, 0.08)',
       zIndex: 0,
   },
@@ -159,9 +156,6 @@ const styles = StyleSheet.create({
       position: 'absolute',
       bottom: -30,
       left: -30,
-      width: 100,
-      height: 100,
-      borderRadius: 50,
       backgroundColor: 'rgba(255, 255, 255, 0.05)',
       zIndex: 0,
   },
@@ -174,7 +168,6 @@ const styles = StyleSheet.create({
   },
   label: {
     color: 'rgba(255, 255, 255, 0.85)',
-    fontSize: 11, 
     fontWeight: '700',
     marginBottom: 2,
     letterSpacing: 0.8,
@@ -182,7 +175,6 @@ const styles = StyleSheet.create({
   },
   budgetAmount: {
     color: '#FFFFFF',
-    fontSize: 26, // Slightly reduced for compactness but still prominent
     fontWeight: '800',
     letterSpacing: -0.5,
     textShadowColor: 'rgba(0,0,0,0.1)',
@@ -191,9 +183,6 @@ const styles = StyleSheet.create({
   },
   walletButton: {
     backgroundColor: '#FFFFFF',
-    width: 36, // Smaller button
-    height: 36,
-    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: "rgba(0,0,0,0.15)",
@@ -214,7 +203,6 @@ const styles = StyleSheet.create({
   },
   spentText: {
     color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 13,
     fontWeight: '500',
   },
   spentAmountHighlight: {
@@ -223,18 +211,14 @@ const styles = StyleSheet.create({
   },
   percentageText: {
     color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 13,
     fontWeight: '700',
   },
   progressBarBg: {
-    height: 6, // Thinner bar
     backgroundColor: 'rgba(0, 0, 0, 0.2)', 
-    borderRadius: 3,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 3,
   },
   childrenContainer: {
       marginTop: 10,

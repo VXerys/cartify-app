@@ -1,3 +1,4 @@
+import { useResponsive } from '@/src/hooks/useResponsive';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
@@ -11,6 +12,8 @@ interface StatsRowProps {
 
 export function StatsRow({ orders, items }: StatsRowProps) {
   const { t } = useTranslation();
+  const { clampedNormalize } = useResponsive();
+
   return (
     <Animated.View 
       entering={FadeInDown.delay(700).springify()}
@@ -19,12 +22,12 @@ export function StatsRow({ orders, items }: StatsRowProps) {
       <View style={styles.container}>
         {/* Orders Section */}
         <View style={styles.statSection}>
-            <View style={styles.iconContainer}>
-               <IconSymbol name="cart.fill" size={18} color="#2A9D8F" />
+            <View style={[styles.iconContainer, { width: clampedNormalize(38), height: clampedNormalize(38) }]}>
+               <IconSymbol name="cart.fill" size={clampedNormalize(18)} color="#2A9D8F" />
             </View>
             <View style={styles.info}>
-                <Text style={styles.value}>{orders}</Text>
-                <Text style={styles.label}>{t('home.statsOrders')}</Text>
+                <Text style={[styles.value, { fontSize: clampedNormalize(20) }]}>{orders}</Text>
+                <Text style={[styles.label, { fontSize: clampedNormalize(12) }]}>{t('home.statsOrders')}</Text>
             </View>
         </View>
 
@@ -32,12 +35,12 @@ export function StatsRow({ orders, items }: StatsRowProps) {
 
         {/* Items Section */}
         <View style={styles.statSection}>
-            <View style={styles.iconContainer}>
-               <IconSymbol name="bag.fill" size={18} color="#2A9D8F" />
+            <View style={[styles.iconContainer, { width: clampedNormalize(38), height: clampedNormalize(38) }]}>
+               <IconSymbol name="bag.fill" size={clampedNormalize(18)} color="#2A9D8F" />
             </View>
              <View style={styles.info}>
-                <Text style={styles.value}>{items}</Text>
-                <Text style={styles.label}>{t('home.statsItems')}</Text>
+                <Text style={[styles.value, { fontSize: clampedNormalize(20) }]}>{items}</Text>
+                <Text style={[styles.label, { fontSize: clampedNormalize(12) }]}>{t('home.statsItems')}</Text>
             </View>
         </View>
       </View>
@@ -67,8 +70,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   iconContainer: {
-    width: 38,
-    height: 38,
     borderRadius: 12,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
@@ -83,7 +84,6 @@ const styles = StyleSheet.create({
       alignItems: 'flex-start',
   },
   value: {
-    fontSize: 20,
     fontWeight: '800',
     color: '#FFFFFF',
     marginBottom: -2,
@@ -93,7 +93,6 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   label: {
-    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '600',
     letterSpacing: 0.5,

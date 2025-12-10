@@ -1,4 +1,5 @@
 import { Layout } from '@/src/constants/Layout';
+import { useResponsive } from '@/src/hooks/useResponsive';
 import { MaterialIcons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -37,6 +38,7 @@ const CategoryChip = ({ categoryKey, label, isSelected, onSelect, index }: {
     onSelect: (c: string) => void,
     index: number 
 }) => {
+    const { clampedNormalize } = useResponsive();
     const progress = useSharedValue(isSelected ? 1 : 0);
 
     useEffect(() => {
@@ -104,11 +106,11 @@ const CategoryChip = ({ categoryKey, label, isSelected, onSelect, index }: {
              */}
             <MaterialIcons 
                 name={getIcon(categoryKey)} 
-                size={18} 
+                size={clampedNormalize(18)} 
                 color={isSelected ? '#FFF' : '#666'} 
                 style={{ marginRight: 6 }}
             />
-            <Animated.Text style={[styles.text, rTextStyle]}>
+            <Animated.Text style={[styles.text, rTextStyle, { fontSize: clampedNormalize(14) }]}>
                 {label}
             </Animated.Text>
         </AnimatedTouchableOpacity>
@@ -116,13 +118,14 @@ const CategoryChip = ({ categoryKey, label, isSelected, onSelect, index }: {
 };
 
 export function CategorySlider({ categories, selectedCategory, onSelectCategory }: CategorySliderProps) {
+  const { clampedNormalize, containerPadding } = useResponsive();
+
   return (
     <View style={styles.container}>
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-
+        contentContainerStyle={[styles.scrollContent, { paddingHorizontal: containerPadding }]}
       >
         {categories.map((item, index) => (
              <Animated.View 
@@ -135,6 +138,8 @@ export function CategorySlider({ categories, selectedCategory, onSelectCategory 
                     isSelected={selectedCategory === item.key}
                     onSelect={onSelectCategory}
                     index={index}
+                    // Explicitly pass style or context if needed, but here we can rely on Global styles or passed prop if we refactored Chip.
+                    // However, Chip is defined inside file. Let's make Text size dynamic in styles or inline.
                 />
             </Animated.View>
         ))}
@@ -146,12 +151,13 @@ export function CategorySlider({ categories, selectedCategory, onSelectCategory 
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 1,
+    width: '100%',
   },
   scrollContent: {
-    paddingHorizontal: Layout.spacing.l,
+    paddingHorizontal: 24, // Will be overridden or passed as style prop if needed
     gap: 12,
     paddingBottom: 12, 
-    paddingTop: 4, // Add top padding to avoid clipping top shadow
+    paddingTop: 4, 
   },
   chip: {
     flexDirection: 'row',
@@ -161,12 +167,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#FFF',
     borderWidth: 1,
-    // Base shadow properties for iOS to be overridden by animated styles
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
   },
   text: {
-    fontSize: 14,
     fontWeight: '600',
   },
 });
+

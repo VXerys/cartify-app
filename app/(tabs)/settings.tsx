@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-  Image,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Image,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import Animated, {
-  FadeIn
+    FadeIn
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppModal } from '../../src/components/ui/AppModal';
@@ -21,18 +22,20 @@ import { Layout } from '../../src/constants/Layout';
 
 const COLORS = Layout.colors;
 
+// Remove global COLORS constant
+
+
 export default function SettingsScreen() {
   // --- State Management ---
+  // --- State Management ---
+  const { t, i18n } = useTranslation();
+
   const [userProfile, setUserProfile] = useState({
     name: 'Rian Doel',
     email: 'rian.doel@cartify.com',
     avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
   });
 
-  const [settings, setSettings] = useState({
-    darkMode: false,
-    language: 'English',
-  });
 
   // Modal States
   const [modalVisible, setModalVisible] = useState<{
@@ -66,9 +69,9 @@ export default function SettingsScreen() {
     setModalVisible({ type: null, isOpen: false });
   };
 
-  const toggleSwitch = (key: keyof typeof settings) => {
-    setSettings(prev => ({ ...prev, [key]: !prev[key] }));
-  };
+  // const toggleSwitch = (key: keyof typeof settings) => {
+  //   setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+  // };
 
   // --- Components ---
 
@@ -183,7 +186,7 @@ export default function SettingsScreen() {
                     <View style={styles.badgesRow}>
                         <View style={styles.premiumBadge}>
                             <IconSymbol name="crown.fill" size={12} color="#FFD700" />
-                            <Text style={styles.premiumText}>Gold Member</Text>
+                            <Text style={styles.premiumText}>{t('settings.goldMember')}</Text>
                         </View>
                     </View>
                   </View>
@@ -192,52 +195,43 @@ export default function SettingsScreen() {
         </View>
 
         {/* Settings Sections */}
-        <SettingSection title="Preferences" index={1}>
-          <SettingItem 
-            icon="moon.fill" 
-            label="Dark Mode" 
-            value={settings.darkMode} 
-            isSwitch 
-            onPress={() => toggleSwitch('darkMode')} 
-            iconColor="#6366F1"
-          />
-          <View style={styles.separator} />
+        <SettingSection title={t('settings.preferences')} index={1}>
           <SettingItem 
             icon="globe" 
-            label="Language" 
-            value={settings.language} 
+            label={t('settings.language')} 
+            value={i18n.language === 'id' ? 'Bahasa Indonesia' : 'English'} 
             onPress={() => setModalVisible({ type: 'language', isOpen: true })}
             iconColor="#3B82F6"
           />
         </SettingSection>
 
-        <SettingSection title="Account" index={2}>
+        <SettingSection title={t('settings.account')} index={2}>
            <SettingItem 
             icon="lock.fill" 
-            label="Change Password" 
+            label={t('settings.changePassword')}
             onPress={handleChangePassword}
             iconColor={COLORS.primary}
           />
            <View style={styles.separator} />
            <SettingItem 
             icon="shield.fill" 
-            label="Security & Privacy" 
+            label={t('settings.securityPrivacy')}
             onPress={() => {}}
             iconColor={COLORS.primary}
           />
         </SettingSection>
 
-        <SettingSection title="Support" index={3}>
+        <SettingSection title={t('settings.support')} index={3}>
           <SettingItem 
             icon="questionmark.circle.fill" 
-            label="Help Center" 
+            label={t('settings.helpCenter')} 
             onPress={() => {}}
             iconColor="#8B5CF6"
           />
            <View style={styles.separator} />
            <SettingItem 
             icon="doc.text.fill" 
-            label="Terms & Policy" 
+            label={t('settings.termsPolicy')} 
             onPress={() => {}}
             iconColor="#8B5CF6"
           />
@@ -249,9 +243,9 @@ export default function SettingsScreen() {
         >
            <TouchableOpacity style={styles.logoutButton} onPress={() => {}} activeOpacity={0.7}>
               <IconSymbol name="arrow.right.square.fill" size={20} color={COLORS.danger} />
-              <Text style={styles.logoutText}>Log Out</Text>
+              <Text style={styles.logoutText}>{t('settings.logOut')}</Text>
            </TouchableOpacity>
-           <Text style={styles.versionText}>Version 1.0.0 (Build 124)</Text>
+           <Text style={styles.versionText}>{t('settings.version')} 1.0.0 (Build 124)</Text>
         </Animated.View>
         
         <View style={{ height: 100 }} /> 
@@ -262,30 +256,30 @@ export default function SettingsScreen() {
       {/* Edit Profile Modal - Enhanced */}
       <AppModal
         visible={modalVisible.type === 'profile' && modalVisible.isOpen}
-        title="Edit Profile"
-        subtitle="Update your personal details visible to others."
+        title={t('profile.editProfile')}
+        subtitle={t('profile.editProfileSubtitle')}
         onClose={() => setModalVisible({ type: null, isOpen: false })}
         onSave={handleSaveProfile}
-        saveLabel="Save Changes"
+        saveLabel={t('common.save')}
         headerIcon={<IconSymbol name="person.fill" size={32} color={COLORS.primary} />}
       >
         <View style={styles.inputContainer}>
             <View style={styles.inputWrapper}>
-                <Text style={styles.inputLabel}>Full Name</Text>
+                <Text style={styles.inputLabel}>{t('profile.fullName')}</Text>
                 <View style={styles.inputFieldContainer}>
                     <IconSymbol name="person" size={20} color={COLORS.subtext} style={{marginRight: 10}} />
                     <TextInput
                     style={styles.inputStyled}
                     value={tempName}
                     onChangeText={setTempName}
-                    placeholder="Enter your name"
-                    placeholderTextColor="#9CA3AF"
+                    placeholder={t('profile.fullName')}
+                    placeholderTextColor={COLORS.placeholder}
                     />
                 </View>
             </View>
 
             <View style={styles.inputWrapper}>
-                <Text style={styles.inputLabel}>Email Address</Text>
+                <Text style={styles.inputLabel}>{t('profile.email')}</Text>
                 <View style={[styles.inputFieldContainer, { backgroundColor: '#F3F4F6', borderColor: 'transparent' }]}>
                     <IconSymbol name="cube.box.fill" size={20} color={COLORS.subtext} style={{marginRight: 10}} />
                     <TextInput
@@ -295,7 +289,7 @@ export default function SettingsScreen() {
                     />
                     <IconSymbol name="lock.fill" size={16} color="#9CA3AF" />
                 </View>
-                <Text style={styles.helperText}>Email cannot be changed manually.</Text>
+                <Text style={styles.helperText}>{t('profile.emailHelper')}</Text>
             </View>
         </View>
       </AppModal>
@@ -303,11 +297,11 @@ export default function SettingsScreen() {
       {/* Avatar Selection Modal */}
       <AppModal
         visible={modalVisible.type === 'avatar' && modalVisible.isOpen}
-        title="Update Photo"
-        subtitle="Choose a new profile picture."
+        title={t('profile.updatePhoto')}
+        subtitle={t('profile.updatePhotoSubtitle')}
         onClose={() => setModalVisible({ type: null, isOpen: false })}
         headerIcon={<IconSymbol name="camera.fill" size={32} color={COLORS.primary} />}
-        saveLabel="Cancel" // Hiding the main save for this demo-like selection
+        saveLabel={t('common.cancel')} 
         onSave={() => setModalVisible({ type: null, isOpen: false })} 
       >
         <View style={styles.avatarGrid}>
@@ -335,59 +329,59 @@ export default function SettingsScreen() {
             ))}
         </View>
         <TouchableOpacity style={styles.uploadButton}>
-            <Text style={styles.uploadButtonText}>Choose from Gallery</Text>
+            <Text style={styles.uploadButtonText}>{t('profile.chooseGallery')}</Text>
         </TouchableOpacity>
       </AppModal>
 
       {/* Change Password Modal */}
       <AppModal
         visible={modalVisible.type === 'password' && modalVisible.isOpen}
-        title="Change Password"
-        subtitle="Ensure your account stays secure."
+        title={t('password.title')}
+        subtitle={t('password.subtitle')}
         onClose={() => setModalVisible({ type: null, isOpen: false })}
         onSave={handleSavePassword}
-        saveLabel="Update Password"
+        saveLabel={t('password.update')}
         headerIcon={<IconSymbol name="lock.fill" size={32} color={COLORS.primary} />}
       >
         <View style={styles.inputContainer}>
            <View style={styles.inputWrapper}>
-                <Text style={styles.inputLabel}>Current Password</Text>
+                <Text style={styles.inputLabel}>{t('password.current')}</Text>
                 <View style={styles.inputFieldContainer}>
                     <IconSymbol name="lock" size={20} color={COLORS.subtext} style={{marginRight: 10}} />
                     <TextInput
                         style={styles.inputStyled}
                         value={tempPassword.current}
                         onChangeText={(text) => setTempPassword(prev => ({...prev, current: text}))}
-                        placeholder="Enter current password"
-                        placeholderTextColor="#9CA3AF"
+                        placeholder={t('password.current')}
+                        placeholderTextColor={COLORS.placeholder}
                         secureTextEntry
                     />
                 </View>
            </View>
            <View style={styles.inputWrapper}>
-                <Text style={styles.inputLabel}>New Password</Text>
+                <Text style={styles.inputLabel}>{t('password.new')}</Text>
                 <View style={styles.inputFieldContainer}>
                     <IconSymbol name="key" size={20} color={COLORS.subtext} style={{marginRight: 10}} />
                     <TextInput
                         style={styles.inputStyled}
                         value={tempPassword.new}
                         onChangeText={(text) => setTempPassword(prev => ({...prev, new: text}))}
-                        placeholder="Enter new password"
-                        placeholderTextColor="#9CA3AF"
+                        placeholder={t('password.new')}
+                        placeholderTextColor={COLORS.placeholder}
                         secureTextEntry
                     />
                 </View>
            </View>
            <View style={styles.inputWrapper}>
-                <Text style={styles.inputLabel}>Confirm Password</Text>
+                <Text style={styles.inputLabel}>{t('password.confirm')}</Text>
                 <View style={styles.inputFieldContainer}>
                     <IconSymbol name="key.fill" size={20} color={COLORS.subtext} style={{marginRight: 10}} />
                     <TextInput
                         style={styles.inputStyled}
                         value={tempPassword.confirm}
                         onChangeText={(text) => setTempPassword(prev => ({...prev, confirm: text}))}
-                        placeholder="Confirm new password"
-                        placeholderTextColor="#9CA3AF"
+                        placeholder={t('password.confirm')}
+                        placeholderTextColor={COLORS.placeholder}
                         secureTextEntry
                     />
                 </View>
@@ -398,31 +392,34 @@ export default function SettingsScreen() {
       {/* Language Selection Modal */}
       <AppModal
         visible={modalVisible.type === 'language' && modalVisible.isOpen}
-        title="Select Language"
-        subtitle="Choose your preferred language."
+        title={t('language.title')}
+        subtitle={t('language.subtitle')}
         onClose={() => setModalVisible({ type: null, isOpen: false })}
         headerIcon={<IconSymbol name="globe" size={28} color={COLORS.primary} />}
-        saveLabel="Cancel"
+        saveLabel={t('common.cancel')}
         onSave={() => setModalVisible({ type: null, isOpen: false })}
       >
         <View style={{ width: '100%', gap: 10 }}>
-           {['English', 'Bahasa Indonesia', 'Español'].map((lang) => (
+           {[
+             { code: 'en', label: 'English' }, 
+             { code: 'id', label: 'Bahasa Indonesia' }
+           ].map((lang) => (
              <TouchableOpacity 
-                key={lang}
+                key={lang.code}
                 style={[
                     styles.languageOption, 
-                    settings.language === lang && styles.languageOptionSelected
+                    i18n.language === lang.code && styles.languageOptionSelected
                 ]}
                 onPress={() => {
-                    setSettings(s => ({ ...s, language: lang }));
+                    i18n.changeLanguage(lang.code);
                     setModalVisible({ type: null, isOpen: false });
                 }}
              >
                 <Text style={[
                     styles.languageText,
-                    settings.language === lang && styles.languageTextSelected
-                ]}>{lang}</Text>
-                {settings.language === lang && (
+                    i18n.language === lang.code && styles.languageTextSelected
+                ]}>{lang.label}</Text>
+                {i18n.language === lang.code && (
                     <IconSymbol name="checkmark" size={20} color={COLORS.primary} />
                 )}
              </TouchableOpacity>
@@ -433,6 +430,8 @@ export default function SettingsScreen() {
     </SafeAreaView>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   container: {

@@ -5,15 +5,17 @@ import { formatCurrency } from '@/src/utils/currency';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
 import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeInUp,
+    FadeIn,
+    FadeInDown,
+    FadeInUp,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TransactionDetailScreen() {
+  const { t, i18n } = useTranslation();
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -61,20 +63,22 @@ export default function TransactionDetailScreen() {
             </Pressable>
         </View>
         <View style={styles.center}>
-            <Text style={styles.errorText}>Transaction not found</Text>
+            <Text style={styles.errorText}>{t('transaction.notFound')}</Text>
         </View>
       </View>
     );
   }
 
   const dateObj = new Date(transaction.date);
-  const dateStr = dateObj.toLocaleDateString('en-US', { 
+  const locale = i18n.language === 'id' ? 'id-ID' : 'en-US';
+  
+  const dateStr = dateObj.toLocaleDateString(locale, { 
     weekday: 'long', 
     day: 'numeric', 
     month: 'long',
     year: 'numeric'
   });
-  const timeStr = dateObj.toLocaleTimeString('en-US', {
+  const timeStr = dateObj.toLocaleTimeString(locale, {
     hour: '2-digit',
     minute: '2-digit'
   });
@@ -123,7 +127,7 @@ export default function TransactionDetailScreen() {
                 entering={FadeIn.duration(800)} 
                 style={styles.headerTitle}
              >
-                Transaction Details
+                {t('transaction.details')}
              </Animated.Text>
              
              <View style={{ width: 44 }} /> 
@@ -136,7 +140,7 @@ export default function TransactionDetailScreen() {
         style={styles.summaryCard}
       >
           <View style={styles.amountContainer}>
-              <Text style={styles.amountLabel}>Total Bill</Text>
+              <Text style={styles.amountLabel}>{t('transaction.totalBill')}</Text>
               <Text style={styles.amountValue}>
                 {formatCurrency(transaction.total_amount)}
               </Text>
@@ -153,7 +157,7 @@ export default function TransactionDetailScreen() {
           </View>
           <View style={styles.statusBadge}>
               <View style={styles.statusDot} />
-              <Text style={styles.statusText}>Payment Completed</Text>
+              <Text style={styles.statusText}>{t('transaction.paymentCompleted')}</Text>
           </View>
       </Animated.View>
 
@@ -164,7 +168,7 @@ export default function TransactionDetailScreen() {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
             <Text style={styles.sectionTitle}>
-                Items Purchased
+                {t('transaction.itemsPurchased')}
             </Text>
         }
         renderItem={({ item, index }) => {

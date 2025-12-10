@@ -1,0 +1,90 @@
+{
+  "common": {
+    "save": "Save Changes",
+    "cancel": "Cancel",
+    "loading": "Loading..."
+  },
+  "settings": {
+    "preferences": "Preferences",
+    "darkMode": "Dark Mode",
+    "language": "Language",
+    "account": "Account",
+    "changePassword": "Change Password",
+    "securityPrivacy": "Security & Privacy",
+    "support": "Support",
+    "helpCenter": "Help Center",
+    "termsPolicy": "Terms & Policy",
+    "logOut": "Log Out",
+    "version": "Version",
+    "goldMember": "Gold Member"
+  },
+  "profile": {
+    "editProfile": "Edit Profile",
+    "editProfileSubtitle": "Update your personal details visible to others.",
+    "fullName": "Full Name",
+    "email": "Email Address",
+    "emailHelper": "Email cannot be changed manually.",
+    "updatePhoto": "Update Photo",
+    "updatePhotoSubtitle": "Choose a new profile picture.",
+    "chooseGallery": "Choose from Gallery"
+  },
+  "home": {
+    "recentItems": "Recent Items",
+    "allItems": "All Items",
+    "finish": "Finish",
+    "cartEmpty": "Cart is empty",
+    "tapMic": "Tap the mic to add items to your budget.",
+    "shoppingSaved": "Shopping saved successfully!",
+    "checkHistory": "Check your history for details.",
+    "failedSave": "Failed to save shopping session",
+    "goodMorning": "Good Morning",
+    "goodAfternoon": "Good Afternoon",
+    "goodEvening": "Good Evening",
+    "monthlyBudget": "SHOPPING BUDGET",
+    "totalSpent": "Total Spent",
+    "statsOrders": "Orders",
+    "statsItems": "Items"
+  },
+  "categories": {
+    "all": "All",
+    "food": "Food",
+    "drink": "Drink",
+    "fruit": "Fruit",
+    "snacks": "Snacks",
+    "household": "Household",
+    "other": "Other"
+  },
+  "history": {
+    "recentActivity": "Recent Activity",
+    "noTransactions": "No transactions",
+    "noPurchaseYet": "You haven't made any purchases yet.",
+    "deleteTitle": "Delete Transaction",
+    "deleteSubtitle": "Are you sure you want to delete this transaction? This action cannot be undone.",
+    "deleteConfirm": "Delete",
+    "headerOverview": "Overview",
+    "headerTitle": "Transaction History",
+    "items": "Items",
+    "completed": "Completed"
+  },
+  "transaction": {
+    "notFound": "Transaction not found",
+    "details": "Transaction Details",
+    "totalBill": "Total Bill",
+    "paymentCompleted": "Payment Completed",
+    "itemsPurchased": "Items Purchased"
+  },
+  "password": {
+    "title": "Change Password",
+    "subtitle": "Ensure your account stays secure.",
+    "current": "Current Password",
+    "new": "New Password",
+    "confirm": "Confirm Password",
+    "update": "Update Password"
+  },
+  "language": {
+    "title": "Select Language",
+    "subtitle": "Choose your preferred language.",
+    "en": "English",
+    "id": "Bahasa Indonesia"
+  }
+}

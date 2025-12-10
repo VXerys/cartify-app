@@ -1,0 +1,90 @@
+{
+  "common": {
+    "save": "Simpan Perubahan",
+    "cancel": "Batal",
+    "loading": "Memuat..."
+  },
+  "settings": {
+    "preferences": "Preferensi",
+    "darkMode": "Mode Gelap",
+    "language": "Bahasa",
+    "account": "Akun",
+    "changePassword": "Ubah Kata Sandi",
+    "securityPrivacy": "Keamanan & Privasi",
+    "support": "Bantuan",
+    "helpCenter": "Pusat Bantuan",
+    "termsPolicy": "Syarat & Kebijakan",
+    "logOut": "Keluar",
+    "version": "Versi",
+    "goldMember": "Anggota Emas"
+  },
+  "profile": {
+    "editProfile": "Edit Profil",
+    "editProfileSubtitle": "Perbarui detail pribadi Anda yang terlihat oleh orang lain.",
+    "fullName": "Nama Lengkap",
+    "email": "Alamat Email",
+    "emailHelper": "Email tidak dapat diubah secara manual.",
+    "updatePhoto": "Perbarui Foto",
+    "updatePhotoSubtitle": "Pilih foto profil baru.",
+    "chooseGallery": "Pilih dari Galeri"
+  },
+  "home": {
+    "recentItems": "Item Terbaru",
+    "allItems": "Semua Item",
+    "finish": "Selesai",
+    "cartEmpty": "Keranjang kosong",
+    "tapMic": "Ketuk mikrofon untuk menambah item.",
+    "shoppingSaved": "Belanja berhasil disimpan!",
+    "checkHistory": "Cek riwayat Anda untuk detailnya.",
+    "failedSave": "Gagal menyimpan sesi belanja",
+    "goodMorning": "Selamat Pagi",
+    "goodAfternoon": "Selamat Siang",
+    "goodEvening": "Selamat Malam",
+    "monthlyBudget": "ANGGARAN BELANJA",
+    "totalSpent": "Total Pengeluaran",
+    "statsOrders": "Pesanan",
+    "statsItems": "Item"
+  },
+  "categories": {
+    "all": "Semua",
+    "food": "Makanan",
+    "drink": "Minuman",
+    "fruit": "Buah",
+    "snacks": "Cemilan",
+    "household": "Rumah Tangga",
+    "other": "Lainnya"
+  },
+  "history": {
+    "recentActivity": "Aktivitas Terbaru",
+    "noTransactions": "Tidak ada transaksi",
+    "noPurchaseYet": "Anda belum melakukan pembelian.",
+    "deleteTitle": "Hapus Transaksi",
+    "deleteSubtitle": "Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.",
+    "deleteConfirm": "Hapus",
+    "headerOverview": "Ringkasan",
+    "headerTitle": "Riwayat Transaksi",
+    "items": "Item",
+    "completed": "Selesai"
+  },
+  "transaction": {
+    "notFound": "Transaksi tidak ditemukan",
+    "details": "Detail Transaksi",
+    "totalBill": "Total Tagihan",
+    "paymentCompleted": "Pembayaran Selesai",
+    "itemsPurchased": "Item yang Dibeli"
+  },
+  "password": {
+    "title": "Ubah Kata Sandi",
+    "subtitle": "Pastikan akun Anda tetap aman.",
+    "current": "Kata Sandi Saat Ini",
+    "new": "Kata Sandi Baru",
+    "confirm": "Konfirmasi Kata Sandi",
+    "update": "Perbarui Kata Sandi"
+  },
+  "language": {
+    "title": "Pilih Bahasa",
+    "subtitle": "Pilih bahasa pilihan Anda.",
+    "en": "English",
+    "id": "Bahasa Indonesia"
+  }
+}

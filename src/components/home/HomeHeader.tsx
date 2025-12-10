@@ -1,28 +1,27 @@
 import { Layout } from '@/src/constants/Layout';
+import { formatDate } from '@/src/utils/date';
 import { MaterialIcons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function HomeHeader() {
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
-  const [greeting, setGreeting] = useState('Good Morning');
+  const [greetingKey, setGreetingKey] = useState('home.goodMorning');
   
   // Dynamic greeting logic
   useEffect(() => {
     const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good Morning');
-    else if (hour < 18) setGreeting('Good Afternoon');
-    else setGreeting('Good Evening');
+    if (hour < 12) setGreetingKey('home.goodMorning');
+    else if (hour < 18) setGreetingKey('home.goodAfternoon');
+    else setGreetingKey('home.goodEvening');
   }, []);
 
-  // Format date: "Mon, 12 Oct"
-  const dateStr = new Date().toLocaleDateString('en-US', { 
-    weekday: 'short', 
-    day: 'numeric', 
-    month: 'short' 
-  });
+  // Format date using shared utility
+  const dateStr = formatDate(new Date(), i18n.language);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
@@ -44,7 +43,7 @@ export function HomeHeader() {
                     entering={FadeInDown.delay(100).springify()} 
                     style={styles.greeting}
                 >
-                    {greeting},
+                    {t(greetingKey)},
                 </Animated.Text>
                 <Animated.Text 
                     entering={FadeInDown.delay(200).springify()} 

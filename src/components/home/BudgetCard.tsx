@@ -1,15 +1,16 @@
 import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import { Layout } from '@/src/constants/Layout';
 import { formatCurrency } from '@/src/utils/currency';
+import { useTranslation } from 'react-i18next';
 
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
-  FadeInDown,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withSpring
+    FadeInDown,
+    useAnimatedStyle,
+    useSharedValue,
+    withDelay,
+    withSpring
 } from 'react-native-reanimated';
 
 interface BudgetCardProps {
@@ -20,6 +21,7 @@ interface BudgetCardProps {
 }
 
 export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCardProps) {
+  const { t } = useTranslation();
   const percentage = Math.min(spent / budget, 1);
   const progressWidth = useSharedValue(0);
   
@@ -74,7 +76,7 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
                 entering={FadeInDown.delay(200).springify()} 
                 style={styles.label}
             >
-                MONTHLY BUDGET
+                {t('home.monthlyBudget')}
             </Animated.Text>
             <Animated.Text 
                 entering={FadeInDown.delay(300).springify()} 
@@ -100,7 +102,7 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
         <View style={styles.progressContainer}>
           <View style={styles.infoRow}>
             <Animated.Text entering={FadeInDown.delay(400)} style={styles.spentText}>
-                Total Spent <Text style={styles.spentAmountHighlight}>{formatCurrency(spent)}</Text>
+                {t('home.totalSpent')} <Text style={styles.spentAmountHighlight}>{formatCurrency(spent)}</Text>
             </Animated.Text>
             <Animated.Text entering={FadeInDown.delay(500)} style={styles.percentageText}>
                 {Math.round(percentage * 100)}%

@@ -4,7 +4,10 @@ import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useTranslation } from 'react-i18next';
+
 export function HistoryHeader() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   return (
@@ -18,13 +21,13 @@ export function HistoryHeader() {
             entering={FadeInDown.delay(100).springify()} 
             style={styles.greeting}
           >
-            Overview
+            {t('history.headerOverview')}
           </Animated.Text>
           <Animated.Text 
             entering={FadeInDown.delay(200).springify()} 
             style={styles.title}
           >
-            Transaction History
+            {t('history.headerTitle')}
           </Animated.Text>
         </View>
       </View>

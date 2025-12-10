@@ -1,5 +1,6 @@
 import { Layout } from '@/src/constants/Layout';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -20,12 +21,21 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { toast } from 'sonner-native';
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const { isListening, transcript, finalResult, startRecording, stopRecording, error: voiceError } = useVoiceInput();
   const [items, setItems] = useState<ParsedItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const categories = ['All', 'Food', 'Drink', 'Fruit', 'Snacks', 'Household', 'Other'];
+  const categories = [
+      { key: 'All', label: t('categories.all') },
+      { key: 'Food', label: t('categories.food') },
+      { key: 'Drink', label: t('categories.drink') },
+      { key: 'Fruit', label: t('categories.fruit') },
+      { key: 'Snacks', label: t('categories.snacks') },
+      { key: 'Household', label: t('categories.household') },
+      { key: 'Other', label: t('categories.other') }
+  ];
 
   const filteredItems = selectedCategory === 'All' 
     ? items 
@@ -67,8 +77,8 @@ export default function HomeScreen() {
             await insertTransaction(db, transaction);
             
             setItems([]);
-            toast.success('Shopping saved successfully!', {
-                description: 'Check your history for details.',
+            toast.success(t('home.shoppingSaved'), {
+                description: t('home.checkHistory'),
                 duration: 3000,
             });
 
@@ -185,7 +195,9 @@ export default function HomeScreen() {
         {items.length > 0 && (
             <View style={styles.titleWrapper}>
                 <Text style={styles.sectionTitle}>
-                    {selectedCategory === 'All' ? 'Recent Items' : `${selectedCategory} Items`}
+                    {selectedCategory === 'All' 
+                        ? t('home.recentItems') 
+                        : `${categories.find(c => c.key === selectedCategory)?.label || selectedCategory} Items`}
                 </Text>
                 <TouchableOpacity 
                     style={styles.headerFinishButton} 
@@ -193,7 +205,7 @@ export default function HomeScreen() {
                     activeOpacity={0.7}
                 >
                     <IconSymbol name="checkmark" size={16} color="#FFFFFF" weight="bold" />
-                    <Text style={styles.headerFinishText}>Finish</Text>
+                    <Text style={styles.headerFinishText}>{t('home.finish')}</Text>
                 </TouchableOpacity>
             </View>
         )}
@@ -222,9 +234,9 @@ export default function HomeScreen() {
         ListEmptyComponent={
             !isProcessing && items.length === 0 ? (
                 <View style={styles.emptyState}>
-                    <Text style={styles.emptyText}>Cart is empty</Text>
+                    <Text style={styles.emptyText}>{t('home.cartEmpty')}</Text>
                     <Text style={styles.emptySubText}>
-                        Tap the mic to add items to your budget.
+                        {t('home.tapMic')}
                     </Text>
                 </View>
             ) : null

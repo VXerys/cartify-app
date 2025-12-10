@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { IconSymbol } from '../ui/icon-symbol';
@@ -9,6 +10,7 @@ interface StatsRowProps {
 }
 
 export function StatsRow({ orders, items }: StatsRowProps) {
+  const { t } = useTranslation();
   return (
     <Animated.View 
       entering={FadeInDown.delay(700).springify()}
@@ -22,7 +24,7 @@ export function StatsRow({ orders, items }: StatsRowProps) {
             </View>
             <View style={styles.info}>
                 <Text style={styles.value}>{orders}</Text>
-                <Text style={styles.label}>Orders</Text>
+                <Text style={styles.label}>{t('home.statsOrders')}</Text>
             </View>
         </View>
 
@@ -35,7 +37,7 @@ export function StatsRow({ orders, items }: StatsRowProps) {
             </View>
              <View style={styles.info}>
                 <Text style={styles.value}>{items}</Text>
-                <Text style={styles.label}>Items</Text>
+                <Text style={styles.label}>{t('home.statsItems')}</Text>
             </View>
         </View>
       </View>

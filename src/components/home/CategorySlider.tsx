@@ -3,15 +3,15 @@ import { MaterialIcons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, {
-  FadeInRight,
-  interpolateColor,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming
+    FadeInRight,
+    interpolateColor,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming
 } from 'react-native-reanimated';
 
 interface CategorySliderProps {
-  categories: string[];
+  categories: { key: string; label: string }[];
   selectedCategory: string;
   onSelectCategory: (category: string) => void;
 }
@@ -30,8 +30,9 @@ const getIcon = (category: string): keyof typeof MaterialIcons.glyphMap => {
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
-const CategoryChip = ({ category, isSelected, onSelect, index }: { 
-    category: string, 
+const CategoryChip = ({ categoryKey, label, isSelected, onSelect, index }: { 
+    categoryKey: string, 
+    label: string,
     isSelected: boolean, 
     onSelect: (c: string) => void,
     index: number 
@@ -93,7 +94,7 @@ const CategoryChip = ({ category, isSelected, onSelect, index }: {
     return (
         <AnimatedTouchableOpacity
             activeOpacity={0.8}
-            onPress={() => onSelect(category)}
+            onPress={() => onSelect(categoryKey)}
             style={[styles.chip, rStyle]}
         >
              {/* 
@@ -102,13 +103,13 @@ const CategoryChip = ({ category, isSelected, onSelect, index }: {
                 Let's use a simple conditional for now, the background swipe is the most important part.
              */}
             <MaterialIcons 
-                name={getIcon(category)} 
+                name={getIcon(categoryKey)} 
                 size={18} 
                 color={isSelected ? '#FFF' : '#666'} 
                 style={{ marginRight: 6 }}
             />
             <Animated.Text style={[styles.text, rTextStyle]}>
-                {category}
+                {label}
             </Animated.Text>
         </AnimatedTouchableOpacity>
     );
@@ -123,14 +124,15 @@ export function CategorySlider({ categories, selectedCategory, onSelectCategory 
         contentContainerStyle={styles.scrollContent}
 
       >
-        {categories.map((category, index) => (
+        {categories.map((item, index) => (
              <Animated.View 
-                key={category} 
+                key={item.key} 
                 entering={FadeInRight.delay(index * 100).springify()}
             >
                 <CategoryChip 
-                    category={category}
-                    isSelected={selectedCategory === category}
+                    categoryKey={item.key}
+                    label={item.label}
+                    isSelected={selectedCategory === item.key}
                     onSelect={onSelectCategory}
                     index={index}
                 />

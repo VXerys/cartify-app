@@ -4,24 +4,27 @@ import { AppModal } from '@/src/components/ui/AppModal';
 import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import { Layout } from '@/src/constants/Layout';
 import { deleteTransaction, getTransactionsWithItems, Transaction } from '@/src/services/db';
+import { formatDate } from '@/src/utils/date';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import Animated, {
-  Easing,
-  FadeIn,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-  ZoomIn,
-  ZoomOut
+    Easing,
+    FadeIn,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+    ZoomIn,
+    ZoomOut
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HistoryScreen() {
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const db = useSQLiteContext();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -124,14 +127,14 @@ export default function HistoryScreen() {
 
       <View style={styles.actionsContainer}>
         <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle}>Recent Activity</Text>
+            <Text style={styles.sectionTitle}>{t('history.recentActivity')}</Text>
             {selectedDate && (
                 <Animated.View 
                     entering={ZoomIn.duration(300)} 
                     exiting={ZoomOut.duration(200)}
                     style={styles.activeFilterBadge}
                 >
-                    <Text style={styles.activeFilterText}>{selectedDate}</Text>
+                    <Text style={styles.activeFilterText}>{formatDate(selectedDate, i18n.language)}</Text>
                     <TouchableOpacity onPress={() => setSelectedDate('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                         <IconSymbol name="xmark" size={12} color="#FFF" />
                     </TouchableOpacity>
@@ -203,19 +206,19 @@ export default function HistoryScreen() {
                 <View style={styles.emptyIconContainer}>
                     <IconSymbol name="list.bullet" size={40} color="#DDD" />
                 </View>
-                <Text style={styles.emptyTitle}>No transactions</Text>
-                <Text style={styles.emptyText}>You haven't made any purchases yet.</Text>
+                <Text style={styles.emptyTitle}>{t('history.noTransactions')}</Text>
+                <Text style={styles.emptyText}>{t('history.noPurchaseYet')}</Text>
             </Animated.View>
         }
       />
 
       <AppModal
         visible={deleteModalVisible}
-        title="Delete Transaction"
-        subtitle="Are you sure you want to delete this transaction? This action cannot be undone."
+        title={t('history.deleteTitle')}
+        subtitle={t('history.deleteSubtitle')}
         onClose={() => setDeleteModalVisible(false)}
         onSave={confirmDelete}
-        saveLabel="Delete"
+        saveLabel={t('history.deleteConfirm')}
         variant="danger"
         headerIcon={<IconSymbol name="trash.fill" size={32} color="#EF4444" />}
       />

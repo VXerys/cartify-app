@@ -26,6 +26,7 @@ export const Layout = {
     border: '#E5E5EA',
     danger: '#EF4444',
     success: '#34C759',
+    placeholder: '#9CA3AF',
   },
   spacing: {
       xs: 4,

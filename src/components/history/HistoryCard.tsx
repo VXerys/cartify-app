@@ -1,7 +1,9 @@
 import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import { Layout } from '@/src/constants/Layout';
 import { formatCurrency } from '@/src/utils/currency';
+import { formatDate, formatTime } from '@/src/utils/date';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Animated as RNAnimated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -27,16 +29,10 @@ interface HistoryCardProps {
 }
 
 export function HistoryCard({ item, index, onPress, onDelete }: HistoryCardProps) {
+  const { t, i18n } = useTranslation();
   const dateObj = new Date(item.date);
-  const dateStr = dateObj.toLocaleDateString('en-US', { 
-    weekday: 'short', 
-    day: 'numeric', 
-    month: 'short' 
-  });
-  const timeStr = dateObj.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  const dateStr = formatDate(dateObj, i18n.language);
+  const timeStr = formatTime(dateObj, i18n.language);
 
   const renderRightActions = (progress: RNAnimated.AnimatedInterpolation<number>, dragX: RNAnimated.AnimatedInterpolation<number>) => {
     const scale = dragX.interpolate({
@@ -52,7 +48,7 @@ export function HistoryCard({ item, index, onPress, onDelete }: HistoryCardProps
         >
             <RNAnimated.View style={[styles.deleteButtonContent, { transform: [{ scale }] }]}>
                 <IconSymbol name="trash.fill" size={24} color="#FFF" />
-                <Text style={styles.deleteText}>Delete</Text>
+                <Text style={styles.deleteText}>{t('history.deleteConfirm')}</Text>
             </RNAnimated.View>
         </TouchableOpacity>
     );
@@ -84,7 +80,7 @@ export function HistoryCard({ item, index, onPress, onDelete }: HistoryCardProps
                         </View>
                     </View>
                     <View style={styles.statusContainer}>
-                        <Text style={styles.statusText}>Completed</Text>
+                        <Text style={styles.statusText}>{t('history.completed')}</Text>
                     </View>
                 </View>
 
@@ -93,7 +89,7 @@ export function HistoryCard({ item, index, onPress, onDelete }: HistoryCardProps
                 </Text>
 
                 <View style={styles.footerRow}>
-                    <Text style={styles.itemsCount}>{item.totalItems} Items</Text>
+                    <Text style={styles.itemsCount}>{item.totalItems} {t('history.items')}</Text>
                     <Text style={styles.price}>{formatCurrency(item.totalPrice)}</Text>
                 </View>
             </View>

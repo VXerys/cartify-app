@@ -2,7 +2,8 @@
   "common": {
     "save": "Save Changes",
     "cancel": "Cancel",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "error": "Error"
   },
   "settings": {
     "preferences": "Preferences",
@@ -44,6 +45,13 @@
     "totalSpent": "Total Spent",
     "statsOrders": "Orders",
     "statsItems": "Items"
+  },
+  "voice": {
+    "errorName": "Oops! Please mention the item name.",
+    "errorPrice": "Oops! Please mention the price.",
+    "errorBoth": "I couldn't catch that. Please mention item and price.",
+    "errorInvalidContent": "Oops! Item not found or invalid words detected.",
+    "tryAgain": "Please try again."
   },
   "categories": {
     "all": "All",

@@ -2,7 +2,8 @@
   "common": {
     "save": "Simpan Perubahan",
     "cancel": "Batal",
-    "loading": "Memuat..."
+    "loading": "Memuat...",
+    "error": "Terjadi Kesalahan"
   },
   "settings": {
     "preferences": "Preferensi",
@@ -44,6 +45,13 @@
     "totalSpent": "Total Pengeluaran",
     "statsOrders": "Pesanan",
     "statsItems": "Item"
+  },
+  "voice": {
+    "errorName": "Ups! Tolong sebutkan nama barangnya.",
+    "errorPrice": "Ups! Tolong sebutkan harganya.",
+    "errorBoth": "Saya tidak menangkap itu. Tolong sebutkan barang dan harga.",
+    "errorInvalidContent": "Ups! Barang tidak ditemukan atau kata-kata tidak pantas terdeteksi.",
+    "tryAgain": "Silakan coba lagi."
   },
   "categories": {
     "all": "Semua",

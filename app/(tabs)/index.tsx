@@ -93,13 +93,53 @@ export default function HomeScreen() {
     try {
       console.log("Analyzing text:", text);
       const result = await geminiService.analyzeVoiceText(text);
-      if (result) {
-        setItems((prev) => [result, ...prev]);
-      } else {
-        console.warn("Could not parse voice input");
+      
+      if (!result) {
+        toast.error(t('voice.errorBoth'), { 
+            description: t('voice.tryAgain'),
+            duration: 3000 
+        });
+        return;
       }
+
+      // Validation 0: Content Safety / Relevance
+      if (result.product_name === 'INVALID_CONTENT') {
+          toast.error(t('voice.errorInvalidContent'), {
+              description: t('voice.tryAgain'),
+              duration: 4000,
+          });
+          return;
+      }
+
+      // Validation 1: Missing Name
+      if (!result.product_name || result.product_name.trim() === '') {
+        toast.error(t('voice.errorName'), {
+            description: t('voice.tryAgain'),
+            duration: 4000,
+        });
+        return; // Validation failed, do not save
+      }
+
+      // Validation 2: Missing Price
+      if (!result.price || result.price <= 0) {
+        toast.error(t('voice.errorPrice'), {
+            description: t('voice.tryAgain'),
+            duration: 4000,
+        });
+        return; // Validation failed, do not save
+      }
+
+      // Quantity Logic handled in prompt (defaults to 1) but ensure it's valid
+      const cleanItem = {
+          ...result,
+          qty: result.qty > 0 ? result.qty : 1
+      };
+
+      setItems((prev) => [cleanItem, ...prev]);
+
     } catch (err) {
       console.error("Analysis failed", err);
+      toast.error(t('common.error'), { description: t('voice.tryAgain') });
     } finally {
       setIsProcessing(false);
     }

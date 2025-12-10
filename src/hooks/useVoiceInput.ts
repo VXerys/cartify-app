@@ -1,5 +1,5 @@
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface UseVoiceInputResult {
   isListening: boolean;
@@ -37,6 +37,7 @@ export function useVoiceInput(): UseVoiceInputResult {
   const [transcript, setTranscript] = useState('');
   const [finalResult, setFinalResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const transcriptRef = useRef('');
 
   // Auto-clear error after 3 seconds
   useEffect(() => {
@@ -53,13 +54,20 @@ export function useVoiceInput(): UseVoiceInputResult {
       setError(null);
   });
   
-  useSpeechRecognitionEvent('end', () => setIsListening(false));
+  useSpeechRecognitionEvent('end', () => {
+      setIsListening(false);
+      // On end, we commit the final text
+      if (transcriptRef.current) {
+          setFinalResult(transcriptRef.current);
+      }
+  });
   
   useSpeechRecognitionEvent('result', (event) => {
-    setTranscript(event.results[0]?.transcript || '');
-    if (event.isFinal) {
-        setFinalResult(event.results[0]?.transcript);
-    }
+    const text = event.results[0]?.transcript || '';
+    transcriptRef.current = text;
+    setTranscript(text);
+    // Note: We do NOT set finalResult here because we want to wait 
+    // for the user to manually stop or for the continuous session to end.
   });
 
   useSpeechRecognitionEvent('error', (event) => {
@@ -75,6 +83,7 @@ export function useVoiceInput(): UseVoiceInputResult {
     try {
       setFinalResult(null);
       setTranscript('');
+      transcriptRef.current = '';
       setError(null);
       
       const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
@@ -87,6 +96,7 @@ export function useVoiceInput(): UseVoiceInputResult {
         lang: "id-ID", 
         interimResults: true,
         maxAlternatives: 1,
+        continuous: true, // Enable continuous mode to prevent auto-stop
       });
     } catch (err) {
         if (err instanceof Error) {

@@ -11,6 +11,7 @@ if (API_KEY) {
 }
 
 export interface ParsedItem {
+  id: string;
   product_name: string;
   price: number;
   qty: number;
@@ -145,7 +146,11 @@ export const groqService = {
       console.log(`[Groq Performance] TCT: ${tct}ms | Status: Success`);
       console.log("Raw Groq Response:", output);
 
-      const json: ParsedItem = JSON.parse(output);
+      const rawJson = JSON.parse(output);
+      const json: ParsedItem = {
+          ...rawJson,
+          id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36)
+      };
       return json;
     } catch (error) {
       const tct = Date.now() - startTime;

@@ -27,9 +27,10 @@ export default function HomeScreen() {
   const [items, setItems] = useState<ParsedItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const { clampedNormalize, isTablet, centerContentStyle, width } = useResponsive();
+  const { moderateScale, isTablet, contentContainerStyle, containerPadding } = useResponsive();
 
   const categories = [
+      // ... (no change to categories)
       { key: 'All', label: t('categories.all') },
       { key: 'Food', label: t('categories.food') },
       { key: 'Drink', label: t('categories.drink') },
@@ -46,7 +47,9 @@ export default function HomeScreen() {
   // Budget State
   const [budget, setBudget] = useState(500000); // Default IDR 500k
   const [isBudgetModalVisible, setIsBudgetModalVisible] = useState(false);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const editingItem = items.find(i => i.id === editingId);
   const spent = items.reduce((sum, item) => sum + item.price, 0);
 
   // Handle Voice Result
@@ -159,53 +162,47 @@ export default function HomeScreen() {
     setIsBudgetModalVisible(true);
   };
 
-  const handleDeleteItem = (index: number) => {
-    setItems((prev) => {
-        const newItems = [...prev];
-        newItems.splice(index, 1);
-        return newItems;
-    });
+  const handleDeleteItem = (id: string) => {
+    setItems((prev) => prev.filter(item => item.id !== id));
   };
 
-  const handleUpdateQuantity = (index: number, change: number) => {
+  const handleUpdateQuantity = (id: string, change: number) => {
     setItems((prevItems) => {
-      const newItems = [...prevItems];
-      const item = newItems[index];
-      
-      if (!item) return prevItems;
+      return prevItems.map(item => {
+        if (item.id !== id) return item;
+        
+        const unitPrice = item.qty > 0 ? (item.price / item.qty) : 0;
+        const newQty = item.qty + change;
+        
+        if (newQty < 1) return item;
 
-      const unitPrice = item.qty > 0 ? (item.price / item.qty) : 0;
-      const newQty = item.qty + change;
-
-      if (newQty < 1) return prevItems;
-
-      newItems[index] = {
-        ...item,
-        qty: newQty,
-        price: Math.round(unitPrice * newQty)
-      };
-      
-      return newItems;
+        return {
+          ...item,
+          qty: newQty,
+          price: Math.round(unitPrice * newQty)
+        };
+      });
     });
   };
 
   const handleSaveItem = (name: string, unitPrice: number) => {
-    if (editingIndex === null) return;
+    if (!editingId) return;
     
     setItems((prev) => {
-      const newItems = [...prev];
-      const item = newItems[editingIndex];
-      // Recalculate total price based on new unit price
-      const newTotalPrice = unitPrice * item.qty;
-      
-      newItems[editingIndex] = {
-        ...item,
-        product_name: name,
-        price: newTotalPrice
-      };
-      return newItems;
+      return prev.map(item => {
+        if (item.id !== editingId) return item;
+        
+        // Recalculate total price based on new unit price
+        const newTotalPrice = unitPrice * item.qty;
+        
+        return {
+          ...item,
+          product_name: name,
+          price: newTotalPrice
+        };
+      });
     });
-    setEditingIndex(null);
+    setEditingId(null);
   };
 
   return (
@@ -215,7 +212,14 @@ export default function HomeScreen() {
       <View style={[styles.fixedContent, { width: '100%', alignItems: 'center' }]}>
         <HomeHeader />
 
-        <View style={[styles.budgetWrapper, centerContentStyle, { marginTop: clampedNormalize(-24) }]}>
+        <View style={[
+            styles.budgetWrapper, 
+            contentContainerStyle as any, 
+            { 
+              marginTop: moderateScale(20), // Adjusted from -24 to positive to avoid overlap issues if header changed, or keep consistent spacing
+              paddingHorizontal: containerPadding 
+            }
+        ]}>
               <BudgetCard 
                 budget={budget} 
                 spent={spent} 
@@ -228,7 +232,7 @@ export default function HomeScreen() {
             </BudgetCard>
         </View>
 
-        <View style={[{ width: '100%' }, centerContentStyle]}>
+        <View style={[{ width: '100%' }, contentContainerStyle as any]}>
             <CategorySlider 
                 categories={categories} 
                 selectedCategory={selectedCategory} 
@@ -237,19 +241,19 @@ export default function HomeScreen() {
         </View>
 
         {items.length > 0 && (
-            <View style={[styles.titleWrapper, centerContentStyle, { paddingHorizontal: isTablet ? 0 : 24 }]}>
-                <Text style={[styles.sectionTitle, { fontSize: clampedNormalize(18) }]}>
+            <View style={[styles.titleWrapper, contentContainerStyle as any, { paddingHorizontal: isTablet ? 0 : containerPadding }]}>
+                <Text style={[styles.sectionTitle, { fontSize: moderateScale(18) }]}>
                     {selectedCategory === 'All' 
                         ? t('home.recentItems') 
                         : `${categories.find(c => c.key === selectedCategory)?.label || selectedCategory} Items`}
                 </Text>
                 <TouchableOpacity 
-                    style={[styles.headerFinishButton, { paddingVertical: clampedNormalize(8), paddingHorizontal: clampedNormalize(16), borderRadius: clampedNormalize(20) }]} 
+                    style={[styles.headerFinishButton, { paddingVertical: moderateScale(8), paddingHorizontal: moderateScale(16), borderRadius: moderateScale(20) }]} 
                     onPress={handleFinishShopping}
                     activeOpacity={0.7}
                 >
-                    <IconSymbol name="checkmark" size={clampedNormalize(16)} color="#FFFFFF" weight="bold" />
-                    <Text style={[styles.headerFinishText, { fontSize: clampedNormalize(13) }]}>{t('home.finish')}</Text>
+                    <IconSymbol name="checkmark" size={moderateScale(16)} color="#FFFFFF" weight="bold" />
+                    <Text style={[styles.headerFinishText, { fontSize: moderateScale(13) }]}>{t('home.finish')}</Text>
                 </TouchableOpacity>
             </View>
         )}
@@ -258,28 +262,28 @@ export default function HomeScreen() {
       <FlatList
         style={{ flex: 1, width: '100%' }}
         data={filteredItems}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(item) => item.id}
         renderItem={({ item, index }) => (
-          <View style={[styles.itemWrapper, centerContentStyle]}>
+          <View style={[styles.itemWrapper, contentContainerStyle as any, { paddingHorizontal: isTablet ? 0 : containerPadding }]}>
               <VoiceShoppingCard 
                 productName={item.product_name} 
                 price={item.price} 
                 qty={item.qty} 
                 category={item.category}
                 index={index}
-                onDelete={() => handleDeleteItem(index)}
-                onIncrement={() => handleUpdateQuantity(index, 1)}
-                onDecrement={() => handleUpdateQuantity(index, -1)}
-                onEdit={() => setEditingIndex(index)}
+                onDelete={() => handleDeleteItem(item.id)}
+                onIncrement={() => handleUpdateQuantity(item.id, 1)}
+                onDecrement={() => handleUpdateQuantity(item.id, -1)}
+                onEdit={() => setEditingId(item.id)}
               />
           </View>
         )}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
             !isProcessing && items.length === 0 ? (
-                <View style={[styles.emptyState, { marginTop: clampedNormalize(40) }]}>
-                    <Text style={[styles.emptyText, { fontSize: clampedNormalize(18) }]}>{t('home.cartEmpty')}</Text>
-                    <Text style={[styles.emptySubText, { fontSize: clampedNormalize(14) }]}>
+                <View style={[styles.emptyState, { marginTop: moderateScale(40) }]}>
+                    <Text style={[styles.emptyText, { fontSize: moderateScale(18) }]}>{t('home.cartEmpty')}</Text>
+                    <Text style={[styles.emptySubText, { fontSize: moderateScale(14) }]}>
                         {t('home.tapMic')}
                     </Text>
                 </View>
@@ -310,12 +314,12 @@ export default function HomeScreen() {
         onSetBudget={setBudget}
       />
 
-      {items.length > 0 && editingIndex !== null && items[editingIndex] && (
+      {editingItem && (
         <EditItemModal
-            visible={editingIndex !== null}
-            initialName={items[editingIndex].product_name}
-            initialPrice={items[editingIndex].qty > 0 ? (items[editingIndex].price / items[editingIndex].qty) : 0}
-            onClose={() => setEditingIndex(null)}
+            visible={!!editingItem}
+            initialName={editingItem.product_name}
+            initialPrice={editingItem.qty > 0 ? (editingItem.price / editingItem.qty) : 0}
+            onClose={() => setEditingId(null)}
             onSave={handleSaveItem}
         />
       )}

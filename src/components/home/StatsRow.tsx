@@ -12,7 +12,7 @@ interface StatsRowProps {
 
 export function StatsRow({ orders, items }: StatsRowProps) {
   const { t } = useTranslation();
-  const { clampedNormalize } = useResponsive();
+  const { moderateScale } = useResponsive();
 
   return (
     <Animated.View 
@@ -22,12 +22,12 @@ export function StatsRow({ orders, items }: StatsRowProps) {
       <View style={styles.container}>
         {/* Orders Section */}
         <View style={styles.statSection}>
-            <View style={[styles.iconContainer, { width: clampedNormalize(38), height: clampedNormalize(38) }]}>
-               <IconSymbol name="cart.fill" size={clampedNormalize(18)} color="#2A9D8F" />
+            <View style={[styles.iconContainer, { width: moderateScale(38), height: moderateScale(38) }]}>
+               <IconSymbol name="cart.fill" size={moderateScale(18)} color="#2A9D8F" />
             </View>
             <View style={styles.info}>
-                <Text style={[styles.value, { fontSize: clampedNormalize(20) }]}>{orders}</Text>
-                <Text style={[styles.label, { fontSize: clampedNormalize(12) }]}>{t('home.statsOrders')}</Text>
+                <Text style={[styles.value, { fontSize: moderateScale(20) }]}>{orders}</Text>
+                <Text style={[styles.label, { fontSize: moderateScale(12) }]}>{t('home.statsOrders')}</Text>
             </View>
         </View>
 
@@ -35,12 +35,12 @@ export function StatsRow({ orders, items }: StatsRowProps) {
 
         {/* Items Section */}
         <View style={styles.statSection}>
-            <View style={[styles.iconContainer, { width: clampedNormalize(38), height: clampedNormalize(38) }]}>
-               <IconSymbol name="bag.fill" size={clampedNormalize(18)} color="#2A9D8F" />
+            <View style={[styles.iconContainer, { width: moderateScale(38), height: moderateScale(38) }]}>
+               <IconSymbol name="bag.fill" size={moderateScale(18)} color="#2A9D8F" />
             </View>
              <View style={styles.info}>
-                <Text style={[styles.value, { fontSize: clampedNormalize(20) }]}>{items}</Text>
-                <Text style={[styles.label, { fontSize: clampedNormalize(12) }]}>{t('home.statsItems')}</Text>
+                <Text style={[styles.value, { fontSize: moderateScale(20) }]}>{items}</Text>
+                <Text style={[styles.label, { fontSize: moderateScale(12) }]}>{t('home.statsItems')}</Text>
             </View>
         </View>
       </View>

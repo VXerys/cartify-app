@@ -3,6 +3,7 @@ import { HistoryHeader } from '@/src/components/history/HistoryHeader';
 import { AppModal } from '@/src/components/ui/AppModal';
 import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import { Layout } from '@/src/constants/Layout';
+import { useResponsive } from '@/src/hooks/useResponsive';
 import { deleteTransaction, getTransactionsWithItems, Transaction } from '@/src/services/db';
 import { formatDate } from '@/src/utils/date';
 import { useFocusEffect } from '@react-navigation/native';
@@ -27,9 +28,11 @@ export default function HistoryScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const db = useSQLiteContext();
+  const { moderateScale, containerPadding, contentContainerStyle, isTablet } = useResponsive();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [showCalendar, setShowCalendar] = useState(false);
+  
   // Helper to get local date string YYYY-MM-DD
   const getLocalToday = () => {
       const now = new Date();
@@ -52,9 +55,9 @@ export default function HistoryScreen() {
 
   useEffect(() => {
      if (showCalendar) {
-         calendarHeight.value = withTiming(360, { duration: 400, easing: Easing.out(Easing.cubic) });
+         calendarHeight.value = withTiming(moderateScale(360), { duration: 400, easing: Easing.out(Easing.cubic) });
          calendarOpacity.value = withTiming(1, { duration: 300 });
-         calendarMargin.value = withTiming(24, { duration: 300 });
+         calendarMargin.value = withTiming(moderateScale(24), { duration: 300 });
      } else {
          calendarHeight.value = withTiming(0, { duration: 300, easing: Easing.in(Easing.cubic) });
          calendarOpacity.value = withTiming(0, { duration: 200 });
@@ -74,20 +77,15 @@ export default function HistoryScreen() {
     try {
       const data = await getTransactionsWithItems(db);
       setTransactions(data);
-      // Filter is handled by useEffect or here? 
-      // The original code filtered here based on state, but also had a useEffect [selectedDate, transactions].
-      // We'll let the useEffect handle the filtering to keep it reactive.
     } catch (error) {
       console.error(error);
     }
   };
 
-  // Auto-update date on focus if it was "yesterday"
   useFocusEffect(
     React.useCallback(() => {
       const today = getLocalToday();
       
-      // Calculate yesterday
       const yesterdayDate = new Date();
       yesterdayDate.setDate(yesterdayDate.getDate() - 1);
       const year = yesterdayDate.getFullYear();
@@ -125,7 +123,6 @@ export default function HistoryScreen() {
      if (selectedDate) {
          setFilteredTransactions(transactions.filter(t => t.date.startsWith(selectedDate)));
      } else {
-         // Should not happen if we always have a date, but good as fallback
          setFilteredTransactions(transactions);
      }
   }, [selectedDate, transactions]);
@@ -148,37 +145,46 @@ export default function HistoryScreen() {
           <HistoryHeader />
       </View>
 
-      <View style={styles.actionsContainer}>
+      <View style={[styles.actionsContainer, contentContainerStyle as any, { paddingHorizontal: containerPadding }]}>
         <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle}>{t('history.recentActivity')}</Text>
+            <Text style={[styles.sectionTitle, { fontSize: moderateScale(18) }]}>{t('history.recentActivity')}</Text>
             {selectedDate && (
                 <Animated.View 
                     entering={ZoomIn.duration(300)} 
                     exiting={ZoomOut.duration(200)}
-                    style={styles.activeFilterBadge}
+                    style={[styles.activeFilterBadge, { paddingHorizontal: moderateScale(10), paddingVertical: moderateScale(4), borderRadius: moderateScale(12) }]}
                 >
-                    <Text style={styles.activeFilterText}>{formatDate(selectedDate, i18n.language)}</Text>
+                    <Text style={[styles.activeFilterText, { fontSize: moderateScale(12) }]}>{formatDate(selectedDate, i18n.language)}</Text>
                     <TouchableOpacity onPress={() => setSelectedDate('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                        <IconSymbol name="xmark" size={12} color="#FFF" />
+                        <IconSymbol name="xmark" size={moderateScale(12)} color="#FFF" />
                     </TouchableOpacity>
                 </Animated.View>
             )}
         </View>
 
         <TouchableOpacity 
-            style={[styles.iconButton, showCalendar && styles.iconButtonActive]}
+            style={[
+                styles.iconButton, 
+                showCalendar && styles.iconButtonActive,
+                { width: moderateScale(44), height: moderateScale(44), borderRadius: moderateScale(14) }
+            ]}
             onPress={() => setShowCalendar(!showCalendar)}
             activeOpacity={0.7}
         >
             <IconSymbol 
                 name="calendar" 
-                size={22} 
+                size={moderateScale(22)} 
                 color={showCalendar ? '#FFF' : Layout.colors.primary} 
             />
         </TouchableOpacity>
       </View>
       
-      <Animated.View style={[styles.calendarObj, animatedCalendarStyle]}>
+      <Animated.View style={[
+            styles.calendarObj, 
+            animatedCalendarStyle, 
+            contentContainerStyle as any,
+            { marginHorizontal: containerPadding, borderRadius: moderateScale(24) }
+        ]}>
         <Calendar
             onDayPress={(day: { dateString: string }) => {
                 setSelectedDate(day.dateString);
@@ -193,6 +199,9 @@ export default function HistoryScreen() {
                 textMonthFontWeight: 'bold',
                 textDayHeaderFontWeight: '500',
                 calendarBackground: 'transparent', 
+                textDayFontSize: moderateScale(14),
+                textMonthFontSize: moderateScale(16),
+                textDayHeaderFontSize: moderateScale(13)
             }}
         />
       </Animated.View>
@@ -201,36 +210,38 @@ export default function HistoryScreen() {
         data={filteredTransactions}
         keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
         renderItem={({ item, index }) => (
-            <HistoryCard 
-                item={{
-                    id: item.id?.toString() || '',
-                    date: item.date,
-                    totalPrice: item.total_amount,
-                    totalItems: item.items?.reduce((sum, i) => sum + i.quantity, 0) || 0,
-                    items: item.items?.map(i => ({
-                        name: i.item_name,
-                        qty: i.quantity,
-                        price: i.item_price,
-                        category: i.category
-                    })) || []
-                }} 
-                index={index} 
-                onPress={() => router.push(`/transaction/${item.id}`)}
-                onDelete={handleDelete}
-            />
+            <View style={[styles.itemWrapper, contentContainerStyle as any, { paddingHorizontal: isTablet ? 0 : containerPadding }]}>
+                <HistoryCard 
+                    item={{
+                        id: item.id?.toString() || '',
+                        date: item.date,
+                        totalPrice: item.total_amount,
+                        totalItems: item.items?.reduce((sum, i) => sum + i.quantity, 0) || 0,
+                        items: item.items?.map(i => ({
+                            name: i.item_name,
+                            qty: i.quantity,
+                            price: i.item_price,
+                            category: i.category
+                        })) || []
+                    }} 
+                    index={index} 
+                    onPress={() => router.push(`/transaction/${item.id}`)}
+                    onDelete={handleDelete}
+                />
+            </View>
         )}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
             <Animated.View 
                 entering={FadeIn.delay(200)} 
-                style={styles.emptyState}
+                style={[styles.emptyState, { marginTop: moderateScale(60), paddingHorizontal: containerPadding }]}
             >
-                <View style={styles.emptyIconContainer}>
-                    <IconSymbol name="list.bullet" size={40} color="#DDD" />
+                <View style={[styles.emptyIconContainer, { width: moderateScale(80), height: moderateScale(80), borderRadius: moderateScale(40) }]}>
+                    <IconSymbol name="list.bullet" size={moderateScale(40)} color="#DDD" />
                 </View>
-                <Text style={styles.emptyTitle}>{t('history.noTransactions')}</Text>
-                <Text style={styles.emptyText}>{t('history.noPurchaseYet')}</Text>
+                <Text style={[styles.emptyTitle, { fontSize: moderateScale(18) }]}>{t('history.noTransactions')}</Text>
+                <Text style={[styles.emptyText, { fontSize: moderateScale(14) }]}>{t('history.noPurchaseYet')}</Text>
             </Animated.View>
         }
       />
@@ -243,7 +254,7 @@ export default function HistoryScreen() {
         onSave={confirmDelete}
         saveLabel={t('history.deleteConfirm')}
         variant="danger"
-        headerIcon={<IconSymbol name="trash.fill" size={32} color="#EF4444" />}
+        headerIcon={<IconSymbol name="trash.fill" size={moderateScale(32)} color="#EF4444" />}
       />
     </SafeAreaView>
   );
@@ -262,11 +273,11 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 24,
       marginTop: 20,
       marginBottom: 0, 
       paddingBottom: 20,
       zIndex: 5,
+      width: '100%',
   },
   sectionTitleContainer: {
       flexDirection: 'row',
@@ -274,7 +285,6 @@ const styles = StyleSheet.create({
       gap: 12,
   },
   sectionTitle: {
-      fontSize: 18,
       fontWeight: '700',
       color: '#1E293B',
       letterSpacing: -0.5,
@@ -283,20 +293,13 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: Layout.colors.primary,
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 12,
       gap: 6,
   },
   activeFilterText: {
       color: '#FFF',
-      fontSize: 12,
       fontWeight: '600',
   },
   iconButton: {
-      width: 44,
-      height: 44,
-      borderRadius: 14,
       backgroundColor: '#FFF',
       justifyContent: 'center',
       alignItems: 'center',
@@ -314,9 +317,7 @@ const styles = StyleSheet.create({
   },
   calendarObj: {
       backgroundColor: 'white',
-      borderRadius: 24,
       overflow: 'hidden',
-      marginHorizontal: 24,
       elevation: 5,
       shadowColor: '#64748B',
       shadowOffset: { width: 0, height: 8 },
@@ -329,29 +330,25 @@ const styles = StyleSheet.create({
       paddingBottom: 40,
       paddingTop: 8,
   },
+  itemWrapper: {
+      width: '100%',
+  },
   emptyState: {
       alignItems: 'center',
-      marginTop: 60,
-      paddingHorizontal: 40,
   },
   emptyIconContainer: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
       backgroundColor: '#F1F5F9',
       justifyContent: 'center',
       alignItems: 'center',
       marginBottom: 16,
   },
   emptyTitle: {
-      fontSize: 18,
       fontWeight: '700',
       color: '#334155',
       marginBottom: 8,
   },
   emptyText: {
       color: '#94A3B8',
-      fontSize: 14,
       textAlign: 'center',
       lineHeight: 20,
   }

@@ -1,5 +1,6 @@
 import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import { Layout } from '@/src/constants/Layout';
+import { useResponsive } from '@/src/hooks/useResponsive';
 import { formatCurrency } from '@/src/utils/currency';
 import { formatDate, formatTime } from '@/src/utils/date';
 import React from 'react';
@@ -30,9 +31,12 @@ interface HistoryCardProps {
 
 export function HistoryCard({ item, index, onPress, onDelete }: HistoryCardProps) {
   const { t, i18n } = useTranslation();
+  const { moderateScale, contentContainerStyle } = useResponsive();
   const dateObj = new Date(item.date);
   const dateStr = formatDate(dateObj, i18n.language);
   const timeStr = formatTime(dateObj, i18n.language);
+
+  const deleteBtnWidth = moderateScale(90);
 
   const renderRightActions = (progress: RNAnimated.AnimatedInterpolation<number>, dragX: RNAnimated.AnimatedInterpolation<number>) => {
     const scale = dragX.interpolate({
@@ -43,12 +47,12 @@ export function HistoryCard({ item, index, onPress, onDelete }: HistoryCardProps
 
     return (
         <TouchableOpacity 
-            style={styles.deleteButtonContainer} 
+            style={[styles.deleteButtonContainer, { width: deleteBtnWidth }]} 
             onPress={() => onDelete && onDelete(item.id)}
         >
             <RNAnimated.View style={[styles.deleteButtonContent, { transform: [{ scale }] }]}>
-                <IconSymbol name="trash.fill" size={24} color="#FFF" />
-                <Text style={styles.deleteText}>{t('history.deleteConfirm')}</Text>
+                <IconSymbol name="trash.fill" size={moderateScale(24)} color="#FFF" />
+                <Text style={[styles.deleteText, { fontSize: moderateScale(12) }]}>{t('history.deleteConfirm')}</Text>
             </RNAnimated.View>
         </TouchableOpacity>
     );
@@ -57,11 +61,11 @@ export function HistoryCard({ item, index, onPress, onDelete }: HistoryCardProps
   return (
     <Animated.View 
       entering={FadeInDown.delay(index * 100).springify()} 
-      style={styles.container}
+      style={[styles.container, contentContainerStyle as any]}
     >
-      <Swipeable renderRightActions={renderRightActions} containerStyle={styles.swipeableContainer}>
+      <Swipeable renderRightActions={renderRightActions} containerStyle={[styles.swipeableContainer, { borderRadius: moderateScale(20) }]}>
           <TouchableOpacity 
-            style={styles.card} 
+            style={[styles.card, { padding: moderateScale(16) }]} 
             activeOpacity={0.7}
             onPress={onPress}
           >
@@ -71,26 +75,26 @@ export function HistoryCard({ item, index, onPress, onDelete }: HistoryCardProps
             <View style={styles.contentContainer}>
                 <View style={styles.headerRow}>
                     <View style={styles.dateContainer}>
-                        <View style={styles.calendarIcon}>
-                            <IconSymbol name="calendar" size={14} color={Layout.colors.primary} />
+                        <View style={[styles.calendarIcon, { padding: moderateScale(6), borderRadius: moderateScale(8) }]}>
+                            <IconSymbol name="calendar" size={moderateScale(14)} color={Layout.colors.primary} />
                         </View>
                         <View>
-                            <Text style={styles.dateText}>{dateStr}</Text>
-                            <Text style={styles.timeText}>{timeStr}</Text>
+                            <Text style={[styles.dateText, { fontSize: moderateScale(16) }]}>{dateStr}</Text>
+                            <Text style={[styles.timeText, { fontSize: moderateScale(12) }]}>{timeStr}</Text>
                         </View>
                     </View>
-                    <View style={styles.statusContainer}>
-                        <Text style={styles.statusText}>{t('history.completed')}</Text>
+                    <View style={[styles.statusContainer, { paddingHorizontal: moderateScale(8), paddingVertical: moderateScale(4) }]}>
+                        <Text style={[styles.statusText, { fontSize: moderateScale(10) }]}>{t('history.completed')}</Text>
                     </View>
                 </View>
 
-                <Text style={styles.itemsLabel} numberOfLines={2} ellipsizeMode="tail">
+                <Text style={[styles.itemsLabel, { fontSize: moderateScale(14) }]} numberOfLines={2} ellipsizeMode="tail">
                     {item.items.map(i => i.name).join(', ')}
                 </Text>
 
                 <View style={styles.footerRow}>
-                    <Text style={styles.itemsCount}>{item.totalItems} {t('history.items')}</Text>
-                    <Text style={styles.price}>{formatCurrency(item.totalPrice)}</Text>
+                    <Text style={[styles.itemsCount, { fontSize: moderateScale(13) }]}>{item.totalItems} {t('history.items')}</Text>
+                    <Text style={[styles.price, { fontSize: moderateScale(20) }]}>{formatCurrency(item.totalPrice)}</Text>
                 </View>
             </View>
           </TouchableOpacity>
@@ -102,23 +106,22 @@ export function HistoryCard({ item, index, onPress, onDelete }: HistoryCardProps
 const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
-    marginHorizontal: 20,
+    // Removed marginHorizontal to prevent widening
     backgroundColor: 'transparent',
     // Strong "Floating" Shadow Effect
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3, // Increased to make it clearly visible
+    shadowOpacity: 0.3, 
     shadowRadius: 20,
-    elevation: 12, // High elevation for prominent android shadow
+    elevation: 12, 
+    width: '100%',
   },
   swipeableContainer: {
-      borderRadius: 20,
       overflow: 'hidden',
       backgroundColor: '#FFF',
   },
   card: {
     backgroundColor: '#FFFFFF',
-    padding: 16,
     flexDirection: 'row',
   },
   leftAccent: {
@@ -144,35 +147,27 @@ const styles = StyleSheet.create({
   },
   calendarIcon: {
       backgroundColor: '#E6FFFA', // Light Teal to match Primary
-      padding: 6,
-      borderRadius: 8,
   },
   dateText: {
-      fontSize: 16,
       fontWeight: '700',
       color: '#1E293B',
       letterSpacing: -0.5,
   },
   timeText: {
-      fontSize: 12,
       fontWeight: '500',
       color: '#94A3B8',
   },
   statusContainer: {
       backgroundColor: '#DCFCE7',
-      paddingHorizontal: 8,
-      paddingVertical: 4,
       borderRadius: 8,
   },
   statusText: {
-      fontSize: 10,
       fontWeight: '700',
       color: '#16A34A',
       textTransform: 'uppercase',
       letterSpacing: 0.5,
   },
   itemsLabel: {
-      fontSize: 14,
       color: '#64748B',
       lineHeight: 20,
   },
@@ -186,7 +181,6 @@ const styles = StyleSheet.create({
       borderTopColor: '#F1F5F9',
   },
   itemsCount: {
-      fontSize: 13,
       fontWeight: '600',
       color: '#94A3B8',
       backgroundColor: '#F8FAFC',
@@ -196,7 +190,6 @@ const styles = StyleSheet.create({
       overflow: 'hidden',
   },
   price: {
-      fontSize: 20,
       fontWeight: '800',
       color: Layout.colors.primary,
       letterSpacing: -0.5,
@@ -205,7 +198,6 @@ const styles = StyleSheet.create({
       backgroundColor: '#EF4444',
       justifyContent: 'center',
       alignItems: 'center',
-      width: 90,
       height: '100%',
   },
   deleteButtonContent: {
@@ -215,7 +207,6 @@ const styles = StyleSheet.create({
   },
   deleteText: {
       color: '#FFF',
-      fontSize: 12,
       fontWeight: '700',
   }
 });

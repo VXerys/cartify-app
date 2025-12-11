@@ -1,5 +1,6 @@
 import { IconSymbol, IconSymbolName } from '@/src/components/ui/icon-symbol';
 import { Layout } from '@/src/constants/Layout';
+import { useResponsive } from '@/src/hooks/useResponsive';
 import { getTransactionDetails, Transaction } from '@/src/services/db';
 import { formatCurrency } from '@/src/utils/currency';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -20,6 +21,7 @@ export default function TransactionDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const db = useSQLiteContext();
+  const { moderateScale, verticalScale, containerPadding, contentContainerStyle } = useResponsive();
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -51,19 +53,24 @@ export default function TransactionDetailScreen() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ headerShown: false }} />
-        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+        <View style={[styles.header, { height: verticalScale(190), paddingTop: insets.top + verticalScale(16) }]}>
             <Pressable 
                 onPress={() => router.back()} 
                 style={({ pressed }) => [
                     styles.backButton,
+                    { 
+                        width: moderateScale(44), 
+                        height: moderateScale(44),
+                        borderRadius: moderateScale(14)
+                    },
                     pressed && styles.backButtonPressed
                 ]}
             >
-                <IconSymbol name="chevron.left" size={24} color="#FFF" /> 
+                <IconSymbol name="chevron.left" size={moderateScale(24)} color="#FFF" /> 
             </Pressable>
         </View>
         <View style={styles.center}>
-            <Text style={styles.errorText}>{t('transaction.notFound')}</Text>
+            <Text style={[styles.errorText, { fontSize: moderateScale(16) }]}>{t('transaction.notFound')}</Text>
         </View>
       </View>
     );
@@ -73,9 +80,9 @@ export default function TransactionDetailScreen() {
   const locale = i18n.language === 'id' ? 'id-ID' : 'en-US';
   
   const dateStr = dateObj.toLocaleDateString(locale, { 
-    weekday: 'long', 
+    weekday: 'short', 
     day: 'numeric', 
-    month: 'long',
+    month: 'short',
     year: 'numeric'
   });
   const timeStr = dateObj.toLocaleTimeString(locale, {
@@ -110,64 +117,108 @@ export default function TransactionDetailScreen() {
       <StatusBar barStyle="light-content" backgroundColor={Layout.colors.primary} />
       
       {/* Header Background */}
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        <View style={styles.headerTop}>
+      <View style={[styles.header, { height: verticalScale(220), paddingTop: insets.top }]}>
+        <View style={[styles.headerTop, contentContainerStyle as any, { paddingHorizontal: containerPadding }]}>
              <Pressable 
                 onPress={() => router.back()} 
                 style={({ pressed }) => [
                     styles.backButton,
+                    { 
+                        width: moderateScale(44), 
+                        height: moderateScale(44), 
+                        borderRadius: moderateScale(14) 
+                    },
                     pressed && styles.backButtonPressed
                 ]}
             >
-                <IconSymbol name="chevron.left" size={24} color="#FFF" /> 
+                <IconSymbol name="chevron.left" size={moderateScale(24)} color="#FFF" /> 
              </Pressable>
              
-             {/* Simple fade in for title, no movement to reduce dizziness */}
              <Animated.Text 
                 entering={FadeIn.duration(800)} 
-                style={styles.headerTitle}
+                style={[styles.headerTitle, { fontSize: moderateScale(18) }]}
              >
                 {t('transaction.details')}
              </Animated.Text>
              
-             <View style={{ width: 44 }} /> 
+             <View style={{ width: moderateScale(44) }} /> 
         </View>
       </View>
 
-      {/* Floating Card - Gentle Slide Up */}
+      {/* Ticket Card */}
       <Animated.View 
         entering={FadeInUp.duration(800).springify().damping(20).mass(1).stiffness(90)} 
-        style={styles.summaryCard}
+        style={[
+            styles.ticketContainer, 
+            contentContainerStyle as any,
+            { 
+                marginTop: verticalScale(-90), 
+                marginHorizontal: containerPadding,
+            }
+        ]}
       >
-          <View style={styles.amountContainer}>
-              <Text style={styles.amountLabel}>{t('transaction.totalBill')}</Text>
-              <Text style={styles.amountValue}>
+          {/* Top Section: Amount */}
+          <View style={[styles.ticketTop, { padding: moderateScale(24) }]}>
+              <Text style={[styles.amountLabel, { fontSize: moderateScale(12) }]}>{t('transaction.totalBill')}</Text>
+              <Text style={[styles.amountValue, { fontSize: moderateScale(32) }]}>
                 {formatCurrency(transaction.total_amount)}
               </Text>
           </View>
-          <View style={styles.dateContainer}>
-             <View style={styles.dateRow}>
-                <IconSymbol name="calendar" size={14} color="#94A3B8" />
-                <Text style={styles.dateText}>{dateStr}</Text>
-             </View>
-             <View style={styles.dateRow}>
-                <IconSymbol name="clock" size={14} color="#94A3B8" />
-                <Text style={styles.dateText}>{timeStr}</Text>
-             </View>
+
+          {/* Divider with Notches */}
+          <View style={styles.dividerContainer}>
+              <View style={[styles.notch, styles.notchLeft, { width: moderateScale(20), height: moderateScale(20), borderRadius: moderateScale(10), left: moderateScale(-10) }]} />
+              <View style={styles.dashedLine} />
+              <View style={[styles.notch, styles.notchRight, { width: moderateScale(20), height: moderateScale(20), borderRadius: moderateScale(10), right: moderateScale(-10) }]} />
           </View>
-          <View style={styles.statusBadge}>
-              <View style={styles.statusDot} />
-              <Text style={styles.statusText}>{t('transaction.paymentCompleted')}</Text>
+
+          {/* Bottom Section: Details */}
+          <View style={[styles.ticketBottom, { padding: moderateScale(24) }]}>
+              <View style={[styles.detailRow, { marginBottom: moderateScale(20) }]}>
+                  {/* Date Column */}
+                  <View style={styles.detailItemLeft}>
+                      <View style={styles.detailIconLabel}>
+                           <IconSymbol name="calendar" size={moderateScale(14)} color="#94A3B8" />
+                           <Text style={[styles.detailLabel, { fontSize: moderateScale(12) }]}>{t('common.date')}</Text>
+                      </View>
+                      <Text style={[styles.detailValue, { fontSize: moderateScale(14) }]}>{dateStr}</Text>
+                  </View>
+                  
+                  {/* Time Column */}
+                  <View style={styles.detailItemRight}>
+                      <View style={styles.detailIconLabel}>
+                           <IconSymbol name="clock" size={moderateScale(14)} color="#94A3B8" />
+                           <Text style={[styles.detailLabel, { fontSize: moderateScale(12) }]}>{t('common.time')}</Text>
+                      </View>
+                      <Text style={[styles.detailValue, { fontSize: moderateScale(14) }]}>{timeStr}</Text>
+                  </View>
+              </View>
+
+              <View style={[styles.statusBadgeFull, { 
+                  paddingVertical: moderateScale(12), 
+                  borderRadius: moderateScale(16),
+                  gap: moderateScale(8)
+                }]}>
+                  <View style={[styles.statusDot, { width: moderateScale(8), height: moderateScale(8), borderRadius: moderateScale(4) }]} />
+                  <Text style={[styles.statusText, { fontSize: moderateScale(13) }]}>{t('transaction.paymentCompleted')}</Text>
+              </View>
           </View>
       </Animated.View>
 
       <FlatList
         data={transaction.items}
         keyExtractor={(item, index) => item.id?.toString() || index.toString()}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+            styles.listContent, 
+            { 
+                paddingHorizontal: containerPadding, 
+                paddingTop: moderateScale(24), 
+                paddingBottom: moderateScale(40) 
+            }
+        ]}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
-            <Text style={styles.sectionTitle}>
+            <Text style={[styles.sectionTitle, { fontSize: moderateScale(18), marginBottom: moderateScale(16) }]}>
                 {t('transaction.itemsPurchased')}
             </Text>
         }
@@ -176,18 +227,27 @@ export default function TransactionDetailScreen() {
             const color = getCategoryColor(item.category);
             return (
                 <Animated.View 
-                    // Very subtle stagger, mostly fade
                     entering={FadeInDown.duration(600).delay(index * 80).damping(20)} 
-                    style={styles.itemRow}
+                    style={[styles.itemRow, { 
+                        padding: moderateScale(16), 
+                        borderRadius: moderateScale(20), 
+                        marginBottom: moderateScale(12) 
+                    }]}
                 >
-                    <View style={[styles.iconBox, { backgroundColor: `${color}15` }]}>
-                        <IconSymbol name={icon} size={20} color={color} />
+                    <View style={[styles.iconBox, { 
+                        backgroundColor: `${color}15`, 
+                        width: moderateScale(48), 
+                        height: moderateScale(48), 
+                        borderRadius: moderateScale(16),
+                        marginRight: moderateScale(16)
+                    }]}>
+                        <IconSymbol name={icon} size={moderateScale(20)} color={color} />
                     </View>
-                    <View style={styles.itemInfo}>
-                        <Text style={styles.itemName} numberOfLines={2}>{item.item_name}</Text>
-                        <Text style={styles.itemQty}>{item.quantity} x {formatCurrency(item.item_price)}</Text>
+                    <View style={[styles.itemInfo, { marginRight: moderateScale(8) }]}>
+                        <Text style={[styles.itemName, { fontSize: moderateScale(15), marginBottom: moderateScale(4) }]} numberOfLines={2}>{item.item_name}</Text>
+                        <Text style={[styles.itemQty, { fontSize: moderateScale(13) }]}>{item.quantity} x {formatCurrency(item.item_price)}</Text>
                     </View>
-                    <Text style={styles.itemTotal}>{formatCurrency(item.total_price)}</Text>
+                    <Text style={[styles.itemTotal, { fontSize: moderateScale(15) }]}>{formatCurrency(item.total_price)}</Text>
                 </Animated.View>
             );
         }}
@@ -207,27 +267,23 @@ const styles = StyleSheet.create({
       flex: 1,
   },
   errorText: {
-      fontSize: 16,
       color: '#64748B',
   },
   header: {
     backgroundColor: Layout.colors.primary,
-    height: 190,
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,
     zIndex: 0,
+    width: '100%',
   },
   headerTop: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 24,
       marginTop: 20,
+      width: '100%',
   },
   backButton: {
-      width: 44,
-      height: 44,
-      borderRadius: 14,
       backgroundColor: 'rgba(255,255,255,0.15)',
       justifyContent: 'center',
       alignItems: 'center',
@@ -235,104 +291,133 @@ const styles = StyleSheet.create({
       borderColor: 'rgba(255,255,255,0.1)',
   },
   backButtonPressed: {
-      backgroundColor: 'rgba(255,255,255,0.3)', // Lighter when pressed
+      backgroundColor: 'rgba(255,255,255,0.3)', 
       borderColor: 'rgba(255,255,255,0.5)',
   },
   headerTitle: {
-      fontSize: 18,
       fontWeight: '700',
       color: '#FFF',
       letterSpacing: 0.5,
   },
-  summaryCard: {
-      marginTop: -70,
-      marginHorizontal: 24,
-      backgroundColor: '#FFFFFF',
-      borderRadius: 28,
-      padding: 24,
-      alignItems: 'center',
-      shadowColor: '#64748B',
-      shadowOffset: { width: 0, height: 16 },
-      shadowOpacity: 0.12,
-      shadowRadius: 32,
-      elevation: 10,
+  // Ticket Styles
+  ticketContainer: {
+      width: '100%',
+      maxWidth: 600,
+      alignSelf: 'center',
+      borderRadius: 24, // Main container radius (masked by parts)
+      backgroundColor: 'transparent', // Parts have color
       zIndex: 10,
-      borderWidth: 1,
-      borderColor: '#FFF',
+      shadowColor: '#64748B',
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.1,
+      shadowRadius: 24,
+      elevation: 8,
   },
+  ticketTop: {
+      backgroundColor: '#FFFFFF',
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      alignItems: 'center',
+  },
+  ticketBottom: {
+      backgroundColor: '#FFFFFF',
+      borderBottomLeftRadius: 24,
+      borderBottomRightRadius: 24,
+  },
+  dividerContainer: {
+      height: 20,
+      backgroundColor: '#FFFFFF',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'visible', // Ensure notches are visible
+      zIndex: 20,
+  },
+  dashedLine: {
+      flex: 1,
+      height: 1,
+      borderWidth: 1,
+      borderColor: '#E2E8F0',
+      borderStyle: 'dashed',
+      marginHorizontal: 24,
+  },
+  notch: {
+      position: 'absolute',
+      backgroundColor: '#F8FAFC', // Matches screen background to fake a cut
+      zIndex: 30,
+  },
+  notchLeft: {},
+  notchRight: {},
+
   amountLabel: {
-      fontSize: 12,
       fontWeight: '700',
       color: '#94A3B8',
       textTransform: 'uppercase',
       letterSpacing: 1.5,
-      marginBottom: 12,
+      marginBottom: 8,
   },
   amountValue: {
-      fontSize: 36,
       fontWeight: '800',
       color: Layout.colors.primary,
       letterSpacing: -1,
-      marginBottom: 24,
   },
-  amountContainer: {
-      alignItems: 'center',
-      borderBottomWidth: 1,
-      borderBottomColor: '#F1F5F9',
+  detailRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
       width: '100%',
-      paddingBottom: 24,
-      marginBottom: 24,
   },
-  dateContainer: {
+  detailItemLeft: {
+      flex: 1,
+      alignItems: 'flex-start',
+      paddingRight: 8,
+  },
+  detailItemRight: {
+      flex: 1,
+      alignItems: 'flex-end',
+      paddingLeft: 8,
+  },
+  detailIconLabel: {
       flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 6,
+      gap: 6,
+  },
+  detailLabel: {
+      color: '#94A3B8',
+      fontWeight: '600',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+  },
+  detailValue: {
+      color: '#334155',
+      fontWeight: '700',
+      flexWrap: 'wrap', 
+  },
+  statusBadgeFull: {
+      flexDirection: 'row',
+      alignItems: 'center',
       justifyContent: 'center',
-      gap: 20,
-      marginBottom: 24,
-  },
-  dateRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-  },
-  dateText: {
-      fontSize: 13,
-      fontWeight: '500',
-      color: '#64748B',
-  },
-  statusBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
       backgroundColor: '#F0FDF4',
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderRadius: 24,
       borderWidth: 1,
       borderColor: '#DCFCE7',
+      width: '100%',
   },
   statusDot: {
-      width: 6,
-      height: 6,
-      borderRadius: 3,
       backgroundColor: '#16A34A',
   },
   statusText: {
       color: '#16A34A',
-      fontSize: 12,
-      fontWeight: '700',
+      fontWeight: '800',
       letterSpacing: 0.5,
       textTransform: 'uppercase',
   },
   listContent: {
-      paddingHorizontal: 24,
-      paddingTop: 32,
-      paddingBottom: 40,
+      // handled inline
   },
   sectionTitle: {
-      fontSize: 18,
       fontWeight: '700',
       color: '#1E293B',
-      marginBottom: 20,
       marginLeft: 4,
       letterSpacing: -0.5,
   },
@@ -340,9 +425,6 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: '#FFFFFF',
-      padding: 16,
-      borderRadius: 20,
-      marginBottom: 12,
       borderWidth: 1,
       borderColor: '#F8FAFC',
       shadowColor: '#64748B',
@@ -352,30 +434,21 @@ const styles = StyleSheet.create({
       elevation: 2,
   },
   iconBox: {
-      width: 48,
-      height: 48,
-      borderRadius: 16,
       justifyContent: 'center',
       alignItems: 'center',
-      marginRight: 16,
   },
   itemInfo: {
       flex: 1,
-      marginRight: 8,
   },
   itemName: {
-      fontSize: 15,
       fontWeight: '600',
       color: '#1E293B',
-      marginBottom: 4,
   },
   itemQty: {
-      fontSize: 13,
       color: '#94A3B8',
       fontWeight: '500',
   },
   itemTotal: {
-      fontSize: 15,
       fontWeight: '700',
       color: '#0F172A',
   },

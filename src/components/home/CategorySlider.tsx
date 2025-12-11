@@ -38,7 +38,7 @@ const CategoryChip = ({ categoryKey, label, isSelected, onSelect, index }: {
     onSelect: (c: string) => void,
     index: number 
 }) => {
-    const { clampedNormalize } = useResponsive();
+    const { moderateScale } = useResponsive();
     const progress = useSharedValue(isSelected ? 1 : 0);
 
     useEffect(() => {
@@ -58,19 +58,12 @@ const CategoryChip = ({ categoryKey, label, isSelected, onSelect, index }: {
             ['rgba(0,0,0,0.05)', Layout.colors.primary]
         );
 
-        // Animate elevation/shadow
-        // shadowStart (elevation 1) -> shadowMedium (elevation 5)
-        const elevation = isSelected ? 5 : 1; 
-
         return {
             backgroundColor,
             borderColor,
-            // Reanimated might not interpolate elevation perfectly on all android versions
-            // but toggling it here inside the hook ensures it syncs with other props.
-            // For smoother shadow transition, we stick to standard props or simple logic.
-            elevation: withTiming(elevation, { duration: 300 }),
+            elevation: withTiming(isSelected ? 4 : 1, { duration: 300 }),
             shadowOpacity: withTiming(isSelected ? 0.2 : 0.1, { duration: 300 }),
-            shadowRadius: withTiming(isSelected ? 10 : 3, { duration: 300 }),
+            shadowRadius: withTiming(isSelected ? 8 : 3, { duration: 300 }),
         };
     });
 
@@ -83,34 +76,27 @@ const CategoryChip = ({ categoryKey, label, isSelected, onSelect, index }: {
         return { color };
     });
 
-
-
-    // We can't easily animate the icon color directly via style prop on the Icon component without a wrapper.
-    // Instead, we will rely on the re-render for the icon color, or wrap it.
-    // Since Icon color is a prop, not a style, we usually just swap it. 
-    // However, to be "smooth", we can overlay two icons or just accept the quick color swap. 
-    // Given usage, quick swap on icon color is usually acceptable if background transitions smoothly.
-    // Let's stick to simple prop change for Icon color to avoid complexity, 
-    // but the background/border/shadow MUST be smooth.
-
     return (
         <AnimatedTouchableOpacity
             activeOpacity={0.8}
             onPress={() => onSelect(categoryKey)}
-            style={[styles.chip, rStyle]}
+            style={[
+                styles.chip, 
+                rStyle,
+                {
+                    paddingHorizontal: moderateScale(16),
+                    paddingVertical: moderateScale(8),
+                    borderRadius: moderateScale(20),
+                }
+            ]}
         >
-             {/* 
-                For perfect icon color transition, we would need an AnimatedIcon. 
-                But passing interpolated string to color prop is tricky in vanilla Reanimated without createAnimatedComponent on the Icon.
-                Let's use a simple conditional for now, the background swipe is the most important part.
-             */}
             <MaterialIcons 
                 name={getIcon(categoryKey)} 
-                size={clampedNormalize(18)} 
+                size={moderateScale(18)} 
                 color={isSelected ? '#FFF' : '#666'} 
-                style={{ marginRight: 6 }}
+                style={{ marginRight: moderateScale(6) }}
             />
-            <Animated.Text style={[styles.text, rTextStyle, { fontSize: clampedNormalize(14) }]}>
+            <Animated.Text style={[styles.text, rTextStyle, { fontSize: moderateScale(14) }]}>
                 {label}
             </Animated.Text>
         </AnimatedTouchableOpacity>
@@ -118,14 +104,20 @@ const CategoryChip = ({ categoryKey, label, isSelected, onSelect, index }: {
 };
 
 export function CategorySlider({ categories, selectedCategory, onSelectCategory }: CategorySliderProps) {
-  const { clampedNormalize, containerPadding } = useResponsive();
+  const { containerPadding, moderateScale } = useResponsive();
 
   return (
     <View style={styles.container}>
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContent, { paddingHorizontal: containerPadding }]}
+        contentContainerStyle={[
+            styles.scrollContent, 
+            { 
+                paddingHorizontal: containerPadding, 
+                gap: moderateScale(12) 
+            }
+        ]}
       >
         {categories.map((item, index) => (
              <Animated.View 
@@ -138,8 +130,6 @@ export function CategorySlider({ categories, selectedCategory, onSelectCategory 
                     isSelected={selectedCategory === item.key}
                     onSelect={onSelectCategory}
                     index={index}
-                    // Explicitly pass style or context if needed, but here we can rely on Global styles or passed prop if we refactored Chip.
-                    // However, Chip is defined inside file. Let's make Text size dynamic in styles or inline.
                 />
             </Animated.View>
         ))}
@@ -154,17 +144,12 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   scrollContent: {
-    paddingHorizontal: 24, // Will be overridden or passed as style prop if needed
-    gap: 12,
     paddingBottom: 12, 
     paddingTop: 4, 
   },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
     backgroundColor: '#FFF',
     borderWidth: 1,
     shadowColor: "#000",
@@ -174,4 +159,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-

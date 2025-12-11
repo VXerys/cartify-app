@@ -1,8 +1,10 @@
 import { IconSymbol, IconSymbolName } from '@/src/components/ui/icon-symbol';
 import { useResponsive } from '@/src/hooks/useResponsive';
 import { formatCurrency } from '@/src/utils/currency';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Animated, { FadeInDown, FadeOutLeft, Layout } from 'react-native-reanimated';
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+
+
 
 interface VoiceShoppingCardProps {
   productName: string;
@@ -22,19 +24,19 @@ const getCategoryIcon = (category: string = 'other'): IconSymbolName => {
         case 'food': return 'fork.knife';
         case 'drink': return 'cup.and.saucer.fill';
         case 'fruit': return 'leaf.fill';
-        case 'snacks': return 'fork.knife'; // Fallback to food for now
-        case 'household': return 'bolt.fill'; // Or another suitable one
+        case 'snacks': return 'fork.knife'; 
+        case 'household': return 'bolt.fill'; 
         default: return 'tag.fill';
     }
 };
 
 const getCategoryColor = (category: string = 'other'): string => {
     switch (category.toLowerCase()) {
-        case 'food': return '#FF9F43'; // Orange
-        case 'drink': return '#54A0FF'; // Blue
-        case 'fruit': return '#2ED573'; // Green
-        case 'household': return '#A3CB38'; // Olive
-        default: return '#81BFBC'; // Default Teal
+        case 'food': return '#FF9F43'; 
+        case 'drink': return '#54A0FF'; 
+        case 'fruit': return '#2ED573'; 
+        case 'household': return '#A3CB38'; 
+        default: return '#81BFBC'; 
     }
 };
 
@@ -52,30 +54,40 @@ export function VoiceShoppingCard({
 }: VoiceShoppingCardProps) {
   const iconName = getCategoryIcon(category);
   const accentColor = getCategoryColor(category);
-  const { clampedNormalize, isTablet } = useResponsive();
+  const { moderateScale, contentContainerStyle } = useResponsive();
 
   // Dynamic Styles
-  const iconSize = clampedNormalize(22);
-  const titleSize = clampedNormalize(16);
-  const priceSize = clampedNormalize(15);
-  const smallText = clampedNormalize(12);
+  const iconSize = moderateScale(22);
+  const titleSize = moderateScale(16);
+  const priceSize = moderateScale(15);
+  const smallText = moderateScale(12);
+  
+  // Touch target sizing
+  const buttonSize = moderateScale(32); // Visual size
+  const cardMinHeight = moderateScale(80);
 
   return (
     <Animated.View 
-      entering={FadeInDown.delay(index * 100).springify()} 
-      exiting={FadeOutLeft}
-      layout={Layout.springify()}
-      style={styles.container}
+      entering={FadeInDown.delay(Math.min(index * 50, 500)).duration(500)}
+      style={[
+        styles.container, 
+        contentContainerStyle as any
+      ]}
     >
-      <TouchableOpacity 
-          style={[styles.card, { minHeight: clampedNormalize(80) }]} 
-          activeOpacity={readOnly ? 1 : 0.9} 
+      <Pressable
+          style={({ pressed }) => [
+            styles.card, 
+            { minHeight: cardMinHeight },
+             // Subtle scale/opacity effect on press for iOS/Android
+            pressed && !readOnly && { opacity: 0.95, transform: [{ scale: 0.995 }] }
+          ]}
           onPress={readOnly ? undefined : onEdit}
+          android_ripple={{ color: 'rgba(0,0,0,0.08)', foreground: true }}
       >
         <View style={[styles.leftAccent, { backgroundColor: accentColor }]} />
         
         <View style={styles.touchableCard}>
-          <View style={[styles.iconContainer, { backgroundColor: `${accentColor}20`, width: clampedNormalize(40), height: clampedNormalize(40) }]}>
+          <View style={[styles.iconContainer, { backgroundColor: `${accentColor}20`, width: moderateScale(40), height: moderateScale(40) }]}>
              <IconSymbol name={iconName} size={iconSize} color={accentColor} />
           </View>
 
@@ -85,7 +97,7 @@ export function VoiceShoppingCard({
             <View style={styles.detailsRow}>
               <Text style={[styles.unitPrice, { fontSize: smallText }]}>
                   {formatCurrency(price / (qty || 1))}
-                  <Text style={[styles.unitLabel, { fontSize: clampedNormalize(11) }]}> / unit</Text>
+                  <Text style={[styles.unitLabel, { fontSize: moderateScale(11) }]}> / unit</Text>
               </Text>
 
               {readOnly ? (
@@ -94,25 +106,35 @@ export function VoiceShoppingCard({
                   </View>
               ) : (
                 <View style={styles.quantityControl}>
-                    <TouchableOpacity 
-                        onPress={onDecrement} 
-                        style={[styles.qtyButton, { width: clampedNormalize(24), height: clampedNormalize(24) }]}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
-                        <IconSymbol name="minus" size={clampedNormalize(14)} color="#1F2937" />
-                    </TouchableOpacity>
+                    <View style={[styles.qtyButtonContainer, { width: buttonSize, height: buttonSize }]}>
+                        <Pressable 
+                            onPress={onDecrement} 
+                            style={({ pressed }) => [
+                                styles.qtyButtonContent,
+                                pressed && { backgroundColor: '#F3F4F6', opacity: 0.8 }
+                            ]}
+                            hitSlop={12}
+                        >
+                            <IconSymbol name="minus" size={moderateScale(14)} color="#1F2937" />
+                        </Pressable>
+                    </View>
                     
-                    <View style={[styles.qtyBadge, { minWidth: clampedNormalize(24) }]}>
-                        <Text style={[styles.qtyText, { fontSize: clampedNormalize(13) }]}>{qty}</Text>
+                    <View style={[styles.qtyBadge, { minWidth: moderateScale(24) }]}>
+                        <Text style={[styles.qtyText, { fontSize: moderateScale(13) }]}>{qty}</Text>
                     </View>
 
-                    <TouchableOpacity 
-                        onPress={onIncrement} 
-                        style={[styles.qtyButton, { width: clampedNormalize(24), height: clampedNormalize(24) }]}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
-                        <IconSymbol name="plus" size={clampedNormalize(14)} color="#1F2937" />
-                    </TouchableOpacity>
+                    <View style={[styles.qtyButtonContainer, { width: buttonSize, height: buttonSize }]}>
+                        <Pressable 
+                            onPress={onIncrement} 
+                            style={({ pressed }) => [
+                                styles.qtyButtonContent,
+                                pressed && { backgroundColor: '#F3F4F6', opacity: 0.8 }
+                            ]}
+                            hitSlop={12}
+                        >
+                            <IconSymbol name="plus" size={moderateScale(14)} color="#1F2937" />
+                        </Pressable>
+                    </View>
                 </View>
               )}
             </View>
@@ -120,7 +142,7 @@ export function VoiceShoppingCard({
 
           <View style={styles.rightSection}>
             <View style={styles.priceContainer}>
-                <Text style={[styles.priceLabel, { fontSize: clampedNormalize(10) }]}>TOTAL</Text>
+                <Text style={[styles.priceLabel, { fontSize: moderateScale(10) }]}>TOTAL</Text>
                 <Text style={[styles.price, { fontSize: priceSize }]} adjustsFontSizeToFit minimumFontScale={0.8} numberOfLines={1}>
                     {formatCurrency(price)}
                 </Text>
@@ -132,31 +154,34 @@ export function VoiceShoppingCard({
                 onPress={onDelete} 
                 style={styles.deleteButton} 
                 activeOpacity={0.7}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
              >
-                 <IconSymbol name="trash.fill" size={clampedNormalize(18)} color="#FF6B6B" />
+                 <IconSymbol name="trash.fill" size={moderateScale(18)} color="#FF6B6B" />
              </TouchableOpacity>
           )}
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 1,
-  },
-  card: {
+    marginBottom: 12,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'stretch',
+    // Move shadow properties here to animate with the container
     shadowColor: '#171717',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 4,
+  },
+  card: {
+    flex: 1,
+    borderRadius: 16, // Keep borderRadius for clipping
+    flexDirection: 'row',
+    alignItems: 'stretch',
     overflow: 'hidden',
   },
   touchableCard: {
@@ -170,13 +195,11 @@ const styles = StyleSheet.create({
     width: 5,
     height: '100%',
   },
-
   iconContainer: {
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   info: {
     flex: 1, 
     justifyContent: 'center',
@@ -215,16 +238,19 @@ const styles = StyleSheet.create({
       borderColor: '#E5E7EB',
       padding: 2,
   },
-  qtyButton: {
-      justifyContent: 'center',
-      alignItems: 'center',
+  qtyButtonContainer: {
       backgroundColor: '#FFFFFF',
       borderRadius: 6,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 1,
-      elevation: 1,
+      borderWidth: 1,
+      borderColor: '#E5E7EB',
+      elevation: 0,
+  },
+  qtyButtonContent: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderRadius: 6, // Match container
+      overflow: 'hidden', // Clip interactions/ripples to the button shape
   },
   qtyBadge: {
       alignItems: 'center',
@@ -244,7 +270,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'center',
     flex: 1,
-    minWidth: 60, // Ensure price doesn't collapse
+    minWidth: 60, 
   },
   priceLabel: {
     color: '#9CA3AF',
@@ -255,7 +281,7 @@ const styles = StyleSheet.create({
   },
   price: {
     fontWeight: '800',
-    color: '#059669', // Uses a nice green for price
+    color: '#059669', 
     letterSpacing: -0.5,
   },
   deleteButton: {

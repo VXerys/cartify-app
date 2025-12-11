@@ -1,4 +1,5 @@
 import { Layout } from '@/src/constants/Layout';
+import { useResponsive } from '@/src/hooks/useResponsive';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -9,23 +10,28 @@ import { useTranslation } from 'react-i18next';
 export function HistoryHeader() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { moderateScale, verticalScale, containerPadding, isTablet, contentContainerStyle } = useResponsive();
+
+  // Dynamic values
+  const circle1Size = moderateScale(120);
+  const circle2Size = moderateScale(200);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
-      <View style={styles.decorativeCircle1} />
-      <View style={styles.decorativeCircle2} />
+    <View style={[styles.container, { paddingTop: insets.top + verticalScale(8) }]}>
+      <View style={[styles.decorativeCircle1, { width: circle1Size, height: circle1Size, borderRadius: circle1Size / 2 }]} />
+      <View style={[styles.decorativeCircle2, { width: circle2Size, height: circle2Size, borderRadius: circle2Size / 2 }]} />
 
-      <View style={styles.contentContainer}>
+      <View style={[styles.contentContainer, contentContainerStyle as any, { paddingHorizontal: containerPadding }]}>
         <View style={styles.textContainer}>
           <Animated.Text 
             entering={FadeInDown.delay(100).springify()} 
-            style={styles.greeting}
+            style={[styles.greeting, { fontSize: moderateScale(13) }]}
           >
             {t('history.headerOverview')}
           </Animated.Text>
           <Animated.Text 
             entering={FadeInDown.delay(200).springify()} 
-            style={styles.title}
+            style={[styles.title, { fontSize: moderateScale(22) }]}
           >
             {t('history.headerTitle')}
           </Animated.Text>
@@ -37,43 +43,37 @@ export function HistoryHeader() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: Layout.spacing.m,
     paddingBottom: Layout.spacing.l,
     backgroundColor: Layout.colors.primary, 
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
     zIndex: 10,
     overflow: 'hidden',
+    width: '100%',
     ...Layout.shadows.medium,
   },
   decorativeCircle1: {
       position: 'absolute',
       bottom: -30,
       left: -30,
-      width: 120,
-      height: 120,
-      borderRadius: 60,
       backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   decorativeCircle2: {
       position: 'absolute',
       top: -60,
       right: -20, 
-      width: 200,
-      height: 200,
-      borderRadius: 100,
       backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   contentContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    width: '100%',
   },
   textContainer: {
     justifyContent: 'center',
   },
   greeting: {
-    fontSize: 13,
     fontWeight: '500',
     color: 'rgba(255, 255, 255, 0.9)', 
     marginBottom: 2,
@@ -81,7 +81,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   title: {
-    fontSize: 22,
     fontWeight: '700',
     color: '#FFF',
     letterSpacing: -0.5,

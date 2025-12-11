@@ -23,7 +23,7 @@ interface BudgetCardProps {
 
 export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCardProps) {
   const { t } = useTranslation();
-  const { clampedNormalize, isTablet, centerContentStyle } = useResponsive();
+  const { moderateScale, horizontalScale, verticalScale, isTablet, contentContainerStyle } = useResponsive();
   const percentage = Math.min(spent / budget, 1);
   const progressWidth = useSharedValue(0);
   
@@ -62,38 +62,45 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
   return (
     <Animated.View 
         entering={FadeInDown.delay(100).springify()} 
-        style={[styles.containerShadow, centerContentStyle]} // Apply centerContentStyle for tablet width constraint
+        style={[styles.containerShadow, contentContainerStyle as any]} 
     >
       <Animated.View
-        style={[styles.card, { backgroundColor: '#2A9D8F', paddingHorizontal: clampedNormalize(20), paddingVertical: clampedNormalize(18) }]}
+        style={[
+            styles.card, 
+            { 
+                backgroundColor: '#2A9D8F', 
+                paddingHorizontal: moderateScale(20), 
+                paddingVertical: moderateScale(18) 
+            }
+        ]}
       >
         {/* Decorative background elements - Dynamic */}
-        <View style={[styles.decorativeCircle, { width: clampedNormalize(180), height: clampedNormalize(180), borderRadius: clampedNormalize(90) }]} />
-        <View style={[styles.decorativeCircleSmall, { width: clampedNormalize(100), height: clampedNormalize(100), borderRadius: clampedNormalize(50) }]} />
+        <View style={[styles.decorativeCircle, { width: moderateScale(180), height: moderateScale(180), borderRadius: moderateScale(90) }]} />
+        <View style={[styles.decorativeCircleSmall, { width: moderateScale(100), height: moderateScale(100), borderRadius: moderateScale(50) }]} />
 
         {/* Top Section: Title & Edit */}
         <View style={styles.topRow}>
           <View>
             <Animated.Text 
                 entering={FadeInDown.delay(200).springify()} 
-                style={[styles.label, { fontSize: clampedNormalize(11) }]}
+                style={[styles.label, { fontSize: moderateScale(11) }]}
             >
                 {t('home.monthlyBudget')}
             </Animated.Text>
             <Animated.Text 
                 entering={FadeInDown.delay(300).springify()} 
-                style={[styles.budgetAmount, { fontSize: clampedNormalize(26) }]}
+                style={[styles.budgetAmount, { fontSize: moderateScale(26) }]}
             >
                 {formatCurrency(budget)}
             </Animated.Text>
           </View>
           <TouchableOpacity 
-            style={[styles.walletButton, { width: clampedNormalize(36), height: clampedNormalize(36), borderRadius: clampedNormalize(12) }]} 
+            style={[styles.walletButton, { width: moderateScale(36), height: moderateScale(36), borderRadius: moderateScale(12) }]} 
             onPress={onEditBudget}
             activeOpacity={0.8}
           >
              <IconSymbol 
-              size={clampedNormalize(18)} 
+              size={moderateScale(18)} 
               name="slider.horizontal.3" 
               color={Layout.colors.primary} 
              />
@@ -103,16 +110,16 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
         {/* Progress Section */}
         <View style={styles.progressContainer}>
           <View style={styles.infoRow}>
-            <Animated.Text entering={FadeInDown.delay(400)} style={[styles.spentText, { fontSize: clampedNormalize(13) }]}>
+            <Animated.Text entering={FadeInDown.delay(400)} style={[styles.spentText, { fontSize: moderateScale(13) }]}>
                 {t('home.totalSpent')} <Text style={styles.spentAmountHighlight}>{formatCurrency(spent)}</Text>
             </Animated.Text>
-            <Animated.Text entering={FadeInDown.delay(500)} style={[styles.percentageText, { fontSize: clampedNormalize(13) }]}>
+            <Animated.Text entering={FadeInDown.delay(500)} style={[styles.percentageText, { fontSize: moderateScale(13) }]}>
                 {Math.round(percentage * 100)}%
             </Animated.Text>
           </View>
           
-          <View style={[styles.progressBarBg, { height: clampedNormalize(6), borderRadius: clampedNormalize(3) }]}>
-            <Animated.View style={[styles.progressBarFill, progressStyle, { borderRadius: clampedNormalize(3) }]} />
+          <View style={[styles.progressBarBg, { height: moderateScale(6), borderRadius: moderateScale(3) }]}>
+            <Animated.View style={[styles.progressBarFill, progressStyle, { borderRadius: moderateScale(3) }]} />
           </View>
         </View>
 
@@ -129,9 +136,7 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
 
 const styles = StyleSheet.create({
   containerShadow: {
-    marginHorizontal: 20, 
-    marginTop: 40,
-    marginBottom: 8,
+    // Margins should be handled by the parent container to prevent "widening" issues
     shadowColor: "#2A9D8F",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
@@ -139,6 +144,7 @@ const styles = StyleSheet.create({
     elevation: 8,
     borderRadius: 24,
     backgroundColor: 'transparent',
+    width: '100%', // Ensure it takes available width from parent
   },
   card: {
     borderRadius: 24,

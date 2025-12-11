@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export function HomeHeader() {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { containerPadding, clampedNormalize, isTablet, centerContentStyle } = useResponsive();
+  const { containerPadding, moderateScale, verticalScale, isTablet, contentContainerStyle } = useResponsive();
   const [greetingKey, setGreetingKey] = useState('home.goodMorning');
   
   // Dynamic greeting logic
@@ -25,32 +25,37 @@ export function HomeHeader() {
   // Format date using shared utility
   const dateStr = formatDate(new Date(), i18n.language);
 
+  // Dynamic Styles
+  const avatarSize = moderateScale(48);
+  const onlineSize = moderateScale(12);
+  const iconSize = moderateScale(14);
+  
   return (
-    <View style={[styles.container, { paddingTop: insets.top + (isTablet ? 12 : 8) }]}>
+    <View style={[styles.container, { paddingTop: insets.top + verticalScale(8) }]}>
       {/* Background Decor - Scaled */}
       <View style={isTablet ? styles.decorativeCircleTablet1 : styles.decorativeCircle1} />
       <View style={isTablet ? styles.decorativeCircleTablet2 : styles.decorativeCircle2} />
 
-      <View style={[styles.contentContainer, centerContentStyle, { paddingHorizontal: containerPadding }]}>
+      <View style={[styles.contentRow, contentContainerStyle as import('react-native').ViewStyle, { paddingHorizontal: containerPadding }]}>
         <View style={styles.leftSection}>
             <TouchableOpacity style={styles.avatarContainer} activeOpacity={0.8}>
                 <Image 
                     source={{ uri: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' }} 
-                    style={[styles.avatar, { width: clampedNormalize(48), height: clampedNormalize(48), borderRadius: clampedNormalize(24) }]} 
+                    style={[styles.avatar, { width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 }]} 
                 />
-                <View style={[styles.onlineIndicator, { width: clampedNormalize(12), height: clampedNormalize(12), borderRadius: clampedNormalize(6) }]} />
+                <View style={[styles.onlineIndicator, { width: onlineSize, height: onlineSize, borderRadius: onlineSize / 2 }]} />
             </TouchableOpacity>
             
             <View style={styles.textContainer}>
                 <Animated.Text 
                     entering={FadeInDown.delay(100).springify()} 
-                    style={[styles.greeting, { fontSize: clampedNormalize(13) }]}
+                    style={[styles.greeting, { fontSize: moderateScale(13) }]}
                 >
                     {t(greetingKey)},
                 </Animated.Text>
                 <Animated.Text 
                     entering={FadeInDown.delay(200).springify()} 
-                    style={[styles.name, { fontSize: clampedNormalize(18) }]}
+                    style={[styles.name, { fontSize: moderateScale(18) }]}
                 >
                     Sarah Johnson
                 </Animated.Text>
@@ -59,10 +64,10 @@ export function HomeHeader() {
 
         <Animated.View 
             entering={FadeInDown.delay(300).springify()} 
-            style={[styles.dateContainer, { paddingHorizontal: clampedNormalize(12), paddingVertical: clampedNormalize(8) }]}
+            style={[styles.dateContainer, { paddingHorizontal: moderateScale(12), paddingVertical: moderateScale(6) }]}
         >
-            <MaterialIcons name="event" size={clampedNormalize(14)} color="rgba(255,255,255,0.9)" />
-            <Animated.Text style={[styles.date, { fontSize: clampedNormalize(12) }]}>
+            <MaterialIcons name="event" size={iconSize} color="rgba(255,255,255,0.9)" />
+            <Animated.Text style={[styles.date, { fontSize: moderateScale(12) }]}>
               {dateStr}
             </Animated.Text>
         </Animated.View>
@@ -81,6 +86,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     width: '100%',
     ...Layout.shadows.medium,
+  },
+  contentRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
   },
   decorativeCircle1: {
       position: 'absolute',
@@ -104,25 +114,19 @@ const styles = StyleSheet.create({
       position: 'absolute',
       bottom: -50,
       left: -50,
-      width: 200,
-      height: 200,
-      borderRadius: 100,
+      width: 250,
+      height: 250,
+      borderRadius: 125,
       backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   decorativeCircleTablet2: {
       position: 'absolute',
       top: -100,
       right: -40, 
-      width: 300,
-      height: 300,
-      borderRadius: 150,
+      width: 350,
+      height: 350,
+      borderRadius: 175,
       backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  contentContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
   },
   leftSection: {
     flexDirection: 'row',

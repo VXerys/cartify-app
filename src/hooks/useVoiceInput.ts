@@ -113,7 +113,7 @@ export function useVoiceInput(): UseVoiceInputResult {
         lang: "id-ID", 
         interimResults: true,
         maxAlternatives: 1,
-        continuous: true, // Keep continuous to allow pauses
+        // continuous: true, // Removed to restore system "on-mic" sound
       });
     } catch (err) {
         if (err instanceof Error) {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     Image,
+    RefreshControl,
     ScrollView,
     StatusBar,
     StyleSheet,
@@ -41,6 +42,15 @@ export default function SettingsScreen() {
   // Temp States for Forms
   const [tempName, setTempName] = useState(userProfile.name);
   const [tempPassword, setTempPassword] = useState({ current: '', new: '', confirm: '' });
+  
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    // Simulate refresh for settings (since it's mostly local or mockup data)
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1500);
+  }, []);
 
   // --- Handlers ---
   const handleEditProfile = () => {
@@ -136,6 +146,9 @@ export default function SettingsScreen() {
             contentContainerStyle as any
         ]} 
         showsVerticalScrollIndicator={false}
+        refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[Layout.colors.primary]} />
+        }
       >
         
         {/* Header Profile Card - Premium Design */}

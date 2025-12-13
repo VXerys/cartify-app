@@ -7,7 +7,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, StatusBar, StyleSheet, Text, View } from 'react-native';
 import Animated, {
     FadeIn,
     FadeInDown,
@@ -39,6 +39,20 @@ export default function TransactionDetailScreen() {
         }
     };
     fetchDetails();
+  }, [id, db]);
+  
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = React.useCallback(async () => {
+      setRefreshing(true);
+      if (id) {
+          try {
+              const data = await getTransactionDetails(db, Number(id));
+              setTransaction(data);
+          } catch (error) {
+              console.error("Failed to fetch transaction details", error);
+          }
+      }
+      setRefreshing(false);
   }, [id, db]);
 
   if (loading) {
@@ -194,13 +208,33 @@ export default function TransactionDetailScreen() {
                   </View>
               </View>
 
+              <View style={[styles.detailRow, { marginBottom: moderateScale(20) }]}>
+                  {/* Orders Column */}
+                  <View style={styles.detailItemLeft}>
+                      <View style={styles.detailIconLabel}>
+                           <IconSymbol name="bag.fill" size={moderateScale(14)} color="#94A3B8" />
+                           <Text style={[styles.detailLabel, { fontSize: moderateScale(12) }]}>{t('home.statsOrders')}</Text>
+                      </View>
+                      <Text style={[styles.detailValue, { fontSize: moderateScale(14) }]}>{transaction.items?.length || 0}</Text>
+                  </View>
+                  
+                  {/* Items Column */}
+                  <View style={styles.detailItemRight}>
+                      <View style={styles.detailIconLabel}>
+                           <IconSymbol name="cube.box.fill" size={moderateScale(14)} color="#94A3B8" />
+                           <Text style={[styles.detailLabel, { fontSize: moderateScale(12) }]}>{t('home.statsItems')}</Text>
+                      </View>
+                       <Text style={[styles.detailValue, { fontSize: moderateScale(14) }]}>{transaction.items?.reduce((sum, item) => sum + item.quantity, 0) || 0}</Text>
+                  </View>
+              </View>
+
               <View style={[styles.statusBadgeFull, { 
                   paddingVertical: moderateScale(12), 
                   borderRadius: moderateScale(16),
                   gap: moderateScale(8)
                 }]}>
                   <View style={[styles.statusDot, { width: moderateScale(8), height: moderateScale(8), borderRadius: moderateScale(4) }]} />
-                  <Text style={[styles.statusText, { fontSize: moderateScale(13) }]}>{t('transaction.paymentCompleted')}</Text>
+                  <Text style={[styles.statusText, { fontSize: moderateScale(13) }]}>{t('transaction.shoppingRecorded')}</Text>
               </View>
           </View>
       </Animated.View>
@@ -217,6 +251,9 @@ export default function TransactionDetailScreen() {
             }
         ]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[Layout.colors.primary]} />
+        }
         ListHeaderComponent={
             <Text style={[styles.sectionTitle, { fontSize: moderateScale(18), marginBottom: moderateScale(16) }]}>
                 {t('transaction.itemsPurchased')}
@@ -245,7 +282,9 @@ export default function TransactionDetailScreen() {
                     </View>
                     <View style={[styles.itemInfo, { marginRight: moderateScale(8) }]}>
                         <Text style={[styles.itemName, { fontSize: moderateScale(15), marginBottom: moderateScale(4) }]} numberOfLines={2}>{item.item_name}</Text>
-                        <Text style={[styles.itemQty, { fontSize: moderateScale(13) }]}>{item.quantity} x {formatCurrency(item.item_price)}</Text>
+                        <Text style={[styles.itemQty, { fontSize: moderateScale(13) }]}>
+                            {item.quantity}{item.unit ? ` ${item.unit}` : ''} x {formatCurrency(item.item_price)}
+                        </Text>
                     </View>
                     <Text style={[styles.itemTotal, { fontSize: moderateScale(15) }]}>{formatCurrency(item.total_price)}</Text>
                 </Animated.View>
@@ -451,5 +490,17 @@ const styles = StyleSheet.create({
   itemTotal: {
       fontWeight: '700',
       color: '#0F172A',
+  },
+  noteContainer: {
+      backgroundColor: '#F8FAFC',
+      padding: 12,
+      borderRadius: 12,
+      width: '100%',
+      marginBottom: 20,
+  },
+  noteText: {
+      color: '#334155',
+      fontWeight: '500',
+      lineHeight: 20,
   },
 });

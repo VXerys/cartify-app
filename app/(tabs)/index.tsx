@@ -1,8 +1,8 @@
 import { Layout } from '@/src/constants/Layout';
 import { useResponsive } from '@/src/hooks/useResponsive';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, RefreshControl, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BudgetCard } from '@/src/components/home/BudgetCard';
@@ -232,6 +232,17 @@ export default function HomeScreen() {
     });
     setEditingId(null);
   };
+  
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    // Home uses local state for items, so maybe we just refresh the budget/stats or do nothing?
+    // Since items are "session" based, we don't want to clear them on refresh unless intended.
+    // We will just simulate a network wait.
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1500);
+  }, []);
 
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
@@ -289,6 +300,9 @@ export default function HomeScreen() {
 
       <FlatList
         style={{ flex: 1, width: '100%' }}
+        refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[Layout.colors.primary]} />
+        }
         data={filteredItems}
         keyExtractor={(item) => item.id}
         renderItem={({ item, index }) => (

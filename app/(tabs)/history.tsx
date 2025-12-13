@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, RefreshControl, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import Animated, {
     Easing,
@@ -126,6 +126,13 @@ export default function HistoryScreen() {
          setFilteredTransactions(transactions);
      }
   }, [selectedDate, transactions]);
+  
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = React.useCallback(async () => {
+      setRefreshing(true);
+      await fetchTransactions();
+      setRefreshing(false);
+  }, [db]);
 
     const markedDates = transactions.reduce((acc, t) => {
         const dateKey = t.date.split('T')[0];
@@ -232,6 +239,9 @@ export default function HistoryScreen() {
         )}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[Layout.colors.primary]} />
+        }
         ListEmptyComponent={
             <Animated.View 
                 entering={FadeIn.delay(200)} 

@@ -3,7 +3,10 @@
     "save": "Simpan Perubahan",
     "cancel": "Batal",
     "loading": "Memuat...",
-    "error": "Terjadi Kesalahan"
+    "error": "Terjadi Kesalahan",
+    "date": "Tanggal",
+    "time": "Waktu",
+    "note": "Catatan"
   },
   "settings": {
     "preferences": "Preferensi",
@@ -84,7 +87,7 @@
     "notFound": "Transaksi tidak ditemukan",
     "details": "Detail Transaksi",
     "totalBill": "Total Tagihan",
-    "paymentCompleted": "Pembayaran Selesai",
+    "shoppingRecorded": "Belanja Tercatat",
     "itemsPurchased": "Item yang Dibeli"
   },
   "password": {

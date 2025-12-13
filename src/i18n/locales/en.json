@@ -3,7 +3,10 @@
     "save": "Save Changes",
     "cancel": "Cancel",
     "loading": "Loading...",
-    "error": "Error"
+    "error": "Error",
+    "date": "Date",
+    "time": "Time",
+    "note": "Note"
   },
   "settings": {
     "preferences": "Preferences",
@@ -84,7 +87,7 @@
     "notFound": "Transaction not found",
     "details": "Transaction Details",
     "totalBill": "Total Bill",
-    "paymentCompleted": "Payment Completed",
+    "shoppingRecorded": "Shopping Recorded",
     "itemsPurchased": "Items Purchased"
   },
   "password": {

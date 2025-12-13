@@ -40,7 +40,8 @@ export function useVoiceInput(): UseVoiceInputResult {
   
   const transcriptRef = useRef('');
   const silenceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const SILENCE_DURATION_MS = 1500; // 1.5s of silence triggers auto-stop
+  // Increased to 3s to prevent cutting off users mid-sentence (e.g. "masing-masing... [pause] ... 2 ribu")
+  const SILENCE_DURATION_MS = 3000;
 
   // Auto-clear error after 3 seconds
   useEffect(() => {
@@ -74,7 +75,7 @@ export function useVoiceInput(): UseVoiceInputResult {
   });
   
   useSpeechRecognitionEvent('result', (event) => {
-    const text = event.results[0]?.transcript || '';
+    const text = event.results.map(r => r.transcript).join(' ');
     transcriptRef.current = text;
     setTranscript(text);
     

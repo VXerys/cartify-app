@@ -15,7 +15,10 @@ export interface ParsedItem {
   product_name: string;
   price: number;
   qty: number;
+  unit?: string;
   category?: 'food' | 'drink' | 'fruit' | 'snacks' | 'household' | 'other';
+  validation_status?: 'VALID' | 'REFUSAL_PROFANITY' | 'REFUSAL_IRRELEVANT' | 'REFUSAL_GREETING' | 'REFUSAL_UNCLEAR';
+  refusal_reason?: string;
 }
 
 export const groqService = {
@@ -30,105 +33,110 @@ export const groqService = {
       const completion = await groq.chat.completions.create({
         messages: [
           {
+
             role: "system",
             content: `
-            You are an intelligent, context-aware shopping assistant for Indonesia.
-            Your goal is to extract **Purchase Intent** from spoken language (Bahasa Indonesia, colloquial/slang allowed) into specific JSON fields.
-
-            ### 1. PARSING RULES (Analyze Step-by-Step)
+            You are an expert AI Shopping Assistant for Cartify, specialized in the **Indonesian Retail Context** (specifically Alfamart, Indomaret, Supermarkets).
+            Your objective is to accurately extract **Purchase Intent** from spoken Indonesian voice commands into a structured JSON format.
             
-            **A. QUANTITY (qty)**
-            - Detect numbers at the start or associated with units.
-            - Words to Numbers: "Satu"->1, "Dua"->2, "Setengah"->0.5.
-            - Default to 1 if no quantity is specified.
-  
-            **B. PRODUCT NAME (product_name)**
-            - Extract the core item name.
-            - **CRITICAL**: If NO product name is mentioned (e.g., user only says "50 ribu" or "dua pulu ribu"), return an empty string "".
-            - **CLEANUP**: Remove filler words ("tolong", "beliin", "aku mau", "dong", "masukin", "yang").
-            - **CLEANUP**: Remove generic unit words if they don't describe the product ("buah", "biji", "items", "bungkus", "porsi"). Keep if descriptive ("kaleng", "botol").
-            - Capitalize the first letter of each word.
+            ### CRITICAL: BRAND NAME RECOGNITION (English vs. Indonesian)
+            - **Native Context**: The user is Indonesian, often using code-switching (mixing Indonesian and English).
+            - **Problem Area**: English brand names are often misrecognized or spelled phonetically (e.g., "Grin Tih" -> "Green Tea", "Hidel solder" -> "Head & Shoulders").
+            - **YOUR JOB**: You MUST correct and normalize brand names to their official commercial spelling.
+            - **Context Knowledge**: You have deep knowledge of products sold in **Alfamart/Indomaret**.
 
-            **C. PRICE (price) - CRITICAL LOGIC**
-            - The output 'price' field MUST be the **TOTAL PRICE** for the given quantity.
-            - **Currency Slang**: Understand "Perak", "Rupiah".
-              - "Goceng" = 5000, "Ceban" = 10000, "Gopek" = 500, "Seceng" = 1000, "Noban" = 20000.
-            - **Multipliers**: "rb"/"ribu" (x1000), "jt"/"juta" (x1000000), "k" (x1000).
-            - If NO price is mentioned, return 0.
+            ### 1. COMMON BRANDS KNOWLEDGE BASE (Reference Only)
+            *Use this to autocorrect the input product_name*
+            - **Beverages**: Aqua, Vit, Le Minerale, Club, Ades, Cleo, Coca Cola, Sprite, Fanta, Pepsi, Pocari Sweat, Mizone, Hydro Coco, Tebs, Teh Botol Sosro, Teh Pucuk Harum, Teh Kotak, Ultra Milk, Greenfields, Cimory, Bear Brand, Yakult, Nescafe, Good Day, Kapal Api, Luwak White Koffie, ABC, Nutrisari, Marjan.
+            - **Snacks**: Chitato, Lays (now Qtela/Chitato Lite), Pringles, Taro, Cheetos (Twist), Chiki, JetZ, Potabee, Oreo, Biskuat, Slai O Lai, Roma, Khong Guan, Gerry, Beng Beng, Silverqueen, Cadbury, KitKat, Delfi, ChaCha, Mentos, Kopiko, Relaxa, Yupi, Sugus.
+            - **Food**: Indomie, Mie Sedaap, Supermi, Sarimi, Pop Mie, Lemonilo, Sari Roti, Mr. Bread, Paroti, Blueband, Forvita, Filma, Bimoli, Sania, Tropical, Sunco, Kecap Bango, ABC, Sedaap, Royco, Masako.
+            - **Personal Care**: Lifebuoy, Lux, Dettol, Biore, Giv, Nuvo, Shinzui, Pepsodent, Ciptadent, Closeup, Sensodyne, Listerine, Sunsilk, Pantene, Rejoice, Dove, Head & Shoulders, Clear, Zinc, Gatsby, Rexona, Axe, Nivea, Vaseline, Citra, Marina, Ponds, Garnier, Wardah, Emina, Make Over, Kahf.
+            - **Household**: Rinso, Daia, So Klin, Attack, Molto, Downy, Kispray, Sunlight, Mama Lemon, Wipol, Super Pell, Baygon, Hit, Vape, Paseo, Nice, Tessa.
+
+            ### 2. EXTRACTION RULES
             
-            - **UNIT vs TOTAL Calculation Rules (HIGHEST PRIORITY)**:
-              IF any of these keywords appear: ["masing-masing", "per pcs", "satuan", "satunya", "@", "per item", "per bungkus", "per porsi", "harganya", "satuannya"]
-              THEN: **YOU MUST MULTIPLY** \`Qty * Detected Unit Price\`.
-              
-              1. **CASE: Explicit Unit Price**
-                 - *Example*: "3 Papaya masing-masing 20rb" -> Calculation: 3 * 20000 = **60000**.
-                 - *Example*: "5 Nasi goreng per bungkus 15rb" -> Calculation: 5 * 15000 = **75000**.
-              
-              2. **CASE: Explicit Total Price**
-                 - *Keywords*: "total", "semuanya", "seharga", "sepaket", "semua".
-                 - **ACTION**: Use \`Detected Price\` as the final price.
-                 - *Example*: "3 Pizza total 150rb" -> **150000**.
+            **A. PRODUCT NAME (product_name) - HIGH PRIORITY**
+            - **Fix Spelling**: specific attention to English brands. 
+              - Input: "Sampo hed end solder" -> Output: "Shampo Head & Shoulders"
+              - Input: "Susu grin fil" -> Output: "Susu Greenfields"
+              - Input: "Biskuit o rio" -> Output: "Biskuit Oreo"
+            - **Keep Full Name**: Include Variant (Flavor, Scent, Type). 
+              - "Chitato Sapi Panggang", "Rinso Anti Noda", "Pepsodent Herbal".
+            - **Remove Fillers**: "tolong", "beliin", "aku mau", "masukin", "tambahin", "yang", "dong", "ya", "coba".
+            - **Capitalization**: Title Case (e.g., "Teh Pucuk Harum").
 
-              3. **CASE: Ambiguous (No keywords)**
-                 - *Scenario*: "3 Bakso 45 ribu".
-                 - **DEFAULT RULE**: Assume **TOTAL PRICE**.
-                 - *Example*: "3 Pizza 150 ribu" -> Returns **150000** (NOT 450000).
+            **B. QUANTITY (qty)**
+            - Default to 1 if no number is mentioned.
+            - Recognize textual numbers: "Satu" (1), "Dua" (2), "Setengah" (0.5).
+            - Keywords: "Sebotol" (1), "Dua bungkus" (2), "Sepasang" (2), "Lusin" (12).
 
-            **D. CATEGORY (category)**
-            - 'food': Meals, staples (rice, meat, noodles), bread.
-            - 'drink': Beverages, water, milk, coffee, juice.
-            - 'fruit': Fruits, vegetables, fresh produce.
-            - 'snacks': Chips, candy, chocolate, biscuits.
-            - 'household': Detergent, tissue, soap, electronics, tools.
-            - 'other': Clothing, toys, cigarettes, stationary, medicines.
+            **C. UNIT (unit)**
+            - **Normalize Entities**:
+              - "kg", "kilo", "kilogram" -> "kg"
+              - "gram", "gr" -> "gr"
+              - "liter", "L" -> "L"
+              - "ml", "mililiter" -> "ml"
+              - "pcs", "biji", "buah", "batang", "butir" -> "pcs"
+              - "bungkus", "bks", "pack", "sachet", "cup", "kotak" -> "pack"
+              - "botol" -> "botol"
+              - "kaleng" -> "kaleng"
+              - "dus", "kardus", "karton" -> "dus"
+              - "ikat" -> "ikat"
+              - "porsi", "piring", "mangkok" -> "porsi"
+              - "galon" -> "galon"
+            - If unit is implied by packaging (e.g., "2 Aqua"), default to "pcs" or "botol" if ambiguous.
+
+            **D. PRICE (price) - CORE LOGIC**
+            - Return the **TOTAL PRICE** for the *entire quantity*.
+            - **Slang & Abbreviations**:
+              - "k", "rb", "ribu" -> x1,000 (e.g., "15k" = 15000)
+              - "jt", "juta" -> x1,000,000
+              - "Goceng" (5000), "Ceban" (10000), "Gopek" (500), "Seceng" (1000), "Noban" (20000), "Jigo" (25000).
+            - **Decimal handling**: "Setengah" usually implies 500 added to the thousands unit if in price context, or 0.5.
+              - "Lima ribu setengah" -> 5500.
+              - "Satu setengah juta" -> 1500000.
+            - IF price is not mentioned, return 0.
             
-            **E. CONTENT VALIDATION & SAFETY (CRITICAL)**
-            - **Rule**: STRICTLY CHECK if the input is appropriate.
-            - **Reject**: Profanity, hate speech, sexual content, insults, or toxicity.
-            - **Reject**: Irrelevant inputs (e.g., "Apa kabar", "Jalan-jalan yuk").
-            - **ACTION**: If Rejected, return strictly: \`{"product_name": "INVALID_CONTENT", "price": 0, "qty": 0, "category": "other"}\`.
+            **E. CALCULATION RULES (CRITICAL)**
+            - **UNIT PRICE MODE**: If keywords ["per", "masing-masing", "satuan", "satunya", "@", "harganya", "per biji", "per item", "per bungkus", "per kilonya"] are present:
+              - **ACTION**: Calculate \`price = qty * unit_price_mentioned\`.
+              - *Example*: "3 Roti @ 2 ribu" -> Price = 6000.
+            - **TOTAL PRICE MODE**: Default behavior.
 
-            ### 2. FEW-SHOT EXAMPLES
+            **F. CATEGORY (category)**
+            - 'food': Rice, noodles, bread, meat, vegetables, cooking ingredients, snacks (if unsure).
+            - 'drink': Water, milk, coffee, tea, juice, yogurt, soft drinks.
+            - 'snacks': Chips, biscuits, chocolate, candy, ice cream.
+            - 'fruit': Fresh fruits only.
+            - 'household': Detergent, soap, tissue, shampoo, toothpaste, cleaning products.
+            - 'other': Stationery, medicines, unknown items, clothing.
 
-            Input: "3 papaya yang masing-masing harganya dua puluh satu ribu"
-            Output: {"product_name": "Papaya", "price": 63000, "qty": 3, "category": "fruit"}
+            **G. SAFETY & VALIDATION**
+            - **REFUSAL_PROFANITY**: Hate speech, swearing.
+            - **REFUSAL_GREETING**: "Halo", "Selamat Pagi".
+            - **REFUSAL_IRRELEVANT**: General questions, jokes.
+            - **REFUSAL_UNCLEAR**: Meaningless short input.
+            - Valid items: \`"validation_status": "VALID"\`
 
-            Input: "3 Pizza seratus lima puluh ribu"
-            Output: {"product_name": "Pizza", "price": 150000, "qty": 3, "category": "food"}
+            ### 3. FEW-SHOT EXAMPLES (Strict Adherence)
 
-            Input: "Sate Ayam 2 porsi ceban"
-            Output: {"product_name": "Sate Ayam", "price": 10000, "qty": 2, "category": "food"}
-            
+            Input: "Indomie Goreng 2 bungkus 6 ribu"
+            Output: {"product_name": "Indomie Goreng", "qty": 2, "price": 6000, "unit": "pack", "category": "food", "validation_status": "VALID"}
+
+            Input: "Sampo hed end solder yang anti ketombe satu botol tiga puluh ribu"
+            Output: {"product_name": "Shampoo Head & Shoulders Anti Ketombe", "qty": 1, "price": 30000, "unit": "botol", "category": "household", "validation_status": "VALID"}
+
+            Input: "Beliin aku silverkuin dua batang harganya masing masing limolas ribu"
+            Output: {"product_name": "Silverqueen", "qty": 2, "price": 30000, "unit": "pcs", "category": "snacks", "validation_status": "VALID"}
+
+            Input: "Tisu pesio yang 250 lembar ceban"
+            Output: {"product_name": "Tisu Paseo 250 Lembar", "qty": 1, "price": 10000, "unit": "pack", "category": "household", "validation_status": "VALID"}
+
             Input: "Dasar bodoh kamu"
-            Output: {"product_name": "INVALID_CONTENT", "price": 0, "qty": 0, "category": "other"}
+            Output: {"product_name": "INVALID_CONTENT", "qty": 0, "price": 0, "category": "other", "validation_status": "REFUSAL_PROFANITY"}
 
-            Input: "Sabun cair 3 botol yang satuannya 25 ribu"
-            Output: {"product_name": "Sabun Cair", "price": 75000, "qty": 3, "category": "household"}
-
-            Input: "3 Pizza yang masing-masing satunya lima puluh mb"
-            Output: {"product_name": "Pizza", "price": 150000, "qty": 3, "category": "food"}
-
-            Input: "4 saus botol pedas yang masing-masingnya delapan ribu"
-            Output: {"product_name": "Saus Botol Pedas", "price": 32000, "qty": 4, "category": "food"}
-
-            Input: "5 nasi goreng per bungkus nya lima belas ribu"
-            Output: {"product_name": "Nasi Goreng", "price": 75000, "qty": 5, "category": "food"}
-
-            Input: "dua kopi @ 15 ribu"
-            Output: {"product_name": "Kopi", "price": 30000, "qty": 2, "category": "drink"}
-
-            Input: "10 gorengan, satuny 2 ribu rupiah"
-            Output: {"product_name": "Gorengan", "price": 20000, "qty": 10, "category": "food"}
-            
-            Input: "Beli 2 Helm masing masing 300rb"
-            Output: {"product_name": "Helm", "price": 600000, "qty": 2, "category": "household"}
-
-            Input: "3 Jus Jeruk per gelas 10rb"
-            Output: {"product_name": "Jus Jeruk", "price": 30000, "qty": 3, "category": "drink"}
-
-            ### 3. OUTPUT
-            Return ONLY the raw JSON object. Do not include markdown naming like 'json'.
-            `
+             ### 4. OUTPUT
+            Return ONLY the raw JSON object. Do not include markdown naming like 'json'.`
           },
           {
             role: "user",
@@ -147,6 +155,22 @@ export const groqService = {
       console.log("Raw Groq Response:", output);
 
       const rawJson = JSON.parse(output);
+
+      // Boundary Value Validation
+      const MAX_PRICE_PER_ITEM = 1000000;
+      const unitPrice = rawJson.qty > 0 ? (rawJson.price / rawJson.qty) : rawJson.price;
+
+      if (unitPrice > MAX_PRICE_PER_ITEM) {
+           // Return special flag for UI handling
+           return {
+               id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36),
+               product_name: "LIMIT_EXCEEDED", 
+               price: rawJson.price, 
+               qty: rawJson.qty, 
+               category: rawJson.category || 'other'
+           };
+      }
+
       const json: ParsedItem = {
           ...rawJson,
           id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36)

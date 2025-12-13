@@ -6,6 +6,7 @@ import {
     StyleSheet,
     Text,
     TextInput,
+    TouchableOpacity,
     View
 } from 'react-native';
 
@@ -13,27 +14,33 @@ interface EditItemModalProps {
     visible: boolean;
     initialName: string;
     initialPrice: number; // Unit price
+    initialUnit?: string;
     onClose: () => void;
-    onSave: (name: string, price: number) => void;
+    onSave: (name: string, price: number, unit: string) => void;
 }
 
 export function EditItemModal({ 
     visible, 
     initialName, 
     initialPrice, 
+    initialUnit = 'unit',
     onClose, 
     onSave 
 }: EditItemModalProps) {
     const [name, setName] = useState(initialName);
+    const [unit, setUnit] = useState(initialUnit);
     const [priceStr, setPriceStr] = useState('');
+
+    const COMMON_UNITS = ['pcs', 'kg', 'gr', 'liter', 'ml', 'pack', 'unit', 'box', 'porsi'];
 
     useEffect(() => {
         if (visible) {
             setName(initialName);
+            setUnit(initialUnit || 'unit');
             // Format existing price
             setPriceStr(parseCurrencyInput(initialPrice.toString()));
         }
-    }, [visible, initialName, initialPrice]);
+    }, [visible, initialName, initialPrice, initialUnit]);
 
     const handlePriceChange = (text: string) => {
         if (text === 'Rp ' || text === '') {
@@ -46,7 +53,7 @@ export function EditItemModal({
     const handleSave = () => {
         if (!name.trim()) return;
         const num = currencyToNumber(priceStr);
-        onSave(name, num);
+        onSave(name, num, unit);
         onClose();
     };
 
@@ -83,6 +90,27 @@ export function EditItemModal({
                     keyboardType="numeric"
                 />
             </View>
+
+            <View style={styles.inputGroup}>
+                <Text style={styles.label}>Unit</Text>
+                <View style={styles.unitContainer}>
+                    {COMMON_UNITS.map((u) => (
+                        <TouchableOpacity
+                            key={u}
+                            onPress={() => setUnit(u)}
+                            style={[
+                                styles.unitChip,
+                                unit === u && styles.unitChipActive
+                            ]}
+                        >
+                            <Text style={[
+                                styles.unitText,
+                                unit === u && styles.unitTextActive
+                            ]}>{u}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            </View>
         </AppModal>
     );
 }
@@ -108,5 +136,32 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#333',
         fontWeight: '600',
+    },
+    unitContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+        marginTop: 4,
+    },
+    unitChip: {
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: '#F3F4F6',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+    },
+    unitChipActive: {
+        backgroundColor: '#E0F2F1', // Light teal
+        borderColor: '#81BFBC',
+    },
+    unitText: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: '#4B5563',
+    },
+    unitTextActive: {
+        color: '#00695C',
+        fontWeight: '700',
     },
 });

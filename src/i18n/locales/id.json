@@ -51,6 +51,12 @@
     "errorPrice": "Ups! Tolong sebutkan harganya.",
     "errorBoth": "Saya tidak menangkap itu. Tolong sebutkan barang dan harga.",
     "errorInvalidContent": "Ups! Barang tidak ditemukan atau kata-kata tidak pantas terdeteksi.",
+    "errorProfanity": "Bahasa tidak pantas terdeteksi. Tolong gunakan bahasa yang sopan.",
+    "errorGreeting": "Halo! Silakan sebutkan barang yang ingin dibeli.",
+    "errorIrrelevant": "Maaf, saya hanya bisa membantu mencatat belanjaan.",
+    "errorUnclear": "Maaf, saya kurang paham. Bisa sebutkan ulang barangnya?",
+    "errorLimitExceeded": "Maaf, harga maksimum adalah 1 juta rupiah per barang.",
+    "limitExceededTitle": "Batas Terlampaui",
     "tryAgain": "Silakan coba lagi."
   },
   "categories": {

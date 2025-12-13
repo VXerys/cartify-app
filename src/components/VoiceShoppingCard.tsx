@@ -10,6 +10,7 @@ interface VoiceShoppingCardProps {
   productName: string;
   price: number;
   qty: number;
+  unit?: string;
   category?: string;
   onDelete?: () => void;
   onIncrement?: () => void;
@@ -44,6 +45,7 @@ export function VoiceShoppingCard({
   productName, 
   price, 
   qty, 
+  unit,
   category, 
   onDelete, 
   onIncrement, 
@@ -97,7 +99,7 @@ export function VoiceShoppingCard({
             <View style={styles.detailsRow}>
               <Text style={[styles.unitPrice, { fontSize: smallText }]}>
                   {formatCurrency(price / (qty || 1))}
-                  <Text style={[styles.unitLabel, { fontSize: moderateScale(11) }]}> / unit</Text>
+                  <Text style={[styles.unitLabel, { fontSize: moderateScale(11) }]}> / {unit || 'unit'}</Text>
               </Text>
 
               {readOnly ? (

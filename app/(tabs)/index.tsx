@@ -11,6 +11,7 @@ import { CategorySlider } from '@/src/components/home/CategorySlider';
 import { EditItemModal } from '@/src/components/home/EditItemModal';
 import { HomeHeader } from '@/src/components/home/HomeHeader';
 import { StatsRow } from '@/src/components/home/StatsRow';
+import { AppModal } from '@/src/components/ui/AppModal';
 import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import { VoiceFeedback } from '@/src/components/voice/VoiceFeedback';
 import { VoiceFloatingButton } from '@/src/components/VoiceFloatingButton';
@@ -47,6 +48,7 @@ export default function HomeScreen() {
   // Budget State
   const [budget, setBudget] = useState(500000); // Default IDR 500k
   const [isBudgetModalVisible, setIsBudgetModalVisible] = useState(false);
+  const [limitErrorVisible, setLimitErrorVisible] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const editingItem = items.find(i => i.id === editingId);
@@ -74,6 +76,7 @@ export default function HomeScreen() {
                     item_name: item.product_name,
                     item_price: item.qty > 0 ? (item.price / item.qty) : item.price,
                     quantity: item.qty,
+                    unit: item.unit,
                     category: item.category || 'Other',
                     total_price: item.price
                 }))
@@ -108,11 +111,35 @@ export default function HomeScreen() {
       }
 
       // Validation 0: Content Safety / Relevance
+      // Validation 0: Content Safety / Relevance
       if (result.product_name === 'INVALID_CONTENT') {
+          if (result.validation_status === 'REFUSAL_PROFANITY') {
+             toast.error(t('voice.errorProfanity'), { duration: 4000 });
+             return;
+          }
+          if (result.validation_status === 'REFUSAL_GREETING') {
+             toast.info(t('voice.errorGreeting'), { duration: 4000 });
+             return;
+          }
+          if (result.validation_status === 'REFUSAL_IRRELEVANT') {
+             toast.info(t('voice.errorIrrelevant'), { duration: 4000 });
+             return;
+          }
+          if (result.validation_status === 'REFUSAL_UNCLEAR') {
+             toast.error(t('voice.errorUnclear'), { duration: 4000 });
+             return;
+          }
+
           toast.error(t('voice.errorInvalidContent'), {
               description: t('voice.tryAgain'),
               duration: 4000,
           });
+          return;
+      }
+
+      // Validation 0.5: Price Limit
+      if (result.product_name === 'LIMIT_EXCEEDED') {
+          setLimitErrorVisible(true);
           return;
       }
 
@@ -185,7 +212,7 @@ export default function HomeScreen() {
     });
   };
 
-  const handleSaveItem = (name: string, unitPrice: number) => {
+  const handleSaveItem = (name: string, unitPrice: number, unit: string) => {
     if (!editingId) return;
     
     setItems((prev) => {
@@ -198,7 +225,8 @@ export default function HomeScreen() {
         return {
           ...item,
           product_name: name,
-          price: newTotalPrice
+          price: newTotalPrice,
+          unit: unit // Update the unit
         };
       });
     });
@@ -269,6 +297,7 @@ export default function HomeScreen() {
                 productName={item.product_name} 
                 price={item.price} 
                 qty={item.qty} 
+                unit={item.unit}
                 category={item.category}
                 index={index}
                 onDelete={() => handleDeleteItem(item.id)}
@@ -318,11 +347,21 @@ export default function HomeScreen() {
         <EditItemModal
             visible={!!editingItem}
             initialName={editingItem.product_name}
+            initialUnit={editingItem.unit}
             initialPrice={editingItem.qty > 0 ? (editingItem.price / editingItem.qty) : 0}
             onClose={() => setEditingId(null)}
             onSave={handleSaveItem}
         />
       )}
+
+      <AppModal
+          visible={limitErrorVisible}
+          title={t('voice.limitExceededTitle')}
+          subtitle={t('voice.errorLimitExceeded')}
+          onClose={() => setLimitErrorVisible(false)}
+          variant="danger"
+          headerIcon={<IconSymbol name="exclamationmark.triangle.fill" size={28} color="#EF4444" />}
+      />
 
     </SafeAreaView>
   );

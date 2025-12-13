@@ -51,6 +51,12 @@
     "errorPrice": "Oops! Please mention the price.",
     "errorBoth": "I couldn't catch that. Please mention item and price.",
     "errorInvalidContent": "Oops! Item not found or invalid words detected.",
+    "errorProfanity": "Inappropriate language detected. Please use polite language.",
+    "errorGreeting": "Hello! Please mention the item you want to buy.",
+    "errorIrrelevant": "Sorry, I can only help with tracking shopping items.",
+    "errorUnclear": "Sorry, I didn't catch that. Could you repeat the item?",
+    "errorLimitExceeded": "Sorry, max price is 1 million rupiah per item.",
+    "limitExceededTitle": "Limit Exceeded",
     "tryAgain": "Please try again."
   },
   "categories": {

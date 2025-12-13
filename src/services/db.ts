@@ -1,7 +1,7 @@
 import { type SQLiteDatabase } from 'expo-sqlite';
 
 export async function migrateDbIfNeeded(db: SQLiteDatabase) {
-  const DATABASE_VERSION = 1;
+  const DATABASE_VERSION = 2;
 
   let { user_version: currentDbVersion } = await db.getFirstAsync<{ user_version: number }>(
     'PRAGMA user_version'
@@ -26,6 +26,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
         item_name TEXT NOT NULL,
         item_price INTEGER NOT NULL,
         quantity INTEGER NOT NULL,
+        unit TEXT, 
         category TEXT,
         total_price INTEGER NOT NULL,
         FOREIGN KEY (transaction_id) REFERENCES transactions (id)
@@ -33,6 +34,13 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
     `);
     
     currentDbVersion = 1;
+  }
+
+  if (currentDbVersion < 2) {
+    await db.execAsync(`
+      ALTER TABLE transaction_items ADD COLUMN unit TEXT;
+    `);
+    currentDbVersion = 2;
   }
   
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
@@ -44,6 +52,7 @@ export interface TransactionItem {
   item_name: string;
   item_price: number;
   quantity: number;
+  unit?: string;
   category: string;
   total_price: number;
 }
@@ -70,8 +79,8 @@ export const insertTransaction = async (db: SQLiteDatabase, transaction: Transac
         if (transaction.items && transaction.items.length > 0) {
             for (const item of transaction.items) {
                 await db.runAsync(
-                    'INSERT INTO transaction_items (transaction_id, item_name, item_price, quantity, category, total_price) VALUES (?, ?, ?, ?, ?, ?)',
-                    [transactionId, item.item_name, item.item_price, item.quantity, item.category, item.total_price]
+                    'INSERT INTO transaction_items (transaction_id, item_name, item_price, quantity, unit, category, total_price) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                    [transactionId, item.item_name, item.item_price, item.quantity, item.unit || null, item.category, item.total_price]
                 );
             }
         }

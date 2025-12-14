@@ -1,13 +1,17 @@
-# Cartify: Asisten Belanja Pintar Berbasis Interaksi Suara (Hybrid AI)
+# Cartify: Assistant Belanja Cerdas Berbasis Voice AI (Indonesian Context)
 
 ![University Header](https://img.shields.io/badge/UNIVERSITAS-NUSA_PUTRA-blue?style=for-the-badge&logo=school)
 ![Course](https://img.shields.io/badge/COURSE-Research_Methodology_%26_Mobile_Programming-green?style=for-the-badge)
+![Status](https://img.shields.io/badge/STATUS-Active_Development-orange?style=for-the-badge)
+![License](https://img.shields.io/badge/LICENSE-MIT-lightgrey?style=for-the-badge)
 
 > **Tugas Akademik: Research Methodology & Mobile Programming**
 >
-> Proyek ini menjembatani penelitian akademis tentang "Human-Computer Interaction (HCI)" dengan implementasi teknik rekayasa perangkat lunak modern pada platform mobile.
+> *"PENGEMBANGAN ASISTEN BELANJA PINTAR BERBASIS INTERAKSI SUARA UNTUK PENGENDALIAN PENGELUARAN KONSUMEN RITEL FISIK"*
 
-## 👤 Informasi Mahasiswa
+---
+
+## 👤 Informasi Pengembang
 
 | Atribut | Detail |
 | :--- | :--- |
@@ -18,112 +22,157 @@
 
 ---
 
-## 📝 Abstrak Proyek
+## 📖 Deskripsi Proyek
 
-*"This research develops 'Cartify' (VoiceCart), a mobile application with a Hybrid AI architecture designed to address the gap between conventional system accuracy and the need for real-time budget management in physical retail. The system integrates on-device Automatic Speech Recognition (ASR) for instant transcription and Large Language Model (LLM) logic for semantic understanding, enabling users to track spending via voice commands without relying on rigid keyword matching."*
+**Cartify** adalah solusi mobile inovatif yang dirancang untuk memitigasi fenomena *Checkout Shock*—kondisi kecemasan akibat ketidakpastian total belanja saat konsumen berada di antrian kasir. Aplikasi ini menggabungkan kecepatan pemrosesan lokal dengan kecerdasan buatan berbasis cloud dalam **Hybrid AI Architecture**:
 
-### Latar Belakang Masalah (Problem Statement)
-*"In in-situ shopping contexts, consumers suffer from significant cognitive load due to split attention between product selection and budget tracking. The lack of visibility into real-time total spending often exposes consumers to 'checkout shock' and financial anxiety. Conventional voice assistants fail to solve this because they rely on rigid keywords that cannot handle complex, natural shopping intent."*
-
----
-
-## 🛠️ Tech Stack & Architecture
-
-Aplikasi ini dibangun dengan pendekatan **"Offline-First"** dan **"Cloud-Native Generative AI"**, mengutamakan performa dan pengalaman pengguna yang intuitif.
-
-### Core Framework
-![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-
-### Logic & Data Layer
-![Groq](https://img.shields.io/badge/Groq_AI-F55036?style=for-the-badge&logo=ai&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
-![Zustand](https://img.shields.io/badge/Zustand-State-orange?style=for-the-badge)
-
-### Hardware Integration
-- **Voice Input:** `expo-speech-recognition` (On-Device ASR)
-- **Haptics:** `expo-haptics` (Feedback Taktil)
+1.  **On-Device ASR (Automatic Speech Recognition):** Menggunakan modul native (`expo-speech-recognition`) untuk menangkap input suara pengguna secara instan tanpa latensi jaringan yang signifikan pada tahap transkripsi.
+2.  **Cloud Gen-AI (Groq - Llama 3.1):** Bertindak sebagai "otak" semantik yang menganalisis teks transkripsi. Modul ini dilatih (via *system checking*) untuk memahami:
+    - **Slang Ritel Indonesia:** "Goceng" (5.000), "Ceban" (10.000), "Setengah kilo".
+    - **Konteks Unit Price:** Membedakan antara harga total ("harganya 20 ribu") dengan harga satuan ("masing-masing 20 ribu").
+    - **Koreksi Merek:** Memperbaiki penyebutan fonetik (e.g., "Grin Tih" -> "Green Tea").
 
 ---
 
-## 🔬 Keselarasan Fitur & Penelitian
+## 🌟 Fitur Utama & Kapabilitas
 
-Tabel ini memetakan fitur teknis aplikasi terhadap masalah penelitian yang diselesaikan:
+### 1. 🎙️ Advanced Natural Language Understanding (NLU)
+Tidak ada perintah kaku seperti *"Tambah item susu"*. Pengguna berbicara secara natural:
+> *"Tolong masukin dua kotak susu kental manis yang harganya dua belas ribu per kaleng."*
+AI akan mengekstrak: `{ item: "Susu Kental Manis", qty: 2, price: 24000, context: "unit_price" }`
 
-| Masalah Penelitian (Research Problem) | Solusi Fitur Aplikasi | Teknologi Pendukung |
+### 2. ⚡ Real-time Budget Control
+- **Dynamic Calculation:** Total belanja dihitung ulang setiap kali item ditambahkan.
+- **Visual Alert System:** Indikator visual berubah warna saat total belanja mendekati batas anggaran yang ditetapkan pengguna.
+
+### 3. 💾 Secure Local Storage (Offline-Ready Database)
+Menggunakan **SQLite** untuk persistensi data yang kuat. Data riwayat belanja, preferensi, dan log transaksi disimpan sepenuhnya di perangkat pengguna. Koneksi internet hanya dibutuhkan sepersekian detik saat pemrosesan suara via Groq API.
+
+### 4. 🎨 Human-Centric Interface
+- **Haptic Feedback:** Memberikan respon getaran halus saat interaksi sukses, meniru sensasi fisik menekan tombol.
+- **Adaptive Theme:** Mendukung Mode Gelap (Dark Mode) dan Terang secara otomatis mengikuti pengaturan sistem.
+
+---
+
+## 🛠️ Spesifikasi Teknis (Tech Stack)
+
+Aplikasi ini dibangun di atas fondasi teknologi modern yang memprioritaskan performa, skalabilitas, dan pengalaman pengembang (DX).
+
+### Core & Framework
+| Teknologi | Kegunaan |
+| :--- | :--- |
+| **React Native** | Framework UI cross-platform (Android/iOS). |
+| **Expo SDK 52** | Ekosistem pengembangan modern untuk integrasi hardware mudah. |
+| **TypeScript** | Menjamin keamanan tipe data dan mengurangi bug runtime. |
+
+### Data & State Management
+| Teknologi | Kegunaan |
+| :--- | :--- |
+| **Zustand** | Manajemen state global yang minimalis dan performa tinggi (menggantikan Redux). |
+| **Expo SQLite** | Database SQL relasional embedded untuk penyimpanan data offline. |
+| **TanStack Query** | Manajemen state asinkron server (future-proof). |
+
+### Artificial Intelligence & Services
+| Layanan | Peran |
+| :--- | :--- |
+| **Groq Cloud** | Penyedia inferensi LPU (Language Processing Unit) untuk latensi ultra-rendah. |
+| **Llama 3.1 8B** | Model bahasa besar (LLM) yang dioptimalkan untuk instruksi kompleks. |
+
+---
+
+## 🚀 Panduan Instalasi & Pengembangan
+
+### Prasyarat
+- **Node.js** v18.x atau lebih baru.
+- **Git** version control.
+- **Expo Go** pada perangkat fisik (Android/iOS) atau Emulator.
+- **API Key Groq** (Wajib untuk fitur AI).
+
+### Langkah Instalasi
+
+1.  **Clone Repository**
+    ```bash
+    git clone https://github.com/username/Cartify.git
+    cd Cartify
+    ```
+
+2.  **Instalasi Dependensi**
+    ```bash
+    npm install
+    # Disarankan menggunakan npm untuk kompatibilitas lockfile
+    ```
+
+3.  **Konfigurasi Environment Variable (.env)**
+    Duplikasi file `.env.example` (jika ada) atau buat file `.env` baru di root:
+    ```env
+    EXPO_PUBLIC_GROQ_API_KEY=gsk_your_primary_key_here
+    EXPO_PUBLIC_GROQ_API_KEY_2=gsk_backup_key_1       # Opsional: Untuk failover
+    EXPO_PUBLIC_GROQ_API_KEY_3=gsk_backup_key_2       # Opsional: Untuk stabilitas
+    ```
+
+4.  **Menjalankan Development Server**
+    ```bash
+    npx expo start
+    ```
+    - Tekan `a` di terminal untuk membuka Android Emulator.
+    - Tekan `i` di terminal untuk membuka iOS Simulator.
+    - Scan QR Code menggunakan aplikasi **Expo Go** di HP fisik.
+
+---
+
+## 📱 Panduan Penggunaan & Tips Akurasi
+
+Untuk hasil pengenalan suara terbaik, ikuti panduan berikut:
+
+### Format Perintah Suara Efektif
+
+| Skenario | Contoh Perintah | Output AI yang Diharapkan |
 | :--- | :--- | :--- |
-| **Cognitive Load** (Beban mental saat menghitung manual) | **Voice-First Input** (Input suara natural tanpa ketik) | `expo-speech-recognition` |
-| **Checkout Shock** (Keterkejutan total harga di kasir) | **Real-time Budget Tracking** (Kalkulasi otomatis) | `Zustand` & `SQLite` |
-| **Rigid Keywords** (Perintah suara kaku/standar) | **Natural Language Understanding (NLU)** | **Groq (Llama 3.1 8B)** |
-| **Dependensi Internet** (Aplikasi lambat/mati tanpa sinyal) | **Offline-First Database** (Simpan data di lokal) | `expo-sqlite` |
+| **Belanja Standar** | *"Beli satu Roti Tawar harga lima belas ribu"* | Item: Roti Tawar, Price: 15.000 |
+| **Harga Satuan** | *"Dua Yakult **masing-masing** dua ribu lima ratus"* | Item: Yakult (x2), Price: 5.000 |
+| **Slang Mata Uang** | *"Ambil Indomie goreng lima bungkus harganya **Ceban**"* | Item: Indomie Goreng (x5), Price: 10.000 |
+| **Koreksi Implisit** | *"Tisu Paseo harganya 10"* (Context: Ribu) | Item: Tisu Paseo, Price: 10.000 |
+
+### Tips Troubleshooting
+1.  **Suara tidak terdeteksi:** Pastikan izin mikrofon telah diberikan ke aplikasi Expo Go/Cartify.
+2.  **Respon AI Lambat:** Cek koneksi internet Anda. AI membutuhkan koneksi stabil ke server Groq.
+3.  **Error Rate Limit:** Jika banyak request dalam waktu singkat, sistem akan otomatis beralih ke API Key cadangan (jika dikonfigurasi).
 
 ---
 
-## 🏗️ Arsitektur Aplikasi (Clean Architecture)
+## 🏗️ Arsitektur Direktori (Clean Architecture)
 
-Proyek ini menerapkan prinsip **Separation of Concerns** untuk memisahkan UI/UX dari Logika Bisnis, memudahkan pengujian dan pengembangan lanjut.
+Struktur folder disusun untuk memisahkan *UI Presentation*, *Business Logic*, dan *Data Access*.
 
 ```text
-root/
-├── app/                  # [PRESENTATION LAYER]
-│   ├── (tabs)/           # Layar Utama (Home, History, Settings)
-│   ├── transaction/      # Layar Transaksi
-│   └── _layout.tsx       # Routing Configuration (Expo Router)
+Cartify/
+├── app/                  # [PRESENTATION LAYER] Expo Router
+│   ├── (tabs)/           # Main Screens (Home, History, Settings)
+│   ├── transaction/      # Detail Transaction Views
+│   └── _layout.tsx       # Root Layout & Providers
 │
-├── src/                  # [DOMAIN & DATA LAYER]
-│   ├── services/         # Business Logic Utama
-│   │   ├── groqService.ts   # Integrasi AI Llama 3.1 (Parsing Suara)
-│   │   └── db.ts            # Manajemen Database Lokal (SQLite)
-│   ├── hooks/            # Logic Encapsulation (e.g., useVoiceInput)
-│   ├── components/       # Reusable UI Components
-│   └── data/             # Static Data & Types
+├── src/                  # [CORE APPLICATION LOGIC]
+│   ├── components/       # Atomic UI Components
+│   │   ├── ui/           # Primitives (Button, Text, Card)
+│   │   └── business/     # Complex Widgets (TransactionCard)
+│   ├── hooks/            # Custom Hooks (Logic Encapsulation)
+│   │   ├── useVoice.ts   # ASR Logic
+│   │   └── useCart.ts    # Cart Manipulation Logic
+│   ├── services/         # External Services
+│   │   ├── groq.ts       # AI Integration Layer
+│   │   └── db.ts         # SQLite Database Layer
+│   └── store/            # State Management (Zustand Stores)
+│
+├── assets/               # Static Assets (Fonts, Images)
+└── .env                  # Environment Secrets
 ```
 
 ---
 
-## 🚀 Panduan Instalasi
+## 🤝 Kontribusi & Lisensi
 
-Pastikan Anda telah menginstal **Node.js** dan lingkungan pengembangan **Expo**.
-
-1. **Clone & Install Dependencies**
-   ```bash
-   npm install
-   ```
-
-2. **Jalankan Aplikasi**
-   ```bash
-   npx expo start
-   ```
-
-3. **Pilih Metode Testing**
-   - Scan QR Code dengan aplikasi **Expo Go** (Android/iOS).
-   - Tekan `a` untuk membuka di Android Emulator.
-   - Tekan `i` untuk membuka di iOS Simulator.
+Proyek ini merupakan bagian dari tugas akhir mata kuliah dan bersifat **Open Source** untuk tujuan edukasi.
+**License**: MIT License.
 
 ---
-
-## 📱 Panduan Penggunaan (User Guide)
-
-### 1. Speak (Input Suara) 🎙️
-Fitur utama untuk mencatat belanjaan tanpa mengetik.
-- Tekan **Tombol Mikrofon** di layar utama.
-- Ucapkan perintah belanja secara natural.
-  - *Contoh:* "Beli 2 Roti Tawar dan satu kotak susu harganya 50 ribu."
-- AI (Llama 3.1) akan otomatis mengekstrak:
-  - **Nama Produk:** "Roti Tawar", "Susu"
-  - **Jumlah (Qty):** 2, 1
-  - **Harga:** Dideteksi dari ucapan (Smart Calculation).
-
-### 2. Track (Pemantauan Anggaran) 📊
-- Lihat total pengeluaran secara **Real-time** di Dashboard.
-- Sistem akan memberi peringatan visual jika pengeluaran mendekati batas anggaran yang ditetapkan.
-
-### 3. Review (Riwayat Belanja) 📝
-- Semua data tersimpan secara lokal (Offline).
-- Akses tab **History** untuk melihat riwayat belanja sebelumnya.
-
----
-
-> **Catatan Pengembang:**
-> Aplikasi ini menggunakan **Groq AI (Llama 3.1 8B Instant)** untuk pemrosesan bahasa alami yang sangat cepat, memungkinkan pengalaman "Conversational Commerce" yang responsif.
+*Dikembangkan oleh M. Sechan Alfarisi (20230040094) - Teknik Informatika, Universitas Nusa Putra.*

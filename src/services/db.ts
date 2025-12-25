@@ -128,3 +128,16 @@ export const deleteTransaction = async (db: SQLiteDatabase, id: number) => {
         throw error;
     }
 };
+
+export const deleteAllTransactions = async (db: SQLiteDatabase) => {
+    try {
+        await db.runAsync('BEGIN TRANSACTION');
+        await db.runAsync('DELETE FROM transaction_items');
+        await db.runAsync('DELETE FROM transactions');
+        await db.runAsync('COMMIT');
+    } catch (error) {
+        await db.runAsync('ROLLBACK');
+        console.error("Error deleting all transactions:", error);
+        throw error;
+    }
+};

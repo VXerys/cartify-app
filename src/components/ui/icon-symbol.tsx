@@ -55,7 +55,12 @@ const MAPPING = {
   'arrow.right.square.fill': 'logout',
   'camera.fill': 'camera-alt',
   'shield.fill': 'security',
-  'crown.fill': 'workspace-premium',
+    'crown.fill': 'workspace-premium',
+  'magnifyingglass': 'search',
+  'envelope.fill': 'mail',
+  'faceid': 'fingerprint',
+  'arrow.down.doc.fill': 'cloud-download',
+  'chart.bar.xaxis': 'analytics',
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],

@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -24,6 +25,7 @@ import { useResponsive } from '../../src/hooks/useResponsive';
 const COLORS = Layout.colors;
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const { t, i18n } = useTranslation();
   const { moderateScale, verticalScale, containerPadding, contentContainerStyle, isTablet } = useResponsive();
 
@@ -224,7 +226,7 @@ export default function SettingsScreen() {
            <SettingItem 
             icon="shield.fill" 
             label={t('settings.securityPrivacy')}
-            onPress={() => {}}
+            onPress={() => router.push('/security-privacy')}
             iconColor={COLORS.primary}
           />
         </SettingSection>
@@ -233,14 +235,14 @@ export default function SettingsScreen() {
           <SettingItem 
             icon="questionmark.circle.fill" 
             label={t('settings.helpCenter')} 
-            onPress={() => {}}
+            onPress={() => router.push('/help-center')}
             iconColor="#8B5CF6"
           />
            <View style={[styles.separator, { marginLeft: moderateScale(74) }]} />
            <SettingItem 
             icon="doc.text.fill" 
             label={t('settings.termsPolicy')} 
-            onPress={() => {}}
+            onPress={() => router.push('/terms-policy')}
             iconColor="#8B5CF6"
           />
         </SettingSection>

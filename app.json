@@ -23,7 +23,8 @@
       "permissions": [
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.sehanfrs0.Cartify"
+      "package": "com.sehanfrs0.Cartify",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -51,7 +52,9 @@
       ],
       "expo-sqlite",
       "expo-localization",
-      "expo-web-browser"
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,39 +1,21 @@
 import { ForgotPasswordScreen, LoginScreen, RegisterScreen } from '@/src/components/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '@/src/context/AuthContext';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
 
-const AUTH_COMPLETE_KEY = '@cartify:auth_complete';
-
 type AuthScreen = 'login' | 'register' | 'forgot-password';
 
 export default function AuthPage() {
   const router = useRouter();
+  const { signInWithEmail, signUp, signInWithGoogle, sendPasswordReset } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<AuthScreen>('login');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mark authentication as complete and navigate to main app
-  const completeAuth = useCallback(async () => {
-    try {
-      // Simpan auth state dulu
-      await AsyncStorage.setItem(AUTH_COMPLETE_KEY, 'true');
-      
-      // Verifikasi bahwa data tersimpan
-      const saved = await AsyncStorage.getItem(AUTH_COMPLETE_KEY);
-      console.log('Auth saved:', saved);
-      
-      // Tunggu sebentar untuk memastikan state tersimpan
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Navigate ke home
-      router.replace('/(tabs)');
-    } catch (error) {
-      console.error('Error completing auth:', error);
-      // Navigate anyway even if storage fails
-      router.replace('/(tabs)');
-    }
+  // Navigate to home after successful auth
+  const navigateToHome = useCallback(() => {
+    router.replace('/(tabs)');
   }, [router]);
 
   // ========================
@@ -42,48 +24,48 @@ export default function AuthPage() {
   const handleLogin = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // TODO: Implement Supabase login here
-      console.log('Login with:', email, password);
-      
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await signInWithEmail(email, password);
       
       toast.success('Welcome back!', {
         description: 'Login successful',
         duration: 2000,
       });
       
-      await completeAuth();
+      navigateToHome();
     } catch (error: any) {
+      console.error('Login error:', error);
       toast.error('Login failed', {
         description: error.message || 'Please check your credentials',
         duration: 3000,
       });
+    } finally {
       setIsLoading(false);
     }
-  }, [completeAuth]);
+  }, [signInWithEmail, navigateToHome]);
 
   const handleGoogleLogin = useCallback(async () => {
     setIsLoading(true);
     try {
-      // TODO: Implement Supabase Google OAuth here
-      console.log('Google login');
-      
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await signInWithGoogle();
       
       toast.success('Welcome!', {
         description: 'Signed in with Google',
         duration: 2000,
       });
       
-      await completeAuth();
+      navigateToHome();
     } catch (error: any) {
-      toast.error('Google sign in failed', {
-        description: error.message || 'Please try again',
-        duration: 3000,
-      });
+      console.error('Google login error:', error);
+      if (error.message !== 'Google sign in was cancelled') {
+        toast.error('Google sign in failed', {
+          description: error.message || 'Please try again',
+          duration: 3000,
+        });
+      }
+    } finally {
       setIsLoading(false);
     }
-  }, [completeAuth]);
+  }, [signInWithGoogle, navigateToHome]);
 
   // ========================
   // REGISTER HANDLERS
@@ -91,27 +73,29 @@ export default function AuthPage() {
   const handleRegister = useCallback(async (fullName: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      // TODO: Implement Supabase register here
-      console.log('Register with:', fullName, email, password);
-      
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await signUp(email, password, fullName);
       
       toast.success('Account created!', {
-        description: 'Welcome to Cartify',
-        duration: 2000,
+        description: 'Welcome to Cartify. Please check your email to verify your account.',
+        duration: 4000,
       });
       
-      await completeAuth();
+      // Note: Supabase might require email verification before allowing login
+      // If email confirmation is required, user needs to verify email first
+      navigateToHome();
     } catch (error: any) {
+      console.error('Register error:', error);
       toast.error('Registration failed', {
         description: error.message || 'Please try again',
         duration: 3000,
       });
+    } finally {
       setIsLoading(false);
     }
-  }, [completeAuth]);
+  }, [signUp, navigateToHome]);
 
   const handleGoogleRegister = useCallback(async () => {
+    // Same as Google login - OAuth handles both
     await handleGoogleLogin();
   }, [handleGoogleLogin]);
 
@@ -121,13 +105,15 @@ export default function AuthPage() {
   const handleSendReset = useCallback(async (email: string) => {
     setIsLoading(true);
     try {
-      // TODO: Implement Supabase password reset here
-      console.log('Send reset to:', email);
+      await sendPasswordReset(email);
       
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      toast.success('Email sent!', {
+        description: 'Check your inbox for reset link',
+        duration: 3000,
+      });
       // Success state is handled inside ForgotPasswordScreen
     } catch (error: any) {
+      console.error('Password reset error:', error);
       toast.error('Failed to send reset email', {
         description: error.message || 'Please try again',
         duration: 3000,
@@ -135,7 +121,7 @@ export default function AuthPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [sendPasswordReset]);
 
   // ========================
   // NAVIGATION
@@ -167,7 +153,7 @@ export default function AuthPage() {
             isLoading={isLoading}
           />
         );
-      
+
       case 'register':
         return (
           <RegisterScreen
@@ -177,7 +163,7 @@ export default function AuthPage() {
             isLoading={isLoading}
           />
         );
-      
+
       case 'forgot-password':
         return (
           <ForgotPasswordScreen
@@ -186,7 +172,7 @@ export default function AuthPage() {
             isLoading={isLoading}
           />
         );
-      
+
       default:
         return null;
     }

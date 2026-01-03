@@ -1,6 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     Image,
@@ -19,11 +18,11 @@ import { toast } from 'sonner-native';
 import { AppModal } from '../../src/components/ui/AppModal';
 import { IconSymbol, IconSymbolName } from '../../src/components/ui/icon-symbol';
 import { Layout } from '../../src/constants/Layout';
+import { useAuth } from '../../src/context/AuthContext';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useSettings } from '../../src/hooks/useSettings';
 
 const COLORS = Layout.colors;
-const AUTH_COMPLETE_KEY = '@cartify:auth_complete';
 
 
 export default function SettingsScreen() {
@@ -31,12 +30,25 @@ export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
   const { moderateScale, verticalScale, containerPadding, contentContainerStyle, isTablet } = useResponsive();
   const { voiceButtonPosition, setVoiceButtonPosition } = useSettings();
+  const { user, signOut, updateProfile } = useAuth();
 
+  // Get user data from auth context
   const [userProfile, setUserProfile] = useState({
-    name: 'Rian Doel',
-    email: 'rian.doel@cartify.com',
-    avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
+    name: user?.fullName || 'User',
+    email: user?.email || '',
+    avatar: user?.avatarUrl || 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
   });
+
+  // Update local state when auth user changes
+  useEffect(() => {
+    if (user) {
+      setUserProfile({
+        name: user.fullName || 'User',
+        email: user.email || '',
+        avatar: user.avatarUrl || userProfile.avatar,
+      });
+    }
+  }, [user]);
 
   // Modal States
   const [modalVisible, setModalVisible] = useState<{
@@ -60,12 +72,6 @@ export default function SettingsScreen() {
   const handleEditProfile = () => {
     setTempName(userProfile.name);
     setModalVisible({ type: 'profile', isOpen: true });
-  };
-
-  const handleSaveProfile = () => {
-    setUserProfile(prev => ({ ...prev, name: tempName }));
-    setModalVisible({ type: null, isOpen: false });
-    toast.success(t('profile.saved'));
   };
 
   const handleChangePassword = () => {
@@ -99,13 +105,23 @@ export default function SettingsScreen() {
   const handleLogout = async () => {
     setModalVisible({ type: null, isOpen: false });
     try {
-      // Clear auth state from storage
-      await AsyncStorage.removeItem(AUTH_COMPLETE_KEY);
+      await signOut();
       toast.success(t('settings.loggedOut'));
-      // Navigate to onboarding (will show login since auth is cleared)
       router.replace('/onboarding');
     } catch (error) {
       console.error('Error logging out:', error);
+      toast.error(t('common.error'));
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      await updateProfile({ fullName: tempName });
+      setUserProfile(prev => ({ ...prev, name: tempName }));
+      setModalVisible({ type: null, isOpen: false });
+      toast.success(t('profile.saved'));
+    } catch (error) {
+      console.error('Error saving profile:', error);
       toast.error(t('common.error'));
     }
   };

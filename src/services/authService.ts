@@ -1,276 +1,443 @@
 /**
- * Auth Service - Prepared for Supabase Integration
+ * Auth Service - Real Supabase Implementation
  * 
- * HOW TO INTEGRATE SUPABASE:
- * 
- * 1. Install Supabase:
- *    npm install @supabase/supabase-js
- * 
- * 2. Create supabase client in src/services/supabase.ts:
- *    import { createClient } from '@supabase/supabase-js';
- *    import AsyncStorage from '@react-native-async-storage/async-storage';
- *    
- *    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
- *    const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
- *    
- *    export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
- *      auth: {
- *        storage: AsyncStorage,
- *        autoRefreshToken: true,
- *        persistSession: true,
- *        detectSessionInUrl: false,
- *      },
- *    });
- * 
- * 3. Add to .env:
- *    EXPO_PUBLIC_SUPABASE_URL=your-supabase-url
- *    EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
- * 
- * 4. For Google OAuth, configure in Supabase Dashboard:
- *    - Enable Google provider
- *    - Add OAuth credentials
+ * Handles all authentication operations using Supabase Auth.
  */
 
-import { AuthState, AuthUser, LoginCredentials, RegisterCredentials } from '@/src/types/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
+import { supabase } from './supabase';
 
-// Placeholder auth state
-let authState: AuthState = {
+const AUTH_COMPLETE_KEY = '@cartify:auth_complete';
+
+// User profile type
+export interface UserProfile {
+  id: string;
+  email: string;
+  fullName: string | null;
+  avatarUrl: string | null;
+  provider: 'email' | 'google' | 'apple' | null;
+}
+
+// Auth state type
+export interface AuthState {
+  user: UserProfile | null;
+  session: Session | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+}
+
+// Listeners for auth state changes
+type AuthStateListener = (state: AuthState) => void;
+const listeners: Set<AuthStateListener> = new Set();
+
+// Current auth state
+let currentAuthState: AuthState = {
   user: null,
-  isLoading: false,
+  session: null,
+  isLoading: true,
   isAuthenticated: false,
 };
 
-// Listeners for auth state changes
-type AuthListener = (state: AuthState) => void;
-const listeners: AuthListener[] = [];
-
+// Notify all listeners of state change
 const notifyListeners = () => {
-  listeners.forEach(listener => listener(authState));
+  listeners.forEach((listener) => listener(currentAuthState));
+};
+
+// Update auth state
+const updateAuthState = (updates: Partial<AuthState>) => {
+  currentAuthState = { ...currentAuthState, ...updates };
+  notifyListeners();
+};
+
+// Convert Supabase User to UserProfile
+const userToProfile = (user: User | null): UserProfile | null => {
+  if (!user) return null;
+
+  return {
+    id: user.id,
+    email: user.email || '',
+    fullName: user.user_metadata?.full_name || user.user_metadata?.name || null,
+    avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+    provider: (user.app_metadata?.provider as UserProfile['provider']) || 'email',
+  };
+};
+
+// Initialize auth state listener
+supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
+  console.log('Auth state changed:', event);
+
+  const user = userToProfile(session?.user ?? null);
+  const isAuthenticated = !!session;
+
+  updateAuthState({
+    user,
+    session,
+    isLoading: false,
+    isAuthenticated,
+  });
+
+  // Update AsyncStorage for navigation guard
+  if (isAuthenticated) {
+    await AsyncStorage.setItem(AUTH_COMPLETE_KEY, 'true');
+  } else {
+    await AsyncStorage.removeItem(AUTH_COMPLETE_KEY);
+  }
+
+  // Create/update user profile in database on sign in
+  if (event === 'SIGNED_IN' && session?.user) {
+    await upsertUserProfile(session.user);
+  }
+});
+
+// Create or update user profile in profiles table
+const upsertUserProfile = async (user: User) => {
+  try {
+    const { error } = await supabase.from('profiles').upsert(
+      {
+        id: user.id,
+        email: user.email || '',
+        full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+        avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'id' }
+    );
+
+    if (error) {
+      console.error('Error upserting profile:', error);
+    }
+  } catch (error) {
+    console.error('Error in upsertUserProfile:', error);
+  }
 };
 
 export const authService = {
   /**
    * Get current auth state
    */
-  getState: (): AuthState => authState,
+  getState: (): AuthState => currentAuthState,
 
   /**
    * Subscribe to auth state changes
    */
-  subscribe: (listener: AuthListener): (() => void) => {
-    listeners.push(listener);
+  subscribe: (listener: AuthStateListener): (() => void) => {
+    listeners.add(listener);
+    // Immediately call with current state
+    listener(currentAuthState);
+    // Return unsubscribe function
     return () => {
-      const index = listeners.indexOf(listener);
-      if (index > -1) {
-        listeners.splice(index, 1);
-      }
+      listeners.delete(listener);
     };
   },
 
   /**
-   * Sign in with email and password
-   * TODO: Implement with Supabase
-   * 
-   * Example Supabase implementation:
-   * const { data, error } = await supabase.auth.signInWithPassword({
-   *   email: credentials.email,
-   *   password: credentials.password,
-   * });
+   * Initialize auth - check for existing session
    */
-  signInWithEmail: async (credentials: LoginCredentials): Promise<AuthUser> => {
-    authState = { ...authState, isLoading: true };
-    notifyListeners();
-
+  initialize: async (): Promise<void> => {
     try {
-      // Simulate API call - replace with Supabase
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      updateAuthState({ isLoading: true });
 
-      // Mock user - replace with actual Supabase response
-      const user: AuthUser = {
-        id: 'mock-user-id',
-        email: credentials.email,
-        fullName: 'Test User',
-        provider: 'email',
-        createdAt: new Date().toISOString(),
-      };
+      const { data: { session }, error } = await supabase.auth.getSession();
 
-      authState = {
+      if (error) {
+        console.error('Error getting session:', error);
+        updateAuthState({ isLoading: false });
+        return;
+      }
+
+      const user = userToProfile(session?.user ?? null);
+
+      updateAuthState({
         user,
+        session,
         isLoading: false,
-        isAuthenticated: true,
-      };
-      notifyListeners();
-
-      return user;
+        isAuthenticated: !!session,
+      });
     } catch (error) {
-      authState = { ...authState, isLoading: false };
-      notifyListeners();
-      throw error;
+      console.error('Error initializing auth:', error);
+      updateAuthState({ isLoading: false });
     }
   },
 
   /**
-   * Sign in with Google OAuth
-   * TODO: Implement with Supabase
-   * 
-   * Example Supabase implementation:
-   * const { data, error } = await supabase.auth.signInWithOAuth({
-   *   provider: 'google',
-   *   options: {
-   *     redirectTo: 'cartify://auth/callback',
-   *     skipBrowserRedirect: true,
-   *   },
-   * });
+   * Sign in with email and password
    */
-  signInWithGoogle: async (): Promise<AuthUser> => {
-    authState = { ...authState, isLoading: true };
-    notifyListeners();
+  signInWithEmail: async (email: string, password: string): Promise<UserProfile> => {
+    updateAuthState({ isLoading: true });
 
-    try {
-      // Simulate API call - replace with Supabase OAuth
-      await new Promise(resolve => setTimeout(resolve, 1500));
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      // Mock user - replace with actual OAuth response
-      const user: AuthUser = {
-        id: 'google-user-id',
-        email: 'user@gmail.com',
-        fullName: 'Google User',
-        avatarUrl: 'https://example.com/avatar.png',
-        provider: 'google',
-        createdAt: new Date().toISOString(),
-      };
-
-      authState = {
-        user,
-        isLoading: false,
-        isAuthenticated: true,
-      };
-      notifyListeners();
-
-      return user;
-    } catch (error) {
-      authState = { ...authState, isLoading: false };
-      notifyListeners();
-      throw error;
+    if (error) {
+      updateAuthState({ isLoading: false });
+      throw new Error(error.message);
     }
+
+    if (!data.user) {
+      updateAuthState({ isLoading: false });
+      throw new Error('No user returned from sign in');
+    }
+
+    const user = userToProfile(data.user);
+    
+    updateAuthState({
+      user,
+      session: data.session,
+      isLoading: false,
+      isAuthenticated: true,
+    });
+
+    return user!;
   },
 
   /**
    * Sign up with email and password
-   * TODO: Implement with Supabase
-   * 
-   * Example Supabase implementation:
-   * const { data, error } = await supabase.auth.signUp({
-   *   email: credentials.email,
-   *   password: credentials.password,
-   *   options: {
-   *     data: {
-   *       full_name: credentials.fullName,
-   *     },
-   *   },
-   * });
    */
-  signUp: async (credentials: RegisterCredentials): Promise<AuthUser> => {
-    authState = { ...authState, isLoading: true };
-    notifyListeners();
+  signUp: async (email: string, password: string, fullName: string): Promise<UserProfile> => {
+    updateAuthState({ isLoading: true });
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        },
+      },
+    });
+
+    if (error) {
+      updateAuthState({ isLoading: false });
+      throw new Error(error.message);
+    }
+
+    if (!data.user) {
+      updateAuthState({ isLoading: false });
+      throw new Error('No user returned from sign up');
+    }
+
+    const user = userToProfile(data.user);
+
+    updateAuthState({
+      user,
+      session: data.session,
+      isLoading: false,
+      isAuthenticated: !!data.session,
+    });
+
+    return user!;
+  },
+
+  /**
+   * Sign in with Google OAuth
+   */
+  signInWithGoogle: async (): Promise<void> => {
+    updateAuthState({ isLoading: true });
 
     try {
-      // Simulate API call - replace with Supabase
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Create redirect URL using expo scheme
+      // For Expo Go: exp://192.168.x.x:8081/--/auth/callback
+      // For standalone: cartify://auth/callback
+      const redirectUrl = Linking.createURL('auth/callback');
+      console.log('OAuth Redirect URL:', redirectUrl);
 
-      // Mock user - replace with actual Supabase response
-      const user: AuthUser = {
-        id: 'new-user-id',
-        email: credentials.email,
-        fullName: credentials.fullName,
-        provider: 'email',
-        createdAt: new Date().toISOString(),
-      };
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
+        },
+      });
 
-      authState = {
-        user,
-        isLoading: false,
-        isAuthenticated: true,
-      };
-      notifyListeners();
+      if (error) {
+        updateAuthState({ isLoading: false });
+        throw new Error(error.message);
+      }
 
-      return user;
-    } catch (error) {
-      authState = { ...authState, isLoading: false };
-      notifyListeners();
+      if (data?.url) {
+        // Open the OAuth URL in a web browser
+        const result = await WebBrowser.openAuthSessionAsync(
+          data.url,
+          redirectUrl,
+          {
+            showInRecents: true,
+            preferEphemeralSession: false,
+          }
+        );
+
+        console.log('WebBrowser result:', result.type);
+
+        if (result.type === 'success' && result.url) {
+          console.log('Callback URL:', result.url);
+          
+          // Parse the URL to extract tokens
+          // The tokens can be in either the hash (#) or query (?) parameters
+          const url = result.url;
+          let accessToken: string | null = null;
+          let refreshToken: string | null = null;
+
+          // Try to get tokens from hash fragment first
+          if (url.includes('#')) {
+            const hashParams = new URLSearchParams(url.split('#')[1]);
+            accessToken = hashParams.get('access_token');
+            refreshToken = hashParams.get('refresh_token');
+          }
+          
+          // If not in hash, try query parameters
+          if (!accessToken && url.includes('?')) {
+            const queryStart = url.indexOf('?');
+            const hashStart = url.indexOf('#');
+            const queryString = hashStart > queryStart 
+              ? url.substring(queryStart + 1, hashStart)
+              : url.substring(queryStart + 1);
+            const queryParams = new URLSearchParams(queryString);
+            accessToken = queryParams.get('access_token');
+            refreshToken = queryParams.get('refresh_token');
+          }
+
+          if (accessToken) {
+            console.log('Setting session with access token');
+            // Set the session manually
+            const { error: sessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || '',
+            });
+
+            if (sessionError) {
+              throw new Error(sessionError.message);
+            }
+            console.log('Session set successfully');
+          } else {
+            console.log('No access token found in callback URL');
+            updateAuthState({ isLoading: false });
+            throw new Error('Authentication failed - no token received');
+          }
+        } else if (result.type === 'cancel') {
+          updateAuthState({ isLoading: false });
+          throw new Error('Google sign in was cancelled');
+        } else if (result.type === 'dismiss') {
+          updateAuthState({ isLoading: false });
+          throw new Error('Google sign in was dismissed');
+        }
+      }
+    } catch (error: any) {
+      console.error('Google OAuth error:', error);
+      updateAuthState({ isLoading: false });
       throw error;
     }
   },
 
   /**
    * Send password reset email
-   * TODO: Implement with Supabase
-   * 
-   * Example Supabase implementation:
-   * const { error } = await supabase.auth.resetPasswordForEmail(email, {
-   *   redirectTo: 'cartify://auth/reset-password',
-   * });
    */
   sendPasswordReset: async (email: string): Promise<void> => {
-    authState = { ...authState, isLoading: true };
-    notifyListeners();
+    updateAuthState({ isLoading: true });
 
-    try {
-      // Simulate API call - replace with Supabase
-      await new Promise(resolve => setTimeout(resolve, 1500));
+    const redirectUrl = Linking.createURL('auth/reset-password');
 
-      authState = { ...authState, isLoading: false };
-      notifyListeners();
-    } catch (error) {
-      authState = { ...authState, isLoading: false };
-      notifyListeners();
-      throw error;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl,
+    });
+
+    updateAuthState({ isLoading: false });
+
+    if (error) {
+      throw new Error(error.message);
     }
   },
 
   /**
    * Sign out
-   * TODO: Implement with Supabase
-   * 
-   * Example Supabase implementation:
-   * const { error } = await supabase.auth.signOut();
    */
   signOut: async (): Promise<void> => {
-    authState = { ...authState, isLoading: true };
-    notifyListeners();
+    updateAuthState({ isLoading: true });
 
-    try {
-      // Simulate API call - replace with Supabase
-      await new Promise(resolve => setTimeout(resolve, 500));
+    const { error } = await supabase.auth.signOut();
 
-      authState = {
-        user: null,
-        isLoading: false,
-        isAuthenticated: false,
-      };
-      notifyListeners();
-    } catch (error) {
-      authState = { ...authState, isLoading: false };
-      notifyListeners();
-      throw error;
+    if (error) {
+      updateAuthState({ isLoading: false });
+      throw new Error(error.message);
     }
+
+    // Clear AsyncStorage
+    await AsyncStorage.removeItem(AUTH_COMPLETE_KEY);
+
+    updateAuthState({
+      user: null,
+      session: null,
+      isLoading: false,
+      isAuthenticated: false,
+    });
+  },
+
+  /**
+   * Get current user
+   */
+  getCurrentUser: (): UserProfile | null => {
+    return currentAuthState.user;
   },
 
   /**
    * Get current session
-   * TODO: Implement with Supabase
-   * 
-   * Example Supabase implementation:
-   * const { data: { session } } = await supabase.auth.getSession();
    */
-  getSession: async (): Promise<AuthUser | null> => {
-    try {
-      // Check for existing session - replace with Supabase
-      // For now, return null (no session)
-      return null;
-    } catch (error) {
-      console.error('Error getting session:', error);
-      return null;
+  getSession: (): Session | null => {
+    return currentAuthState.session;
+  },
+
+  /**
+   * Check if user is authenticated
+   */
+  isAuthenticated: (): boolean => {
+    return currentAuthState.isAuthenticated;
+  },
+
+  /**
+   * Update user profile
+   */
+  updateProfile: async (updates: { fullName?: string; avatarUrl?: string }): Promise<void> => {
+    const user = currentAuthState.user;
+    if (!user) {
+      throw new Error('No user logged in');
     }
+
+    // Update auth metadata
+    const { error: authError } = await supabase.auth.updateUser({
+      data: {
+        full_name: updates.fullName,
+        avatar_url: updates.avatarUrl,
+      },
+    });
+
+    if (authError) {
+      throw new Error(authError.message);
+    }
+
+    // Update profiles table
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        full_name: updates.fullName,
+        avatar_url: updates.avatarUrl,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id);
+
+    if (profileError) {
+      console.error('Error updating profile table:', profileError);
+    }
+
+    // Update local state
+    updateAuthState({
+      user: {
+        ...user,
+        fullName: updates.fullName || user.fullName,
+        avatarUrl: updates.avatarUrl || user.avatarUrl,
+      },
+    });
   },
 };

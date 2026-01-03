@@ -5,71 +5,49 @@ import 'react-native-reanimated';
 import '../src/i18n';
 
 import { Layout } from '@/src/constants/Layout';
+import { AuthProvider, useAuth } from '@/src/context/AuthContext';
 import { migrateDbIfNeeded } from '@/src/services/db';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SQLiteProvider } from 'expo-sqlite';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Toaster } from 'sonner-native';
-
-const AUTH_COMPLETE_KEY = '@cartify:auth_complete';
 
 export const unstable_settings = {
   initialRouteName: 'onboarding',
 };
 
-function InitialLayout() {
+function NavigationGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const segments = useSegments();
-  const [isInitialCheckDone, setIsInitialCheckDone] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated, isLoading } = useAuth();
   const hasNavigated = useRef(false);
+  const [isReady, setIsReady] = useState(false);
 
-  // Check auth status - hanya dipanggil sekali saat mount
-  const checkAuthStatus = useCallback(async () => {
-    try {
-      const authenticated = await AsyncStorage.getItem(AUTH_COMPLETE_KEY);
-      const isAuth = authenticated === 'true';
-      console.log('Initial auth check:', isAuth);
-      setIsAuthenticated(isAuth);
-    } catch (error) {
-      console.error('Error checking auth status:', error);
-      setIsAuthenticated(false);
-    } finally {
-      setIsInitialCheckDone(true);
+  useEffect(() => {
+    // Wait for auth to finish loading
+    if (!isLoading) {
+      setIsReady(true);
     }
-  }, []);
+  }, [isLoading]);
 
-  // Initial check saat app start
   useEffect(() => {
-    checkAuthStatus();
-  }, [checkAuthStatus]);
-
-  // Navigation guard - HANYA untuk initial load
-  useEffect(() => {
-    // Tunggu sampai initial check selesai
-    if (!isInitialCheckDone) return;
-    
-    // Jangan navigate lagi jika sudah pernah
+    if (!isReady) return;
     if (hasNavigated.current) return;
 
     const inOnboarding = segments[0] === 'onboarding';
     const inAuth = segments[0] === 'auth';
-    
-    // Jika sudah login dan masih di onboarding/auth, redirect ke home
+
+    // If authenticated and still in onboarding/auth, redirect to home
     if (isAuthenticated && (inOnboarding || inAuth)) {
       console.log('User authenticated, redirecting to tabs');
       hasNavigated.current = true;
       router.replace('/(tabs)');
     }
-    // Jika belum login, biarkan flow normal (onboarding -> auth -> home)
-    // TIDAK melakukan redirect dari tabs ke onboarding di sini
-    // karena itu akan ditangani oleh logout
-  }, [isInitialCheckDone, isAuthenticated, segments, router]);
+  }, [isReady, isAuthenticated, segments, router]);
 
-  // Loading state saat pertama kali check auth
-  if (!isInitialCheckDone) {
+  // Show loading while checking auth
+  if (!isReady) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Layout.colors.primary} />
@@ -77,64 +55,68 @@ function InitialLayout() {
     );
   }
 
+  return <>{children}</>;
+}
+
+function RootStack() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen 
-        name="onboarding" 
-        options={{ 
+      <Stack.Screen
+        name="onboarding"
+        options={{
           headerShown: false,
           animation: 'fade',
-        }} 
+        }}
       />
-      <Stack.Screen 
-        name="auth" 
-        options={{ 
+      <Stack.Screen
+        name="auth"
+        options={{
           headerShown: false,
           animation: 'slide_from_right',
-        }} 
+        }}
       />
-      <Stack.Screen 
-        name="(tabs)" 
-        options={{ 
+      <Stack.Screen
+        name="(tabs)"
+        options={{
           headerShown: false,
           animation: 'fade',
-        }} 
+        }}
       />
-      <Stack.Screen 
-        name="modal" 
-        options={{ 
-          presentation: 'modal', 
+      <Stack.Screen
+        name="modal"
+        options={{
+          presentation: 'modal',
           title: 'Modal',
           headerShown: true,
-        }} 
+        }}
       />
-      <Stack.Screen 
-        name="security-privacy" 
-        options={{ 
+      <Stack.Screen
+        name="security-privacy"
+        options={{
           headerShown: false,
           animation: 'slide_from_right',
-        }} 
+        }}
       />
-      <Stack.Screen 
-        name="help-center" 
-        options={{ 
+      <Stack.Screen
+        name="help-center"
+        options={{
           headerShown: false,
           animation: 'slide_from_right',
-        }} 
+        }}
       />
-      <Stack.Screen 
-        name="terms-policy" 
-        options={{ 
+      <Stack.Screen
+        name="terms-policy"
+        options={{
           headerShown: false,
           animation: 'slide_from_right',
-        }} 
+        }}
       />
-      <Stack.Screen 
-        name="transaction/[id]" 
-        options={{ 
+      <Stack.Screen
+        name="transaction/[id]"
+        options={{
           headerShown: false,
           animation: 'slide_from_right',
-        }} 
+        }}
       />
     </Stack>
   );
@@ -145,7 +127,11 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={DefaultTheme}>
         <SQLiteProvider databaseName="cartify.db" onInit={migrateDbIfNeeded}>
-          <InitialLayout />
+          <AuthProvider>
+            <NavigationGuard>
+              <RootStack />
+            </NavigationGuard>
+          </AuthProvider>
         </SQLiteProvider>
         <StatusBar style="light" />
         <Toaster />

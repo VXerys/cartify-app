@@ -16,6 +16,7 @@ import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import { VoiceFeedback } from '@/src/components/voice/VoiceFeedback';
 import { VoiceFloatingButton } from '@/src/components/VoiceFloatingButton';
 import { VoiceShoppingCard } from '@/src/components/VoiceShoppingCard';
+import { useSettings } from '@/src/hooks/useSettings';
 import { useVoiceInput } from '@/src/hooks/useVoiceInput';
 import { insertTransaction, Transaction } from '@/src/services/db';
 import { groqService as geminiService, ParsedItem } from '@/src/services/groqService';
@@ -29,6 +30,7 @@ export default function HomeScreen() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const { moderateScale, isTablet, contentContainerStyle, containerPadding } = useResponsive();
+  const { voiceButtonPosition } = useSettings();
 
   const categories = [
       // ... (no change to categories)
@@ -347,7 +349,8 @@ export default function HomeScreen() {
       <VoiceFloatingButton 
         isListening={isListening} 
         isProcessing={isProcessing}
-        onPress={toggleRecording} 
+        onPress={toggleRecording}
+        position={voiceButtonPosition}
       />
 
       <BudgetModal 

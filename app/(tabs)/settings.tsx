@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,21 +14,23 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import Animated, {
-    FadeIn
-} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 import { AppModal } from '../../src/components/ui/AppModal';
 import { IconSymbol, IconSymbolName } from '../../src/components/ui/icon-symbol';
 import { Layout } from '../../src/constants/Layout';
 import { useResponsive } from '../../src/hooks/useResponsive';
+import { useSettings } from '../../src/hooks/useSettings';
 
 const COLORS = Layout.colors;
+const AUTH_COMPLETE_KEY = '@cartify:auth_complete';
+
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const { moderateScale, verticalScale, containerPadding, contentContainerStyle, isTablet } = useResponsive();
+  const { voiceButtonPosition, setVoiceButtonPosition } = useSettings();
 
   const [userProfile, setUserProfile] = useState({
     name: 'Rian Doel',
@@ -37,7 +40,7 @@ export default function SettingsScreen() {
 
   // Modal States
   const [modalVisible, setModalVisible] = useState<{
-    type: 'profile' | 'password' | 'language' | 'avatar' | null,
+    type: 'profile' | 'password' | 'language' | 'avatar' | 'voicePosition' | 'logout' | null,
     isOpen: boolean
   }>({ type: null, isOpen: false });
 
@@ -48,7 +51,6 @@ export default function SettingsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    // Simulate refresh for settings (since it's mostly local or mockup data)
     setTimeout(() => {
       setRefreshing(false);
     }, 1500);
@@ -63,6 +65,7 @@ export default function SettingsScreen() {
   const handleSaveProfile = () => {
     setUserProfile(prev => ({ ...prev, name: tempName }));
     setModalVisible({ type: null, isOpen: false });
+    toast.success(t('profile.saved'));
   };
 
   const handleChangePassword = () => {
@@ -71,19 +74,48 @@ export default function SettingsScreen() {
   };
 
   const handleSavePassword = () => {
-    // Implement validation logic here
+    if (tempPassword.new !== tempPassword.confirm) {
+      toast.error(t('password.mismatch'));
+      return;
+    }
+    if (tempPassword.new.length < 6) {
+      toast.error(t('password.tooShort'));
+      return;
+    }
     setModalVisible({ type: null, isOpen: false });
+    toast.success(t('password.updated'));
+  };
+
+  const handleVoicePositionChange = async (position: 'left' | 'right') => {
+    try {
+      await setVoiceButtonPosition(position);
+      setModalVisible({ type: null, isOpen: false });
+      toast.success(t('settings.voicePositionSaved'));
+    } catch (error) {
+      toast.error(t('common.error'));
+    }
+  };
+
+  const handleLogout = async () => {
+    setModalVisible({ type: null, isOpen: false });
+    try {
+      // Clear auth state from storage
+      await AsyncStorage.removeItem(AUTH_COMPLETE_KEY);
+      toast.success(t('settings.loggedOut'));
+      // Navigate to onboarding (will show login since auth is cleared)
+      router.replace('/onboarding');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast.error(t('common.error'));
+    }
   };
 
   const SettingSection = ({ title, children, index = 0 }: { title: string, children: React.ReactNode, index?: number }) => (
     <View style={[styles.section, { marginBottom: moderateScale(24) }]}>
       <Text style={[styles.sectionTitle, { fontSize: moderateScale(13), marginLeft: moderateScale(12), marginBottom: moderateScale(10) }]}>{title}</Text>
-      <Animated.View 
-        entering={FadeIn.delay(index * 150).duration(800)}
-        style={[styles.sectionContent, { borderRadius: moderateScale(20) }]}
-      >
+      <View style={[styles.sectionContent, { borderRadius: moderateScale(20) }]}>
         {children}
-      </Animated.View>
+      </View>
     </View>
   );
 
@@ -155,8 +187,7 @@ export default function SettingsScreen() {
         
         {/* Header Profile Card - Premium Design */}
         <View style={[styles.header, { marginBottom: moderateScale(24) }]}>
-            <Animated.View 
-              entering={FadeIn.duration(1000)}
+            <View 
               style={[styles.profileCard, { borderRadius: moderateScale(30) }]}
             >
                {/* Decorative Background Elements */}
@@ -201,11 +232,11 @@ export default function SettingsScreen() {
                      </View>
                    </View>
                </View>
-            </Animated.View>
+            </View>
         </View>
 
         {/* Settings Sections */}
-        <SettingSection title={t('settings.preferences')} index={1}>
+        <SettingSection title={t('settings.preferences')} index={0}>
           <SettingItem 
             icon="globe" 
             label={t('settings.language')} 
@@ -213,9 +244,17 @@ export default function SettingsScreen() {
             onPress={() => setModalVisible({ type: 'language', isOpen: true })}
             iconColor="#3B82F6"
           />
+          <View style={[styles.separator, { marginLeft: moderateScale(74) }]} />
+          <SettingItem 
+            icon="hand.point.up.left.fill" 
+            label={t('settings.voiceButtonPosition')} 
+            value={voiceButtonPosition === 'right' ? t('settings.right') : t('settings.left')} 
+            onPress={() => setModalVisible({ type: 'voicePosition', isOpen: true })}
+            iconColor="#10B981"
+          />
         </SettingSection>
 
-        <SettingSection title={t('settings.account')} index={2}>
+        <SettingSection title={t('settings.account')} index={1}>
            <SettingItem 
             icon="lock.fill" 
             label={t('settings.changePassword')}
@@ -231,7 +270,7 @@ export default function SettingsScreen() {
           />
         </SettingSection>
 
-        <SettingSection title={t('settings.support')} index={3}>
+        <SettingSection title={t('settings.support')} index={2}>
           <SettingItem 
             icon="questionmark.circle.fill" 
             label={t('settings.helpCenter')} 
@@ -247,22 +286,30 @@ export default function SettingsScreen() {
           />
         </SettingSection>
 
-        <Animated.View 
-          entering={FadeIn.delay(400).duration(600)} 
-          style={[styles.logoutSection, { marginTop: moderateScale(8), gap: moderateScale(20) }]}
-        >
+        {/* Logout Button - Clean Design */}
+        <View style={[styles.logoutSection, { marginTop: moderateScale(16), marginBottom: moderateScale(24) }]}>
            <TouchableOpacity 
-              style={[styles.logoutButton, { paddingVertical: moderateScale(16), paddingHorizontal: moderateScale(32), borderRadius: moderateScale(16), gap: moderateScale(10) }]} 
-              onPress={() => {}} 
+              style={[styles.logoutButton, { 
+                paddingVertical: moderateScale(16), 
+                paddingHorizontal: moderateScale(20), 
+                borderRadius: moderateScale(16),
+              }]} 
+              onPress={() => setModalVisible({ type: 'logout', isOpen: true })} 
               activeOpacity={0.7}
            >
-              <IconSymbol name="arrow.right.square.fill" size={moderateScale(20)} color={COLORS.danger} />
-              <Text style={[styles.logoutText, { fontSize: moderateScale(16) }]}>{t('settings.logOut')}</Text>
+              <IconSymbol name="rectangle.portrait.and.arrow.right.fill" size={moderateScale(20)} color={COLORS.danger} />
+              <Text style={[styles.logoutText, { fontSize: moderateScale(15) }]}>{t('settings.logOut')}</Text>
            </TouchableOpacity>
-           <Text style={[styles.versionText, { fontSize: moderateScale(13) }]}>{t('settings.version')} 1.0.0 (Build 124)</Text>
-        </Animated.View>
+        </View>
         
-        <View style={{ height: moderateScale(100) }} /> 
+        {/* Version Info */}
+        <View style={styles.versionContainer}>
+          <Text style={[styles.versionText, { fontSize: moderateScale(12) }]}>{t('settings.version')} 1.0.0</Text>
+          <Text style={[styles.buildText, { fontSize: moderateScale(10) }]}>Build 124</Text>
+        </View>
+        
+        {/* Extra padding for navbar - increased to prevent button from being hidden */}
+        <View style={{ height: moderateScale(180) }} /> 
       </ScrollView>
 
       {/* --- Modals --- */}
@@ -315,7 +362,6 @@ export default function SettingsScreen() {
         subtitle={t('profile.updatePhotoSubtitle')}
         onClose={() => setModalVisible({ type: null, isOpen: false })}
         headerIcon={<IconSymbol name="camera.fill" size={moderateScale(32)} color={COLORS.primary} />}
-        // Removed unnecessary save button for selection
       >
         <View style={[styles.avatarGrid, { gap: moderateScale(16), marginBottom: moderateScale(24) }]}>
             {[
@@ -410,12 +456,11 @@ export default function SettingsScreen() {
         subtitle={t('language.subtitle')}
         onClose={() => setModalVisible({ type: null, isOpen: false })}
         headerIcon={<IconSymbol name="globe" size={moderateScale(28)} color={COLORS.primary} />}
-        // Removed duplicate cancel button
       >
         <View style={{ width: '100%', gap: moderateScale(10) }}>
            {[
-             { code: 'en', label: 'English' }, 
-             { code: 'id', label: 'Bahasa Indonesia' }
+             { code: 'en', label: 'English', flag: '🇺🇸' }, 
+             { code: 'id', label: 'Bahasa Indonesia', flag: '🇮🇩' }
            ].map((lang) => (
              <TouchableOpacity 
                 key={lang.code}
@@ -430,18 +475,77 @@ export default function SettingsScreen() {
                 }}
                 activeOpacity={0.7}
              >
-                <Text style={[
-                    styles.languageText,
-                    { fontSize: moderateScale(16) },
-                    i18n.language === lang.code && styles.languageTextSelected
-                ]}>{lang.label}</Text>
+                <View style={styles.languageRow}>
+                  <Text style={styles.languageFlag}>{lang.flag}</Text>
+                  <Text style={[
+                      styles.languageText,
+                      { fontSize: moderateScale(16) },
+                      i18n.language === lang.code && styles.languageTextSelected
+                  ]}>{lang.label}</Text>
+                </View>
                 {i18n.language === lang.code && (
-                    <IconSymbol name="checkmark" size={moderateScale(20)} color={COLORS.primary} />
+                    <IconSymbol name="checkmark.circle.fill" size={moderateScale(22)} color={COLORS.primary} />
                 )}
              </TouchableOpacity>
            ))}
         </View>
       </AppModal>
+
+      {/* Voice Button Position Modal */}
+      <AppModal
+        visible={modalVisible.type === 'voicePosition' && modalVisible.isOpen}
+        title={t('settings.voiceButtonPosition')}
+        subtitle={t('settings.voicePositionSubtitle')}
+        onClose={() => setModalVisible({ type: null, isOpen: false })}
+        headerIcon={<IconSymbol name="hand.point.up.left.fill" size={moderateScale(28)} color="#10B981" />}
+      >
+        <View style={{ width: '100%', gap: moderateScale(10) }}>
+           {[
+             { key: 'right' as const, label: t('settings.right'), emoji: '👉' },
+             { key: 'left' as const, label: t('settings.left'), emoji: '👈' }
+           ].map((option) => (
+             <TouchableOpacity 
+                key={option.key}
+                style={[
+                    styles.languageOption, 
+                    { padding: moderateScale(16), borderRadius: moderateScale(12) },
+                    voiceButtonPosition === option.key && styles.languageOptionSelected
+                ]}
+                onPress={() => handleVoicePositionChange(option.key)}
+                activeOpacity={0.7}
+             >
+                <View style={styles.languageRow}>
+                  <Text style={styles.languageFlag}>{option.emoji}</Text>
+                  <View>
+                    <Text style={[
+                        styles.languageText,
+                        { fontSize: moderateScale(16) },
+                        voiceButtonPosition === option.key && styles.languageTextSelected
+                    ]}>{option.label}</Text>
+                    <Text style={[styles.positionDescription, { marginTop: moderateScale(2) }]}>
+                      {option.key === 'right' ? t('settings.rightDescription') : t('settings.leftDescription')}
+                    </Text>
+                  </View>
+                </View>
+                {voiceButtonPosition === option.key && (
+                    <IconSymbol name="checkmark.circle.fill" size={moderateScale(22)} color="#10B981" />
+                )}
+             </TouchableOpacity>
+           ))}
+        </View>
+      </AppModal>
+
+      {/* Logout Confirmation Modal */}
+      <AppModal
+        visible={modalVisible.type === 'logout' && modalVisible.isOpen}
+        title={t('settings.logoutConfirmTitle')}
+        subtitle={t('settings.logoutConfirmSubtitle')}
+        onClose={() => setModalVisible({ type: null, isOpen: false })}
+        onSave={handleLogout}
+        saveLabel={t('settings.logOut')}
+        variant="danger"
+        headerIcon={<IconSymbol name="rectangle.portrait.and.arrow.right.fill" size={moderateScale(32)} color={COLORS.danger} />}
+      />
 
     </SafeAreaView>
   );
@@ -539,7 +643,88 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   
-  // New Modal Styles
+  // Section Styles
+  section: {
+    // margins handled inline
+  },
+  sectionTitle: {
+    fontWeight: '700',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  sectionContent: {
+    backgroundColor: COLORS.card,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  itemContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  itemLabel: {
+    fontWeight: '600',
+    letterSpacing: -0.2,
+  },
+  itemRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  itemValue: {
+    color: COLORS.subtext,
+    fontWeight: '500',
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#F3F4F6',
+  },
+  
+  // Logout Section - Premium Redesign
+  logoutSection: {
+    width: '100%',
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1.5,
+    borderColor: '#FECACA',
+  },
+  logoutText: {
+    color: COLORS.danger,
+    fontWeight: '600',
+  },
+  
+  // Version Info
+  versionContainer: {
+    alignItems: 'center',
+  },
+  versionText: {
+    color: '#9CA3AF',
+    fontWeight: '500',
+  },
+  buildText: {
+    color: '#D1D5DB',
+    marginTop: 2,
+  },
+  
+  // Input Modal Styles
   inputContainer: {
       width: '100%',
   },
@@ -604,73 +789,6 @@ const styles = StyleSheet.create({
       fontWeight: '600',
       color: COLORS.primary,
   },
-
-  section: {
-    // margins handled inline
-  },
-  sectionTitle: {
-    fontWeight: '700',
-    color: '#6B7280',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  sectionContent: {
-    backgroundColor: COLORS.card,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  itemContent: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  itemLabel: {
-    fontWeight: '600',
-    letterSpacing: -0.2,
-  },
-  itemRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  itemValue: {
-    color: COLORS.subtext,
-    fontWeight: '500',
-  },
-  separator: {
-    height: 1,
-    backgroundColor: '#F3F4F6',
-  },
-  logoutSection: {
-    alignItems: 'center',
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1,
-    borderColor: '#FECACA',
-  },
-  logoutText: {
-    color: COLORS.danger,
-    fontWeight: '700',
-  },
-  versionText: {
-    color: '#9CA3AF',
-    fontWeight: '500',
-  },
   
   // Language Modal Styles
   languageOption: {
@@ -679,16 +797,32 @@ const styles = StyleSheet.create({
       justifyContent: 'space-between',
       borderWidth: 1,
       borderColor: COLORS.border,
+      backgroundColor: '#FFF',
   },
   languageOptionSelected: {
       borderColor: COLORS.primary,
       backgroundColor: COLORS.primary + '08',
   },
+  languageRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+  },
+  languageFlag: {
+      fontSize: 24,
+  },
   languageText: {
       color: COLORS.text,
+      fontWeight: '500',
   },
   languageTextSelected: {
       color: COLORS.primary,
       fontWeight: '600',
+  },
+  
+  // Voice Position Modal Styles - Uses languageOption styles for consistency
+  positionDescription: {
+      fontSize: 12,
+      color: COLORS.subtext,
   },
 });

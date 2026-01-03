@@ -36,10 +36,24 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
     currentDbVersion = 1;
   }
 
+  // Migration v1 -> v2: unit column already exists in initial schema
+  // Only need to update version for databases created in v0->v1
   if (currentDbVersion < 2) {
-    await db.execAsync(`
-      ALTER TABLE transaction_items ADD COLUMN unit TEXT;
-    `);
+    // Check if unit column exists before adding (for older databases)
+    try {
+      const tableInfo = await db.getAllAsync<{ name: string }>(
+        "PRAGMA table_info(transaction_items)"
+      );
+      const hasUnitColumn = tableInfo.some(col => col.name === 'unit');
+      
+      if (!hasUnitColumn) {
+        await db.execAsync(`
+          ALTER TABLE transaction_items ADD COLUMN unit TEXT;
+        `);
+      }
+    } catch (error) {
+      console.warn("Migration v1->v2 warning:", error);
+    }
     currentDbVersion = 2;
   }
   

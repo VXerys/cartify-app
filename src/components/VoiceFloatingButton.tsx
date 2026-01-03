@@ -1,54 +1,102 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect } from 'react';
-import { ActivityIndicator, Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, {
-  Easing,
-  interpolateColor,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withSpring,
-  withTiming
+    Easing,
+    interpolateColor,
+    useAnimatedStyle,
+    useSharedValue,
+    withRepeat,
+    withSequence,
+    withSpring,
+    withTiming
 } from 'react-native-reanimated';
 
 interface VoiceFloatingButtonProps {
   isListening: boolean;
   isProcessing: boolean;
   onPress: () => void;
+  position?: 'left' | 'right';
 }
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-export function VoiceFloatingButton({ isListening, isProcessing, onPress }: VoiceFloatingButtonProps) {
-  // Shared values
+export function VoiceFloatingButton({ isListening, isProcessing, onPress, position = 'right' }: VoiceFloatingButtonProps) {
+  const isLeft = position === 'left';
+  
+  // React state to track visibility (synced with shared value for proper React lifecycle)
+  const [isVisible, setIsVisible] = useState(true);
+  const autoHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // Shared values for animations
   const expandWidth = useSharedValue(60);
   const recordingOpacity = useSharedValue(1); 
-  const buttonColor = useSharedValue(0); // 0: Idle, 1: Listening, 2: Processing, 3: Hidden
-  const uiState = useSharedValue<'visible' | 'hidden'>('visible');
+  const buttonColor = useSharedValue(0); // 0: Idle, 1: Listening, 2: Processing
   const translateX = useSharedValue(0);
+  const handleVisibility = useSharedValue(0); // 0: visible, 1: hidden (for animated handle)
 
-  // Auto-hide timer logic
-  useEffect(() => {
-    // Only auto-hide if we are in the initial idle state and not currently active
-    if (!isListening && !isProcessing && uiState.value === 'visible') {
-      const timer = setTimeout(() => {
-        // Trigger generic "hide" animation
-        uiState.value = 'hidden';
-        translateX.value = withSpring(44, { // Leave about 16px visible (60 - 16 = 44)
-            damping: 15,
-            stiffness: 90
-        });
-      }, 2000);
-      return () => clearTimeout(timer);
+  // Helper to clear any existing timer
+  const clearAutoHideTimer = () => {
+    if (autoHideTimerRef.current) {
+      clearTimeout(autoHideTimerRef.current);
+      autoHideTimerRef.current = null;
     }
-  }, [isListening, isProcessing]);
+  };
+
+  // Helper to show the button with animation
+  const showButton = () => {
+    clearAutoHideTimer();
+    setIsVisible(true);
+    handleVisibility.value = withTiming(0, { duration: 200 });
+    translateX.value = withSpring(0, { damping: 15, stiffness: 100 });
+  };
+
+  // Helper to hide the button with animation
+  const hideButton = () => {
+    setIsVisible(false);
+    handleVisibility.value = withTiming(1, { duration: 200 });
+    const hideOffset = isLeft ? -44 : 44; // Negative for left, positive for right
+    translateX.value = withSpring(hideOffset, {
+      damping: 15,
+      stiffness: 90
+    });
+  };
+
+  // Reset position and restart auto-hide timer when position prop changes
+  useEffect(() => {
+    // Reset to visible state
+    translateX.value = 0;
+    setIsVisible(true);
+    
+    // Start auto-hide timer for the new position
+    clearAutoHideTimer();
+    if (!isListening && !isProcessing) {
+      autoHideTimerRef.current = setTimeout(() => {
+        hideButton();
+      }, 3000);
+    }
+    
+    return () => clearAutoHideTimer();
+  }, [position]);
+
+  // Auto-hide timer logic - triggers when idle and visible
+  useEffect(() => {
+    clearAutoHideTimer();
+    
+    // Only auto-hide if idle (not listening and not processing) and currently visible
+    if (!isListening && !isProcessing && isVisible) {
+      autoHideTimerRef.current = setTimeout(() => {
+        hideButton();
+      }, 3000);
+    }
+    
+    return () => clearAutoHideTimer();
+  }, [isListening, isProcessing, isVisible, isLeft]);
 
   // Handle Listening/Processing State Changes
   useEffect(() => {
     if (isListening) {
       // Force Visible
-      uiState.value = 'visible';
+      showButton();
       translateX.value = withSpring(0, { damping: 15, stiffness: 100 });
 
       // Expansion
@@ -67,8 +115,7 @@ export function VoiceFloatingButton({ isListening, isProcessing, onPress }: Voic
 
     } else if (isProcessing) {
       // Force Visible
-      uiState.value = 'visible';
-      translateX.value = withSpring(0);
+      showButton();
 
       expandWidth.value = withSpring(140, { damping: 18, stiffness: 120 });
       recordingOpacity.value = withTiming(1);
@@ -82,13 +129,14 @@ export function VoiceFloatingButton({ isListening, isProcessing, onPress }: Voic
   }, [isListening, isProcessing]);
 
   const handlePress = () => {
-    if (uiState.value === 'hidden') {
-      // Reveal
-      uiState.value = 'visible';
-      translateX.value = withSpring(0, { damping: 15, stiffness: 100 });
-      // Reset auto-hide timer? Optional. For now, let it stick until user interacts or code decides.
+    // Haptic feedback for button press confirmation
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
+    if (!isVisible) {
+      // Reveal the button
+      showButton();
     } else {
-      // Normal Action
+      // Normal Action - trigger voice recording
       onPress();
     }
   };
@@ -97,7 +145,7 @@ export function VoiceFloatingButton({ isListening, isProcessing, onPress }: Voic
     const backgroundColor = interpolateColor(
       buttonColor.value,
       [0, 1, 2],
-      ['#2A9D8F', '#E76F51', '#264653'] // Teal (Idle), Burnt Orange (Listening - more urgent/active), Dark Blue (Processing)
+      ['#2A9D8F', '#E76F51', '#264653']
     );
 
     return {
@@ -117,10 +165,11 @@ export function VoiceFloatingButton({ isListening, isProcessing, onPress }: Voic
   });
 
   const rHandleStyle = useAnimatedStyle(() => {
-      // The handle (line) is clearer when hidden to indicate interactivity
+      // handleVisibility: 0 = visible, 1 = hidden
+      const isHidden = handleVisibility.value > 0.5;
       return {
-          opacity: withTiming(uiState.value === 'hidden' ? 1 : 0.6),
-          height: withSpring(uiState.value === 'hidden' ? 24 : 12),
+          opacity: withTiming(isHidden ? 1 : 0.6),
+          height: withSpring(isHidden ? 24 : 12),
       }
   })
   
@@ -138,28 +187,39 @@ export function VoiceFloatingButton({ isListening, isProcessing, onPress }: Voic
   };
 
   return (
-    <View style={styles.positionContainer}>
+    <View style={[
+      styles.positionContainer,
+      isLeft ? styles.positionLeft : styles.positionRight
+    ]}>
       <TouchableOpacity
         onPress={handlePress}
         activeOpacity={0.8}
         disabled={isProcessing}
       >
-        <Animated.View style={[styles.buttonContainer, rContainerStyle]}>
+        <Animated.View style={[
+          styles.buttonContainer, 
+          isLeft ? styles.buttonContainerLeft : styles.buttonContainerRight,
+          rContainerStyle
+        ]}>
             
-          {/* Decorative Drag Handle (Vertical Line) */}
-          <View style={styles.handleContainer}>
-             <Animated.View style={[styles.handleBar, rHandleStyle]} />
-          </View>
+          {/* For RIGHT: [Handle] [Content] - handle visible when hidden */}
+          {/* For LEFT: [Content] [Handle] - handle visible when hidden */}
+          
+          {!isLeft && (
+            <View style={styles.handleContainer}>
+               <Animated.View style={[styles.handleBar, rHandleStyle]} />
+            </View>
+          )}
 
-          <View style={styles.contentContainer}>
+          <View style={[styles.contentContainer, isLeft && styles.contentContainerLeft]}>
              {/* Icon Section */}
              <View style={styles.iconWrapper}>
                  <Ionicons 
                     name={getIconName()} 
-                    size={24} // Slightly smaller for premium look
+                    size={24}
                     color="#FFF" 
                  />
-                 {/* Red recording dot overlay check */}
+                 {/* Red recording dot overlay */}
                  {isListening && (
                      <Animated.View style={[styles.recordingDot, rRedDotStyle]} />
                  )}
@@ -176,6 +236,12 @@ export function VoiceFloatingButton({ isListening, isProcessing, onPress }: Voic
               <ActivityIndicator size="small" color="#FFF" style={styles.spinner} />
             )}
           </View>
+
+          {isLeft && (
+            <View style={styles.handleContainerLeft}>
+               <Animated.View style={[styles.handleBar, rHandleStyle]} />
+            </View>
+          )}
         </Animated.View>
       </TouchableOpacity>
     </View>
@@ -186,27 +252,39 @@ const styles = StyleSheet.create({
   positionContainer: {
     position: 'absolute',
     bottom: 220, 
-    right: 0,
     zIndex: 999,
-    // Enhanced Premium Shadow
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
     shadowRadius: 16,
     elevation: 8,
   },
+  positionRight: {
+    right: 0,
+  },
+  positionLeft: {
+    left: 0,
+  },
   buttonContainer: {
-    height: 56, // Taller for better touch target and presence
-    borderTopLeftRadius: 28,
-    borderBottomLeftRadius: 28,
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
+    height: 56,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
     overflow: 'hidden',
-    borderWidth: 1, // Subtle border for premium feel
+    borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
+  },
+  buttonContainerRight: {
+    borderTopLeftRadius: 28,
+    borderBottomLeftRadius: 28,
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  buttonContainerLeft: {
+    borderTopRightRadius: 28,
+    borderBottomRightRadius: 28,
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
   },
   handleContainer: {
       width: 14,
@@ -214,6 +292,14 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       justifyContent: 'center',
       paddingLeft: 4,
+  },
+  handleContainerLeft: {
+      width: 14,
+      height: '100%',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingLeft: 0,
+      paddingRight: 4,
   },
   handleBar: {
       width: 4,
@@ -225,9 +311,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     paddingRight: 16,
+    paddingLeft: 4,
+  },
+  contentContainerLeft: {
+    paddingRight: 4,
+    paddingLeft: 16,
   },
   iconWrapper: {
-      width: 30, // Adjusted compact width
+      width: 30,
       alignItems: 'center',
       justifyContent: 'center',
       marginRight: 6,
@@ -239,7 +330,7 @@ const styles = StyleSheet.create({
       width: 10,
       height: 10,
       borderRadius: 5,
-      backgroundColor: '#FFF', // White dot on orange background looks cleaner
+      backgroundColor: '#FFF',
       borderWidth: 2,
       borderColor: '#E76F51', 
   },
@@ -248,7 +339,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
-    textTransform: 'uppercase', // Premium touch
+    textTransform: 'uppercase',
   },
   spinner: {
     marginLeft: 8,

@@ -1,9 +1,7 @@
-import * as FileSystem from 'expo-file-system';
 import { Stack, useRouter } from 'expo-router';
-import * as Sharing from 'expo-sharing';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -11,6 +9,7 @@ import { AppModal } from '../src/components/ui/AppModal';
 import { IconSymbol, IconSymbolName } from '../src/components/ui/icon-symbol';
 import { Layout } from '../src/constants/Layout';
 import { deleteAllTransactions, getTransactionsWithItems } from '../src/services/db';
+import { exportToCSV, exportToPDF } from '../src/services/pdfExportService';
 
 const COLORS = Layout.colors;
 
@@ -70,19 +69,43 @@ const SecurityItem = ({
 export default function SecurityPrivacyScreen() {
     const router = useRouter();
     const db = useSQLiteContext();
-    const [biometricEnabled, setBiometricEnabled] = useState(false);
+    
+    // App Lock State (replacing biometric)
+    const [appLockEnabled, setAppLockEnabled] = useState(false);
     const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
     const [isExporting, setIsExporting] = useState(false);
 
     // Modal State
     const [modalVisible, setModalVisible] = useState<{
-        type: 'clearHistory' | 'deleteAccount' | 'exportData' | null,
+        type: 'clearHistory' | 'deleteAccount' | 'exportData' | 'appLock' | null,
         isOpen: boolean
     }>({ type: null, isOpen: false });
+    
+    // Export Options State
+    const [exportFormat, setExportFormat] = useState<'pdf' | 'csv'>('pdf');
+    const [includeAISummary, setIncludeAISummary] = useState(true);
+    const [dateRange, setDateRange] = useState<'7days' | '30days' | 'all'>('all');
+    
+    // Stats for preview
+    const [transactionCount, setTransactionCount] = useState(0);
+    const [totalAmount, setTotalAmount] = useState(0);
 
-    const handleBiometricToggle = (value: boolean) => {
-        setBiometricEnabled(value);
-        // Implement actual biometric logic here
+    // Toggle App Lock - shows modal to set PIN
+    const handleAppLockToggle = (value: boolean) => {
+        if (value) {
+            // When enabling, show modal to set PIN
+            setModalVisible({ type: 'appLock', isOpen: true });
+        } else {
+            // When disabling, just turn it off
+            setAppLockEnabled(false);
+            toast.success('Kunci aplikasi dinonaktifkan');
+        }
+    };
+
+    const confirmAppLockEnable = () => {
+        setAppLockEnabled(true);
+        setModalVisible({ type: null, isOpen: false });
+        toast.success('Kunci aplikasi diaktifkan');
     };
 
     const handleAnalyticsToggle = (value: boolean) => {
@@ -90,7 +113,30 @@ export default function SecurityPrivacyScreen() {
         // Implement actual analytics preference logic here
     };
 
-    const handleExportData = () => {
+    // Load stats for export preview
+    const loadExportStats = async () => {
+        try {
+            const transactions = await getTransactionsWithItems(db);
+            const now = new Date();
+            
+            let filteredTx = transactions;
+            if (dateRange === '7days') {
+                const cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                filteredTx = transactions.filter(t => new Date(t.date) >= cutoff);
+            } else if (dateRange === '30days') {
+                const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                filteredTx = transactions.filter(t => new Date(t.date) >= cutoff);
+            }
+            
+            setTransactionCount(filteredTx.length);
+            setTotalAmount(filteredTx.reduce((sum, t) => sum + t.total_amount, 0));
+        } catch (error) {
+            console.error("Load stats error:", error);
+        }
+    };
+
+    const handleExportData = async () => {
+        await loadExportStats();
         setModalVisible({ type: 'exportData', isOpen: true });
     };
 
@@ -103,71 +149,42 @@ export default function SecurityPrivacyScreen() {
     };
 
     const confirmExportData = async () => {
-        // Validation: Check if Native Modules are available
-
-        if (!FileSystem.documentDirectory) {
-            Alert.alert(
-                "Diperlukan Pembaruan Aplikasi",
-                "Fitur ini memerlukan modul tambahan (konfigurasi native) yang baru saja ditambahkan. Mohon lakukan rebuild aplikasi (dev client) atau jalankan 'npx expo run:android' untuk menggunakannya."
-            );
-            setModalVisible({ type: null, isOpen: false });
-            return;
-        }
-
         setIsExporting(true);
         try {
-            const transactions = await getTransactionsWithItems(db);
+            const allTransactions = await getTransactionsWithItems(db);
+            const now = new Date();
+            
+            // Filter by date range
+            let transactions = allTransactions;
+            if (dateRange === '7days') {
+                const cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                transactions = allTransactions.filter(t => new Date(t.date) >= cutoff);
+            } else if (dateRange === '30days') {
+                const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                transactions = allTransactions.filter(t => new Date(t.date) >= cutoff);
+            }
             
             if (transactions.length === 0) {
-                toast.error("Tidak ada data transaksi untuk diekspor.");
+                toast.error("Tidak ada data transaksi untuk periode ini.");
                 setModalVisible({ type: null, isOpen: false });
                 setIsExporting(false);
                 return;
             }
 
-            // Create CSV content
-            let csvContent = "ID,Tanggal,Total,Catatan,Item,Harga Satuan,Jumlah,Satuan,Kategori,Total Harga Item\n";
+            let result;
             
-            transactions.forEach(t => {
-                if (t.items && t.items.length > 0) {
-                    t.items.forEach(item => {
-                        const row = [
-                            t.id,
-                            `"${t.date}"`,
-                            t.total_amount,
-                            `"${t.note || ''}"`,
-                            `"${item.item_name}"`,
-                            item.item_price,
-                            item.quantity,
-                            `"${item.unit || ''}"`,
-                            `"${item.category}"`,
-                            item.total_price
-                        ].join(",");
-                        csvContent += row + "\n";
-                    });
-                } else {
-                     // Transaction without items
-                     const row = [
-                        t.id,
-                        `"${t.date}"`,
-                        t.total_amount,
-                        `"${t.note || ''}"`,
-                        "-",0,0,"-","-",0
-                    ].join(",");
-                    csvContent += row + "\n";
-                }
-            });
-
-            const fileName = `Cartify_Export_${new Date().toISOString().split('T')[0]}.csv`;
-            const fileUri = FileSystem.documentDirectory + fileName;
-
-            await FileSystem.writeAsStringAsync(fileUri, csvContent, { encoding: FileSystem.EncodingType.UTF8 });
-
-            if (await Sharing.isAvailableAsync()) {
-                await Sharing.shareAsync(fileUri);
-                toast.success("Data berhasil diekspor!");
+            if (exportFormat === 'pdf') {
+                // Export as PDF with optional AI summary
+                result = await exportToPDF(transactions, { includeAISummary });
             } else {
-                toast.error("Fitur berbagi tidak tersedia di perangkat ini.");
+                // Export as CSV
+                result = await exportToCSV(transactions);
+            }
+
+            if (result.success) {
+                toast.success(result.message);
+            } else {
+                toast.error(result.message);
             }
 
         } catch (error) {
@@ -223,12 +240,12 @@ export default function SecurityPrivacyScreen() {
                     <Text style={styles.sectionTitle}>KEAMANAN APLIKASI</Text>
                     <View style={styles.card}>
                         <SecurityItem 
-                            icon="faceid" 
-                            label="Biometrik / Face ID" 
-                            description="Gunakan wajah atau sidik jari untuk membuka aplikasi."
+                            icon="lock.fill" 
+                            label="Kunci Aplikasi" 
+                            description="Aktifkan PIN untuk melindungi akses ke aplikasi Anda."
                             isSwitch
-                            value={biometricEnabled}
-                            onToggle={handleBiometricToggle}
+                            value={appLockEnabled}
+                            onToggle={handleAppLockToggle}
                         />
                     </View>
                 </View>
@@ -250,7 +267,7 @@ export default function SecurityPrivacyScreen() {
                         <SecurityItem 
                             icon="arrow.down.doc.fill" 
                             label="Unduh Data Saya" 
-                            description="Minta salinan riwayat transaksi Anda dalam format CSV (Excel)."
+                            description="Ekspor riwayat transaksi ke PDF atau CSV dengan filter periode."
                             onPress={handleExportData}
                             iconColor="#10B981"
                         />
@@ -284,14 +301,182 @@ export default function SecurityPrivacyScreen() {
             {/* Export Data Modal */}
             <AppModal
                 visible={modalVisible.type === 'exportData' && modalVisible.isOpen}
-                title="Unduh Data?"
-                subtitle="Data riwayat transaksi Anda akan dikonversi menjadi file CSV yang bisa dibuka di Excel. Apakah Anda ingin melanjutkan?"
+                title="Ekspor Data"
+                subtitle="Unduh riwayat transaksi belanja Anda."
                 onClose={() => setModalVisible({ type: null, isOpen: false })}
                 onSave={confirmExportData}
-                saveLabel={isExporting ? "Memproses..." : "Unduh Sekarang"}
+                saveLabel={isExporting ? "Memproses..." : "Ekspor"}
                 variant="default"
                 headerIcon={<IconSymbol name="arrow.down.doc.fill" size={32} color="#10B981" />}
-            />
+            >
+                <View style={styles.exportContent}>
+                    {/* Stats Summary - Compact Horizontal */}
+                    <View style={styles.statsSummary}>
+                        <View style={styles.statBox}>
+                            <IconSymbol name="doc.text.fill" size={16} color={COLORS.primary} />
+                            <Text style={styles.statNumber}>{transactionCount}</Text>
+                            <Text style={styles.statLabel}>transaksi</Text>
+                        </View>
+                        <View style={styles.statDot} />
+                        <View style={styles.statBox}>
+                            <IconSymbol name="banknote.fill" size={16} color={COLORS.primary} />
+                            <Text style={styles.statNumber}>
+                                {totalAmount >= 1000000 
+                                    ? `${(totalAmount / 1000000).toFixed(1)}jt`
+                                    : totalAmount >= 1000 
+                                        ? `${(totalAmount / 1000).toFixed(0)}rb`
+                                        : totalAmount.toString()
+                                }
+                            </Text>
+                            <Text style={styles.statLabel}>total</Text>
+                        </View>
+                    </View>
+
+                    {/* Period Selector - Pill Style */}
+                    <View style={styles.exportSection}>
+                        <Text style={styles.exportSectionTitle}>Periode</Text>
+                        <View style={styles.periodSelector}>
+                            {[
+                                { key: '7days' as const, label: '7 Hari' },
+                                { key: '30days' as const, label: '30 Hari' },
+                                { key: 'all' as const, label: 'Semua' }
+                            ].map((option, index) => (
+                                <TouchableOpacity
+                                    key={option.key}
+                                    style={[
+                                        styles.periodOption,
+                                        dateRange === option.key && styles.periodOptionActive,
+                                        index === 0 && styles.periodOptionFirst,
+                                        index === 2 && styles.periodOptionLast,
+                                    ]}
+                                    onPress={async () => {
+                                        setDateRange(option.key);
+                                        const transactions = await getTransactionsWithItems(db);
+                                        const now = new Date();
+                                        let filtered = transactions;
+                                        if (option.key === '7days') {
+                                            const cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                                            filtered = transactions.filter(t => new Date(t.date) >= cutoff);
+                                        } else if (option.key === '30days') {
+                                            const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                                            filtered = transactions.filter(t => new Date(t.date) >= cutoff);
+                                        }
+                                        setTransactionCount(filtered.length);
+                                        setTotalAmount(filtered.reduce((sum, t) => sum + t.total_amount, 0));
+                                    }}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={[
+                                        styles.periodOptionText,
+                                        dateRange === option.key && styles.periodOptionTextActive
+                                    ]}>
+                                        {option.label}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+
+                    {/* Format Selector - Card Style */}
+                    <View style={styles.exportSection}>
+                        <Text style={styles.exportSectionTitle}>Format</Text>
+                        <View style={styles.formatSelector}>
+                            {/* PDF Option */}
+                            <TouchableOpacity
+                                style={[
+                                    styles.formatCard,
+                                    exportFormat === 'pdf' && styles.formatCardActive
+                                ]}
+                                onPress={() => setExportFormat('pdf')}
+                                activeOpacity={0.7}
+                            >
+                                <View style={[
+                                    styles.formatIconBox,
+                                    exportFormat === 'pdf' && styles.formatIconBoxActive
+                                ]}>
+                                    <IconSymbol 
+                                        name="doc.richtext.fill" 
+                                        size={20} 
+                                        color={exportFormat === 'pdf' ? '#FFF' : COLORS.primary} 
+                                    />
+                                </View>
+                                <View style={styles.formatInfo}>
+                                    <Text style={[
+                                        styles.formatTitle,
+                                        exportFormat === 'pdf' && styles.formatTitleActive
+                                    ]}>PDF</Text>
+                                    <Text style={styles.formatDesc}>Laporan visual</Text>
+                                </View>
+                                <View style={[
+                                    styles.formatRadio,
+                                    exportFormat === 'pdf' && styles.formatRadioActive
+                                ]}>
+                                    {exportFormat === 'pdf' && (
+                                        <View style={styles.formatRadioInner} />
+                                    )}
+                                </View>
+                            </TouchableOpacity>
+
+                            {/* CSV Option */}
+                            <TouchableOpacity
+                                style={[
+                                    styles.formatCard,
+                                    exportFormat === 'csv' && styles.formatCardActive
+                                ]}
+                                onPress={() => setExportFormat('csv')}
+                                activeOpacity={0.7}
+                            >
+                                <View style={[
+                                    styles.formatIconBox,
+                                    exportFormat === 'csv' && styles.formatIconBoxActive
+                                ]}>
+                                    <IconSymbol 
+                                        name="tablecells.fill" 
+                                        size={20} 
+                                        color={exportFormat === 'csv' ? '#FFF' : COLORS.primary} 
+                                    />
+                                </View>
+                                <View style={styles.formatInfo}>
+                                    <Text style={[
+                                        styles.formatTitle,
+                                        exportFormat === 'csv' && styles.formatTitleActive
+                                    ]}>CSV</Text>
+                                    <Text style={styles.formatDesc}>Data Excel</Text>
+                                </View>
+                                <View style={[
+                                    styles.formatRadio,
+                                    exportFormat === 'csv' && styles.formatRadioActive
+                                ]}>
+                                    {exportFormat === 'csv' && (
+                                        <View style={styles.formatRadioInner} />
+                                    )}
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                    
+                    {/* AI Toggle - Only for PDF */}
+                    {exportFormat === 'pdf' && (
+                        <TouchableOpacity 
+                            style={styles.aiOption}
+                            onPress={() => setIncludeAISummary(!includeAISummary)}
+                            activeOpacity={0.7}
+                        >
+                            <View style={styles.aiOptionLeft}>
+                                <IconSymbol name="sparkles" size={18} color="#F59E0B" />
+                                <Text style={styles.aiOptionText}>Sertakan Analisis AI</Text>
+                            </View>
+                            <Switch
+                                value={includeAISummary}
+                                onValueChange={setIncludeAISummary}
+                                trackColor={{ false: '#E5E7EB', true: COLORS.primary }}
+                                thumbColor={'#ffffff'}
+                                ios_backgroundColor="#E5E7EB"
+                            />
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </AppModal>
 
             {/* Clear History Modal */}
             <AppModal
@@ -316,6 +501,49 @@ export default function SecurityPrivacyScreen() {
                  variant="danger"
                  headerIcon={<IconSymbol name="xmark.circle.fill" size={32} color={COLORS.danger} />}
             />
+
+            {/* App Lock Enable Modal */}
+            <AppModal
+                 visible={modalVisible.type === 'appLock' && modalVisible.isOpen}
+                 title="Aktifkan Kunci Aplikasi"
+                 subtitle="Lindungi data belanja Anda dengan mengaktifkan kunci aplikasi."
+                 onClose={() => setModalVisible({ type: null, isOpen: false })}
+                 onSave={confirmAppLockEnable}
+                 saveLabel="Aktifkan Kunci"
+                 variant="default"
+                 headerIcon={<IconSymbol name="lock.fill" size={32} color={COLORS.primary} />}
+            >
+                <View style={styles.appLockInfo}>
+                    <View style={styles.appLockFeature}>
+                        <View style={styles.appLockFeatureIcon}>
+                            <IconSymbol name="key.fill" size={18} color={COLORS.primary} />
+                        </View>
+                        <View style={styles.appLockFeatureText}>
+                            <Text style={styles.appLockFeatureTitle}>PIN 4 Digit</Text>
+                            <Text style={styles.appLockFeatureDesc}>
+                                Gunakan PIN sederhana untuk akses cepat
+                            </Text>
+                        </View>
+                    </View>
+                    <View style={styles.appLockFeature}>
+                        <View style={styles.appLockFeatureIcon}>
+                            <IconSymbol name="shield.checkered" size={18} color={COLORS.primary} />
+                        </View>
+                        <View style={styles.appLockFeatureText}>
+                            <Text style={styles.appLockFeatureTitle}>Perlindungan Data</Text>
+                            <Text style={styles.appLockFeatureDesc}>
+                                Riwayat belanja Anda tetap aman dari akses tidak sah
+                            </Text>
+                        </View>
+                    </View>
+                    <View style={styles.appLockNote}>
+                        <IconSymbol name="info.circle.fill" size={16} color="#6B7280" />
+                        <Text style={styles.appLockNoteText}>
+                            Anda dapat menonaktifkan kunci kapan saja dari pengaturan ini.
+                        </Text>
+                    </View>
+                </View>
+            </AppModal>
 
         </SafeAreaView>
     );
@@ -400,6 +628,222 @@ const styles = StyleSheet.create({
     separator: {
         height: 1,
         backgroundColor: COLORS.border,
-        marginLeft: 68, // Icon width + margin + padding
+        marginLeft: 68,
+    },
+    // NEW Export Modal Styles - Clean & Responsive
+    exportContent: {
+        width: '100%',
+        gap: 20,
+    },
+    // Stats Summary
+    statsSummary: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#F0FDF4',
+        borderRadius: 12,
+        paddingVertical: 14,
+        paddingHorizontal: 20,
+        gap: 16,
+    },
+    statBox: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    statNumber: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#166534',
+    },
+    statLabel: {
+        fontSize: 13,
+        color: '#15803D',
+        fontWeight: '500',
+    },
+    statDot: {
+        width: 4,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: '#86EFAC',
+    },
+    // Export Sections
+    exportSection: {
+        gap: 10,
+    },
+    exportSectionTitle: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#6B7280',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    // Period Selector - Connected Pills
+    periodSelector: {
+        flexDirection: 'row',
+        backgroundColor: '#F3F4F6',
+        borderRadius: 10,
+        padding: 4,
+    },
+    periodOption: {
+        flex: 1,
+        paddingVertical: 10,
+        alignItems: 'center',
+        borderRadius: 8,
+    },
+    periodOptionFirst: {
+        // Reserved for first item styling if needed
+    },
+    periodOptionLast: {
+        // Reserved for last item styling if needed
+    },
+    periodOptionActive: {
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    periodOptionText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#6B7280',
+    },
+    periodOptionTextActive: {
+        color: COLORS.primary,
+    },
+    // Format Selector - Horizontal Cards
+    formatSelector: {
+        gap: 10,
+    },
+    formatCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1.5,
+        borderColor: '#E5E7EB',
+        borderRadius: 12,
+        paddingVertical: 14,
+        paddingHorizontal: 14,
+    },
+    formatCardActive: {
+        borderColor: COLORS.primary,
+        backgroundColor: COLORS.primary + '08',
+    },
+    formatIconBox: {
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        backgroundColor: COLORS.primary + '15',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    formatIconBoxActive: {
+        backgroundColor: COLORS.primary,
+    },
+    formatInfo: {
+        flex: 1,
+    },
+    formatTitle: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: COLORS.text,
+    },
+    formatTitleActive: {
+        color: COLORS.primary,
+    },
+    formatDesc: {
+        fontSize: 12,
+        color: COLORS.subtext,
+        marginTop: 2,
+    },
+    formatRadio: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        borderWidth: 2,
+        borderColor: '#D1D5DB',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    formatRadioActive: {
+        borderColor: COLORS.primary,
+    },
+    formatRadioInner: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        backgroundColor: COLORS.primary,
+    },
+    // AI Option - Simple Row
+    aiOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#FFFBEB',
+        borderRadius: 12,
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        borderWidth: 1,
+        borderColor: '#FEF3C7',
+    },
+    aiOptionLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    aiOptionText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#92400E',
+    },
+    // App Lock Modal Styles
+    appLockInfo: {
+        width: '100%',
+        gap: 16,
+    },
+    appLockFeature: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    appLockFeatureIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: COLORS.primary + '15',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 14,
+    },
+    appLockFeatureText: {
+        flex: 1,
+    },
+    appLockFeatureTitle: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: COLORS.text,
+        marginBottom: 2,
+    },
+    appLockFeatureDesc: {
+        fontSize: 12,
+        color: COLORS.subtext,
+        lineHeight: 16,
+    },
+    appLockNote: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        backgroundColor: '#F9FAFB',
+        padding: 12,
+        borderRadius: 12,
+        gap: 10,
+        marginTop: 4,
+    },
+    appLockNoteText: {
+        flex: 1,
+        fontSize: 12,
+        color: '#6B7280',
+        lineHeight: 18,
     },
 });

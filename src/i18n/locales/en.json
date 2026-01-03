@@ -19,8 +19,19 @@
     "helpCenter": "Help Center",
     "termsPolicy": "Terms & Policy",
     "logOut": "Log Out",
+    "logOutSubtext": "Sign out from your account",
+    "loggedOut": "You have been logged out",
+    "logoutConfirmTitle": "Log Out?",
+    "logoutConfirmSubtitle": "Are you sure you want to log out? You'll need to sign in again to access the app.",
     "version": "Version",
-    "goldMember": "Gold Member"
+    "goldMember": "Gold Member",
+    "voiceButtonPosition": "Voice Button Position",
+    "voicePositionSubtitle": "Choose your preferred voice button position.",
+    "voicePositionSaved": "Voice button position saved",
+    "left": "Left",
+    "right": "Right",
+    "leftDescription": "Button on the left side of screen",
+    "rightDescription": "Button on the right side of screen"
   },
   "profile": {
     "editProfile": "Edit Profile",
@@ -30,7 +41,8 @@
     "emailHelper": "Email cannot be changed manually.",
     "updatePhoto": "Update Photo",
     "updatePhotoSubtitle": "Choose a new profile picture.",
-    "chooseGallery": "Choose from Gallery"
+    "chooseGallery": "Choose from Gallery",
+    "saved": "Profile saved successfully"
   },
   "home": {
     "recentItems": "Recent Items",
@@ -96,7 +108,10 @@
     "current": "Current Password",
     "new": "New Password",
     "confirm": "Confirm Password",
-    "update": "Update Password"
+    "update": "Update Password",
+    "mismatch": "Password confirmation does not match",
+    "tooShort": "Password must be at least 6 characters",
+    "updated": "Password updated successfully"
   },
   "language": {
     "title": "Select Language",

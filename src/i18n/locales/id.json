@@ -19,8 +19,19 @@
     "helpCenter": "Pusat Bantuan",
     "termsPolicy": "Syarat & Kebijakan",
     "logOut": "Keluar",
+    "logOutSubtext": "Keluar dari akun Anda",
+    "loggedOut": "Anda telah keluar",
+    "logoutConfirmTitle": "Keluar dari Akun?",
+    "logoutConfirmSubtitle": "Anda yakin ingin keluar? Anda perlu masuk kembali untuk mengakses aplikasi.",
     "version": "Versi",
-    "goldMember": "Anggota Emas"
+    "goldMember": "Anggota Emas",
+    "voiceButtonPosition": "Posisi Tombol Suara",
+    "voicePositionSubtitle": "Pilih posisi tombol suara sesuai preferensi Anda.",
+    "voicePositionSaved": "Posisi tombol suara berhasil disimpan",
+    "left": "Kiri",
+    "right": "Kanan",
+    "leftDescription": "Tombol di sisi kiri layar",
+    "rightDescription": "Tombol di sisi kanan layar"
   },
   "profile": {
     "editProfile": "Edit Profil",
@@ -30,7 +41,8 @@
     "emailHelper": "Email tidak dapat diubah secara manual.",
     "updatePhoto": "Perbarui Foto",
     "updatePhotoSubtitle": "Pilih foto profil baru.",
-    "chooseGallery": "Pilih dari Galeri"
+    "chooseGallery": "Pilih dari Galeri",
+    "saved": "Profil berhasil disimpan"
   },
   "home": {
     "recentItems": "Item Terbaru",
@@ -96,7 +108,10 @@
     "current": "Kata Sandi Saat Ini",
     "new": "Kata Sandi Baru",
     "confirm": "Konfirmasi Kata Sandi",
-    "update": "Perbarui Kata Sandi"
+    "update": "Perbarui Kata Sandi",
+    "mismatch": "Konfirmasi kata sandi tidak cocok",
+    "tooShort": "Kata sandi minimal 6 karakter",
+    "updated": "Kata sandi berhasil diperbarui"
   },
   "language": {
     "title": "Pilih Bahasa",

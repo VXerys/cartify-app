@@ -42,7 +42,8 @@
     "updatePhoto": "Perbarui Foto",
     "updatePhotoSubtitle": "Pilih foto profil baru.",
     "chooseGallery": "Pilih dari Galeri",
-    "saved": "Profil berhasil disimpan"
+    "saved": "Profil berhasil disimpan",
+    "photoUpdated": "Foto profil berhasil diperbarui"
   },
   "home": {
     "recentItems": "Item Terbaru",

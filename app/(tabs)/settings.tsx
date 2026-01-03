@@ -24,6 +24,8 @@ import { useSettings } from '../../src/hooks/useSettings';
 
 const COLORS = Layout.colors;
 
+// Default avatar for users without profile picture
+const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?name=User&background=2A9D8F&color=fff&size=200';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -32,20 +34,38 @@ export default function SettingsScreen() {
   const { voiceButtonPosition, setVoiceButtonPosition } = useSettings();
   const { user, signOut, updateProfile } = useAuth();
 
+  // Generate avatar URL - use Google photo, or generate one from user's name
+  const getAvatarUrl = (avatarUrl: string | null | undefined, name: string | null | undefined, email: string | null | undefined) => {
+    if (avatarUrl && avatarUrl.length > 0) {
+      return avatarUrl;
+    }
+    // Generate avatar from name or email
+    const displayName = name || email?.split('@')[0] || 'User';
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=2A9D8F&color=fff&size=200`;
+  };
+
   // Get user data from auth context
-  const [userProfile, setUserProfile] = useState({
-    name: user?.fullName || 'User',
+  const [userProfile, setUserProfile] = useState(() => ({
+    name: user?.fullName || user?.email?.split('@')[0] || 'User',
     email: user?.email || '',
-    avatar: user?.avatarUrl || 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
-  });
+    avatar: getAvatarUrl(user?.avatarUrl, user?.fullName, user?.email),
+  }));
 
   // Update local state when auth user changes
   useEffect(() => {
     if (user) {
+      console.log('User data from auth:', {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        avatarUrl: user.avatarUrl,
+        provider: user.provider,
+      });
+      
       setUserProfile({
-        name: user.fullName || 'User',
+        name: user.fullName || user.email?.split('@')[0] || 'User',
         email: user.email || '',
-        avatar: user.avatarUrl || userProfile.avatar,
+        avatar: getAvatarUrl(user.avatarUrl, user.fullName, user.email),
       });
     }
   }, [user]);
@@ -389,9 +409,16 @@ export default function SettingsScreen() {
                 <TouchableOpacity 
                     key={index} 
                     style={[styles.avatarOption, { width: moderateScale(80), height: moderateScale(80), borderRadius: moderateScale(40), padding: moderateScale(3), borderWidth: moderateScale(2) }, userProfile.avatar === uri && styles.avatarOptionSelected]}
-                    onPress={() => {
-                        setUserProfile(p => ({ ...p, avatar: uri }));
-                        setModalVisible({ type: null, isOpen: false });
+                    onPress={async () => {
+                        try {
+                          await updateProfile({ avatarUrl: uri });
+                          setUserProfile(p => ({ ...p, avatar: uri }));
+                          setModalVisible({ type: null, isOpen: false });
+                          toast.success(t('profile.photoUpdated'));
+                        } catch (error) {
+                          console.error('Error updating avatar:', error);
+                          toast.error(t('common.error'));
+                        }
                     }}
                     activeOpacity={0.7}
                 >

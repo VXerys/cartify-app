@@ -1,8 +1,9 @@
 import { Layout } from '@/src/constants/Layout';
+import { useAuth } from '@/src/context/AuthContext';
 import { useResponsive } from '@/src/hooks/useResponsive';
 import { formatDate } from '@/src/utils/date';
 import { MaterialIcons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -13,6 +14,32 @@ export function HomeHeader() {
   const insets = useSafeAreaInsets();
   const { containerPadding, moderateScale, verticalScale, isTablet, contentContainerStyle } = useResponsive();
   const [greetingKey, setGreetingKey] = useState('home.goodMorning');
+  
+  // Get user data from auth context
+  const { user } = useAuth();
+
+  // Generate display name from user data
+  const displayName = useMemo(() => {
+    if (user?.fullName) {
+      // Get first name only for header
+      return user.fullName.split(' ')[0];
+    }
+    if (user?.email) {
+      // Use email username as fallback
+      return user.email.split('@')[0];
+    }
+    return 'User';
+  }, [user]);
+
+  // Generate avatar URL
+  const avatarUrl = useMemo(() => {
+    if (user?.avatarUrl) {
+      return user.avatarUrl;
+    }
+    // Generate avatar from name
+    const name = user?.fullName || user?.email?.split('@')[0] || 'User';
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2A9D8F&color=fff&size=96`;
+  }, [user]);
   
   // Dynamic greeting logic
   useEffect(() => {
@@ -40,7 +67,7 @@ export function HomeHeader() {
         <View style={styles.leftSection}>
             <TouchableOpacity style={styles.avatarContainer} activeOpacity={0.8}>
                 <Image 
-                    source={{ uri: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' }} 
+                    source={{ uri: avatarUrl }} 
                     style={[styles.avatar, { width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 }]} 
                 />
                 <View style={[styles.onlineIndicator, { width: onlineSize, height: onlineSize, borderRadius: onlineSize / 2 }]} />
@@ -57,7 +84,7 @@ export function HomeHeader() {
                     entering={FadeInDown.delay(200).springify()} 
                     style={[styles.name, { fontSize: moderateScale(18) }]}
                 >
-                    Sarah Johnson
+                    {displayName}
                 </Animated.Text>
             </View>
         </View>
@@ -182,4 +209,3 @@ const styles = StyleSheet.create({
       letterSpacing: 0.5,
   },
 });
-

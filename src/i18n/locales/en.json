@@ -42,7 +42,8 @@
     "updatePhoto": "Update Photo",
     "updatePhotoSubtitle": "Choose a new profile picture.",
     "chooseGallery": "Choose from Gallery",
-    "saved": "Profile saved successfully"
+    "saved": "Profile saved successfully",
+    "photoUpdated": "Profile photo updated"
   },
   "home": {
     "recentItems": "Recent Items",

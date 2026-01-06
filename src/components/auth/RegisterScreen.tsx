@@ -1,7 +1,7 @@
 import { Layout } from '@/src/constants/Layout';
 import { validateEmail, validateFullName, validatePassword } from '@/src/types/auth';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     Dimensions,
     KeyboardAvoidingView,
@@ -18,8 +18,9 @@ import Animated, {
     FadeInDown,
     FadeInUp,
 } from 'react-native-reanimated';
+import { LegalModal } from './LegalModal';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 interface RegisterScreenProps {
   onRegister: (fullName: string, email: string, password: string) => void;
@@ -35,6 +36,52 @@ interface FormErrors {
   confirmPassword?: string;
 }
 
+// Password strength calculation
+type PasswordStrength = 'weak' | 'medium' | 'strong';
+
+interface PasswordStrengthResult {
+  strength: PasswordStrength;
+  score: number;
+  label: string;
+  color: string;
+  requirements: {
+    minLength: boolean;
+    hasUppercase: boolean;
+    hasLowercase: boolean;
+    hasNumber: boolean;
+    hasSpecial: boolean;
+  };
+}
+
+const calculatePasswordStrength = (password: string): PasswordStrengthResult => {
+  const requirements = {
+    minLength: password.length >= 8,
+    hasUppercase: /[A-Z]/.test(password),
+    hasLowercase: /[a-z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+    hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+  };
+
+  const metRequirements = Object.values(requirements).filter(Boolean).length;
+  
+  let strength: PasswordStrength = 'weak';
+  let label = 'Weak';
+  let color = '#EF4444';
+  let score = metRequirements;
+
+  if (metRequirements >= 4) {
+    strength = 'strong';
+    label = 'Strong';
+    color = '#10B981';
+  } else if (metRequirements >= 3) {
+    strength = 'medium';
+    label = 'Medium';
+    color = '#F59E0B';
+  }
+
+  return { strength, score, label, color, requirements };
+};
+
 export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   onRegister,
   onGoogleRegister,
@@ -49,6 +96,19 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  
+  // Legal modal state
+  const [legalModalVisible, setLegalModalVisible] = useState(false);
+  const [legalModalType, setLegalModalType] = useState<'terms' | 'privacy'>('terms');
+
+  // Calculate password strength
+  const passwordStrength = useMemo(() => calculatePasswordStrength(password), [password]);
+
+  // Open legal modal
+  const openLegalModal = (type: 'terms' | 'privacy') => {
+    setLegalModalType(type);
+    setLegalModalVisible(true);
+  };
 
   const handleRegister = () => {
     const newErrors: FormErrors = {};
@@ -57,14 +117,14 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     if (!fullName.trim()) {
       newErrors.fullName = 'Full name is required';
     } else if (!validateFullName(fullName)) {
-      newErrors.fullName = 'Please enter a valid name';
+      newErrors.fullName = 'Please enter a valid name (min 2 characters)';
     }
 
     // Validate email
     if (!email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!validateEmail(email)) {
-      newErrors.email = 'Please enter a valid email';
+      newErrors.email = 'Please enter a valid email address';
     }
 
     // Validate password
@@ -74,6 +134,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       const passwordValidation = validatePassword(password);
       if (!passwordValidation.isValid) {
         newErrors.password = passwordValidation.errors[0];
+      } else if (passwordStrength.strength === 'weak') {
+        newErrors.password = 'Password is too weak. Add more characters or symbols.';
       }
     }
 
@@ -82,6 +144,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (password !== confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    // Check terms agreement
+    if (!agreedToTerms) {
+      // We'll handle this visually, not as a form error
     }
 
     setErrors(newErrors);
@@ -97,13 +164,118 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     }
   };
 
+  // Password strength indicator component
+  const PasswordStrengthIndicator = () => {
+    if (!password) return null;
+
+    const { strength, label, color, requirements } = passwordStrength;
+    const barWidth = strength === 'weak' ? '33%' : strength === 'medium' ? '66%' : '100%';
+
+    return (
+      <Animated.View 
+        entering={FadeIn.duration(300)} 
+        style={styles.strengthContainer}
+      >
+        {/* Strength Bar */}
+        <View style={styles.strengthBarContainer}>
+          <View 
+            style={[
+              styles.strengthBar, 
+              { width: barWidth as any, backgroundColor: color }
+            ]} 
+          />
+        </View>
+        
+        {/* Strength Label */}
+        <View style={styles.strengthLabelRow}>
+          <Text style={[styles.strengthLabel, { color }]}>{label}</Text>
+        </View>
+
+        {/* Requirements Checklist */}
+        <View style={styles.requirementsContainer}>
+          <View style={styles.requirementRow}>
+            <Ionicons 
+              name={requirements.minLength ? "checkmark-circle" : "ellipse-outline"} 
+              size={14} 
+              color={requirements.minLength ? '#10B981' : 'rgba(255,255,255,0.4)'} 
+            />
+            <Text style={[
+              styles.requirementText,
+              requirements.minLength && styles.requirementMet
+            ]}>
+              At least 8 characters
+            </Text>
+          </View>
+          <View style={styles.requirementRow}>
+            <Ionicons 
+              name={requirements.hasUppercase ? "checkmark-circle" : "ellipse-outline"} 
+              size={14} 
+              color={requirements.hasUppercase ? '#10B981' : 'rgba(255,255,255,0.4)'} 
+            />
+            <Text style={[
+              styles.requirementText,
+              requirements.hasUppercase && styles.requirementMet
+            ]}>
+              One uppercase letter
+            </Text>
+          </View>
+          <View style={styles.requirementRow}>
+            <Ionicons 
+              name={requirements.hasLowercase ? "checkmark-circle" : "ellipse-outline"} 
+              size={14} 
+              color={requirements.hasLowercase ? '#10B981' : 'rgba(255,255,255,0.4)'} 
+            />
+            <Text style={[
+              styles.requirementText,
+              requirements.hasLowercase && styles.requirementMet
+            ]}>
+              One lowercase letter
+            </Text>
+          </View>
+          <View style={styles.requirementRow}>
+            <Ionicons 
+              name={requirements.hasNumber ? "checkmark-circle" : "ellipse-outline"} 
+              size={14} 
+              color={requirements.hasNumber ? '#10B981' : 'rgba(255,255,255,0.4)'} 
+            />
+            <Text style={[
+              styles.requirementText,
+              requirements.hasNumber && styles.requirementMet
+            ]}>
+              One number
+            </Text>
+          </View>
+        </View>
+      </Animated.View>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      {/* Background gradient circles */}
-      <View style={styles.gradientOverlay}>
-        <View style={[styles.gradientCircle, styles.gradientCircle1]} />
-        <View style={[styles.gradientCircle, styles.gradientCircle2]} />
-        <View style={[styles.gradientCircle, styles.gradientCircle3]} />
+      {/* Premium Gradient Background */}
+      <View style={styles.backgroundContainer}>
+        {/* Main gradient overlay */}
+        <View style={styles.gradientOverlay} />
+        
+        {/* Animated mesh gradient effect */}
+        <View style={[styles.meshGradient, styles.meshGradient1]} />
+        <View style={[styles.meshGradient, styles.meshGradient2]} />
+        <View style={[styles.meshGradient, styles.meshGradient3]} />
+        
+        {/* Subtle grid pattern overlay */}
+        <View style={styles.gridPattern}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <View key={`h-${i}`} style={[styles.gridLine, styles.gridLineHorizontal, { top: `${(i + 1) * 12.5}%` }]} />
+          ))}
+          {Array.from({ length: 6 }).map((_, i) => (
+            <View key={`v-${i}`} style={[styles.gridLine, styles.gridLineVertical, { left: `${(i + 1) * 16.66}%` }]} />
+          ))}
+        </View>
+        
+        {/* Glowing orbs */}
+        <View style={[styles.glowOrb, styles.glowOrb1]} />
+        <View style={[styles.glowOrb, styles.glowOrb2]} />
+        <View style={[styles.glowOrb, styles.glowOrb3]} />
       </View>
 
       <KeyboardAvoidingView 
@@ -152,6 +324,9 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                   autoCapitalize="words"
                   editable={!isLoading}
                 />
+                {fullName.length >= 2 && validateFullName(fullName) && (
+                  <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+                )}
               </View>
               {errors.fullName && (
                 <Text style={styles.errorText}>{errors.fullName}</Text>
@@ -180,6 +355,9 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                   autoCorrect={false}
                   editable={!isLoading}
                 />
+                {email.length > 0 && validateEmail(email) && (
+                  <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+                )}
               </View>
               {errors.email && (
                 <Text style={styles.errorText}>{errors.email}</Text>
@@ -220,10 +398,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
               {errors.password && (
                 <Text style={styles.errorText}>{errors.password}</Text>
               )}
-              {/* Password requirements hint */}
-              <Text style={styles.hintText}>
-                Min. 8 characters with uppercase, lowercase & number
-              </Text>
+              {/* Password Strength Indicator */}
+              <PasswordStrengthIndicator />
             </View>
 
             {/* Confirm Password Input */}
@@ -231,7 +407,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
               <Text style={styles.inputLabel}>Confirm Password</Text>
               <View style={[
                 styles.inputContainer,
-                errors.confirmPassword && styles.inputError
+                errors.confirmPassword && styles.inputError,
+                confirmPassword.length > 0 && password === confirmPassword && styles.inputSuccess
               ]}>
                 <Ionicons name="lock-closed-outline" size={20} color="#9BA1A6" style={styles.inputIcon} />
                 <TextInput
@@ -256,40 +433,58 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                     color="#9BA1A6" 
                   />
                 </TouchableOpacity>
+                {confirmPassword.length > 0 && password === confirmPassword && (
+                  <Ionicons name="checkmark-circle" size={20} color="#10B981" style={{ marginLeft: 8 }} />
+                )}
               </View>
               {errors.confirmPassword && (
                 <Text style={styles.errorText}>{errors.confirmPassword}</Text>
               )}
+              {confirmPassword.length > 0 && password === confirmPassword && (
+                <Text style={styles.successText}>Passwords match!</Text>
+              )}
             </View>
 
             {/* Terms Checkbox */}
-            <TouchableOpacity 
-              style={styles.termsContainer}
-              onPress={() => setAgreedToTerms(!agreedToTerms)}
-              activeOpacity={0.7}
-              disabled={isLoading}
-            >
-              <View style={[
-                styles.checkbox,
-                agreedToTerms && styles.checkboxChecked
-              ]}>
-                {agreedToTerms && (
-                  <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-                )}
-              </View>
+            <View style={styles.termsContainer}>
+              <TouchableOpacity 
+                style={styles.checkboxTouchable}
+                onPress={() => setAgreedToTerms(!agreedToTerms)}
+                activeOpacity={0.7}
+                disabled={isLoading}
+              >
+                <View style={[
+                  styles.checkbox,
+                  agreedToTerms && styles.checkboxChecked
+                ]}>
+                  {agreedToTerms && (
+                    <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                  )}
+                </View>
+              </TouchableOpacity>
               <Text style={styles.termsText}>
                 I agree to the{' '}
-                <Text style={styles.termsLink}>Terms of Service</Text>
+                <Text 
+                  style={styles.termsLink}
+                  onPress={() => openLegalModal('terms')}
+                >
+                  Terms of Service
+                </Text>
                 {' '}and{' '}
-                <Text style={styles.termsLink}>Privacy Policy</Text>
+                <Text 
+                  style={styles.termsLink}
+                  onPress={() => openLegalModal('privacy')}
+                >
+                  Privacy Policy
+                </Text>
               </Text>
-            </TouchableOpacity>
+            </View>
 
             {/* Register Button */}
             <TouchableOpacity
               style={[
                 styles.registerButton, 
-                (isLoading || !agreedToTerms) && styles.buttonDisabled
+                (isLoading || !agreedToTerms || passwordStrength.strength === 'weak') && styles.buttonDisabled
               ]}
               onPress={handleRegister}
               activeOpacity={0.8}
@@ -333,6 +528,13 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Legal Modal */}
+      <LegalModal
+        visible={legalModalVisible}
+        type={legalModalType}
+        onClose={() => setLegalModalVisible(false)}
+      />
     </View>
   );
 };
@@ -340,36 +542,103 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A2332',
+    backgroundColor: '#0F172A',
   },
-  gradientOverlay: {
+  // Premium Background Styles
+  backgroundContainer: {
     ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',
   },
-  gradientCircle: {
+  gradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#0F172A',
+  },
+  meshGradient: {
+    position: 'absolute',
+    borderRadius: 999,
+    opacity: 0.6,
+  },
+  meshGradient1: {
+    width: width * 1.2,
+    height: width * 1.2,
+    backgroundColor: 'rgba(42, 157, 143, 0.15)',
+    top: '-30%',
+    right: '-40%',
+    transform: [{ rotate: '45deg' }],
+  },
+  meshGradient2: {
+    width: width * 0.8,
+    height: width * 0.8,
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    bottom: '10%',
+    left: '-30%',
+    transform: [{ rotate: '-30deg' }],
+  },
+  meshGradient3: {
+    width: width * 0.6,
+    height: width * 0.6,
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+    top: '40%',
+    right: '-20%',
+    transform: [{ rotate: '15deg' }],
+  },
+  gridPattern: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.03,
+  },
+  gridLine: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+  },
+  gridLineHorizontal: {
+    left: 0,
+    right: 0,
+    height: 1,
+  },
+  gridLineVertical: {
+    top: 0,
+    bottom: 0,
+    width: 1,
+  },
+  glowOrb: {
     position: 'absolute',
     borderRadius: 999,
   },
-  gradientCircle1: {
-    width: 400,
-    height: 400,
-    backgroundColor: 'rgba(42, 157, 143, 0.12)',
-    top: '-15%',
-    right: '-20%',
-  },
-  gradientCircle2: {
-    width: 300,
-    height: 300,
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
-    bottom: '30%',
-    left: '-15%',
-  },
-  gradientCircle3: {
+  glowOrb1: {
     width: 200,
     height: 200,
-    backgroundColor: 'rgba(42, 157, 143, 0.06)',
-    bottom: '-5%',
-    right: '10%',
+    backgroundColor: 'rgba(42, 157, 143, 0.25)',
+    top: -50,
+    right: -50,
+    shadowColor: '#2A9D8F',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 80,
+    elevation: 20,
+  },
+  glowOrb2: {
+    width: 150,
+    height: 150,
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    bottom: height * 0.3,
+    left: -40,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 60,
+    elevation: 15,
+  },
+  glowOrb3: {
+    width: 100,
+    height: 100,
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    bottom: 100,
+    right: 50,
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 40,
+    elevation: 10,
   },
   keyboardView: {
     flex: 1,
@@ -425,13 +694,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 16,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.1)',
     paddingHorizontal: 16,
     height: 54,
   },
   inputError: {
     borderColor: '#EF4444',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+  },
+  inputSuccess: {
+    borderColor: '#10B981',
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
   },
   inputIcon: {
     marginRight: 12,
@@ -450,11 +724,58 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginLeft: 4,
   },
-  hintText: {
+  successText: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.4)',
+    color: '#10B981',
     marginTop: 6,
     marginLeft: 4,
+  },
+  // Password Strength Styles
+  strengthContainer: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  strengthBarContainer: {
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  strengthBar: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  strengthLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  strengthLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  requirementsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  requirementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    width: '48%',
+  },
+  requirementText: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.4)',
+  },
+  requirementMet: {
+    color: '#10B981',
   },
   termsContainer: {
     flexDirection: 'row',
@@ -462,13 +783,15 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     marginTop: 8,
   },
+  checkboxTouchable: {
+    marginRight: 12,
+  },
   checkbox: {
     width: 22,
     height: 22,
     borderRadius: 6,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.3)',
-    marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },

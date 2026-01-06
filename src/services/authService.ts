@@ -75,12 +75,30 @@ const userToProfile = (user: FirebaseAuthTypes.User | null): UserProfile | null 
 // Initialize auth state listener
 auth().onAuthStateChanged((user) => {
   const userProfile = userToProfile(user);
-  const isAuthenticated = !!user;
-
-  console.log('Firebase Auth State Changed:', user?.email);
+  
+  // For email/password users, check if email is verified
+  // Google/Apple sign-in users are automatically verified
+  let isAuthenticated = false;
+  
+  if (user) {
+    const providerData = user.providerData[0];
+    const isEmailProvider = providerData?.providerId === 'password';
+    
+    if (isEmailProvider) {
+      // Email users must have verified email
+      isAuthenticated = user.emailVerified;
+      console.log('Firebase Auth State Changed:', user?.email, 'Verified:', user.emailVerified);
+    } else {
+      // OAuth users (Google, Apple) are always verified
+      isAuthenticated = true;
+      console.log('Firebase Auth State Changed (OAuth):', user?.email);
+    }
+  } else {
+    console.log('Firebase Auth State Changed: No user');
+  }
 
   updateAuthState({
-    user: userProfile,
+    user: isAuthenticated ? userProfile : null,
     isLoading: false,
     isAuthenticated,
   });
@@ -112,23 +130,39 @@ export const authService = {
 
   /**
    * Sign in with email and password
+   * Checks if email is verified before allowing login
    */
   signInWithEmail: async (email: string, password: string): Promise<UserProfile> => {
     updateAuthState({ isLoading: true });
     try {
       const userCredential = await auth().signInWithEmailAndPassword(email, password);
+      
+      // Check if email is verified
+      if (!userCredential.user.emailVerified) {
+        // Sign out the unverified user
+        await auth().signOut();
+        updateAuthState({ isLoading: false });
+        throw new Error('Please verify your email before logging in. Check your inbox for the verification link.');
+      }
+      
       const user = userToProfile(userCredential.user);
       return user!;
     } catch (error: any) {
       updateAuthState({ isLoading: false });
+      // Check if it's our custom error
+      if (error.message?.includes('verify your email')) {
+        throw error;
+      }
       throw new Error(getFirebaseErrorMessage(error.code));
     }
   },
 
   /**
    * Sign up with email and password
+   * After signup, sends verification email and signs out the user
+   * User must verify email before they can login
    */
-  signUp: async (email: string, password: string, fullName: string): Promise<UserProfile> => {
+  signUp: async (email: string, password: string, fullName: string): Promise<{ requiresVerification: boolean }> => {
     updateAuthState({ isLoading: true });
     try {
       const userCredential = await auth().createUserWithEmailAndPassword(email, password);
@@ -138,10 +172,16 @@ export const authService = {
         await userCredential.user.updateProfile({
           displayName: fullName,
         });
+        
+        // Send verification email
+        await userCredential.user.sendEmailVerification();
+        
+        // Sign out the user - they must verify email first
+        await auth().signOut();
       }
 
-      const user = userToProfile(auth().currentUser); // Get updated user
-      return user!;
+      updateAuthState({ isLoading: false });
+      return { requiresVerification: true };
     } catch (error: any) {
       updateAuthState({ isLoading: false });
       throw new Error(getFirebaseErrorMessage(error.code));
@@ -176,11 +216,38 @@ export const authService = {
       console.error('Google Sign-In Error:', error);
       updateAuthState({ isLoading: false });
       
-      if (error.code === '12501') { // SIGN_IN_CANCELLED code often appears as this string
-         throw new Error('Sign-in cancelled');
+      // Handle specific Google Sign-In error codes
+      const errorCode = error.code?.toString() || '';
+      const errorMessage = error.message || '';
+      
+      // User cancelled sign-in
+      if (errorCode === '12501' || errorCode === 'SIGN_IN_CANCELLED' || 
+          errorMessage.includes('cancelled') || errorMessage.includes('canceled')) {
+        throw new Error('Google sign in was cancelled');
       }
       
-      throw error;
+      // No ID token - usually means Web Client ID is not configured
+      if (errorMessage.includes('No ID token')) {
+        throw new Error('Google Sign-In is not configured properly. Please contact support.');
+      }
+      
+      // Play services not available
+      if (errorCode === '12500' || errorMessage.includes('Play Services')) {
+        throw new Error('Google Play Services is required. Please update or install it.');
+      }
+      
+      // Network error
+      if (errorCode === '7' || errorMessage.includes('network')) {
+        throw new Error('Network error. Please check your internet connection.');
+      }
+      
+      // Developer error (wrong SHA-1 or package name)
+      if (errorCode === '10' || errorMessage.includes('DEVELOPER_ERROR')) {
+        throw new Error('Google Sign-In configuration error. Please contact support.');
+      }
+      
+      // Generic error with user-friendly message
+      throw new Error('Google Sign-In failed. Please try again.');
     }
   },
 
@@ -243,17 +310,55 @@ export const authService = {
 // Helper: Map Firebase error codes to human-readable messages
 function getFirebaseErrorMessage(code: string): string {
   switch (code) {
+    // Email/Password errors
     case 'auth/email-already-in-use':
-      return 'That email address is already in use!';
+      return 'This email is already registered. Try signing in instead.';
     case 'auth/invalid-email':
-      return 'That email address is invalid!';
+      return 'Please enter a valid email address.';
     case 'auth/user-not-found':
-      return 'No user found with this email.';
+      return 'No account found with this email. Please sign up first.';
     case 'auth/wrong-password':
-      return 'Incorrect password.';
+      return 'Incorrect password. Please try again.';
+    case 'auth/invalid-credential':
+      return 'Invalid email or password. Please check and try again.';
+    case 'auth/invalid-login-credentials':
+      return 'Invalid email or password. Please check and try again.';
     case 'auth/weak-password':
-      return 'Password is too weak.';
+      return 'Password is too weak. Use at least 6 characters.';
+    case 'auth/user-disabled':
+      return 'This account has been disabled. Please contact support.';
+    
+    // Rate limiting
+    case 'auth/too-many-requests':
+      return 'Too many failed attempts. Please try again later.';
+    
+    // Network errors
+    case 'auth/network-request-failed':
+      return 'Network error. Please check your internet connection.';
+    
+    // Google Sign-In errors
+    case 'auth/popup-closed-by-user':
+      return 'Sign in was cancelled.';
+    case 'auth/cancelled-popup-request':
+      return 'Sign in was cancelled.';
+    case 'auth/account-exists-with-different-credential':
+      return 'An account already exists with this email using a different sign-in method.';
+    
+    // Email verification
+    case 'auth/requires-recent-login':
+      return 'Please sign in again to complete this action.';
+    
+    // Operation errors
+    case 'auth/operation-not-allowed':
+      return 'This sign-in method is not enabled. Please contact support.';
+    case 'auth/expired-action-code':
+      return 'This link has expired. Please request a new one.';
+    case 'auth/invalid-action-code':
+      return 'This link is invalid or has already been used.';
+    
     default:
-      return code || 'An unknown error occurred.';
+      // Log unknown errors for debugging
+      console.warn('Unknown Firebase auth error:', code);
+      return 'Something went wrong. Please try again.';
   }
 }

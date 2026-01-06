@@ -10,7 +10,7 @@ import { authService, AuthState, UserProfile } from '../services/authService';
 interface AuthContextType extends AuthState {
   // Auth methods
   signInWithEmail: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ requiresVerification: boolean }>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
@@ -24,7 +24,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
-    session: null,
     isLoading: true,
     isAuthenticated: false,
   });
@@ -48,9 +47,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await authService.signInWithEmail(email, password);
   }, []);
 
-  // Sign up
+  // Sign up - returns whether verification is required
   const signUp = useCallback(async (email: string, password: string, fullName: string) => {
-    await authService.signUp(email, password, fullName);
+    return await authService.signUp(email, password, fullName);
   }, []);
 
   // Sign in with Google

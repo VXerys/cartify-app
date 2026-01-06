@@ -21,41 +21,75 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const segments = useSegments();
   const { isAuthenticated, isLoading } = useAuth();
-  const hasNavigated = useRef(false);
   const [isReady, setIsReady] = useState(false);
+  const previousAuthState = useRef<boolean | null>(null);
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
     // Wait for auth to finish loading
     if (!isLoading) {
-      setIsReady(true);
+      // Small delay to ensure navigation state is stable after hot reload
+      const timer = setTimeout(() => {
+        setIsReady(true);
+        isInitialMount.current = false;
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [isLoading]);
 
   useEffect(() => {
     if (!isReady) return;
-    if (hasNavigated.current) return;
 
     const inOnboarding = segments[0] === 'onboarding';
     const inAuth = segments[0] === 'auth';
+    const inProtectedRoute = segments[0] === '(tabs)' || 
+                             segments[0] === 'security-privacy' || 
+                             segments[0] === 'help-center' ||
+                             segments[0] === 'terms-policy' ||
+                             segments[0] === 'transaction';
 
-    // If authenticated and still in onboarding/auth, redirect to home
+    // Detect logout: was authenticated, now not authenticated
+    const wasAuthenticated = previousAuthState.current === true;
+    const justLoggedOut = wasAuthenticated && !isAuthenticated;
+    
+    // Update previous state
+    previousAuthState.current = isAuthenticated;
+
+    // Handle logout - redirect to onboarding
+    if (justLoggedOut) {
+      console.log('User logged out, redirecting to onboarding');
+      router.replace('/onboarding');
+      return;
+    }
+
+    // If authenticated and in onboarding/auth, redirect to home
     if (isAuthenticated && (inOnboarding || inAuth)) {
       console.log('User authenticated, redirecting to tabs');
-      hasNavigated.current = true;
       router.replace('/(tabs)');
+      return;
+    }
+
+    // If not authenticated and trying to access protected route, redirect to onboarding
+    if (!isAuthenticated && inProtectedRoute) {
+      console.log('User not authenticated, redirecting to onboarding');
+      router.replace('/onboarding');
+      return;
     }
   }, [isReady, isAuthenticated, segments, router]);
 
-  // Show loading while checking auth
-  if (!isReady) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Layout.colors.primary} />
-      </View>
-    );
-  }
-
-  return <>{children}</>;
+  // Use overlay approach - covers everything including cached routes
+  return (
+    <>
+      {children}
+      {!isReady && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingLogo}>
+            <ActivityIndicator size="large" color={Layout.colors.primary} />
+          </View>
+        </View>
+      )}
+    </>
+  );
 }
 
 function RootStack() {
@@ -145,6 +179,21 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1A2332',
+    backgroundColor: '#0F172A',
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#0F172A',
+    zIndex: 9999,
+  },
+  loadingLogo: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: 'rgba(42, 157, 143, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

@@ -127,7 +127,7 @@ export default function SettingsScreen() {
     try {
       await signOut();
       toast.success(t('settings.loggedOut'));
-      router.replace('/onboarding');
+      // NavigationGuard will automatically redirect to onboarding
     } catch (error) {
       console.error('Error logging out:', error);
       toast.error(t('common.error'));
@@ -221,14 +221,17 @@ export default function SettingsScreen() {
         }
       >
         
-        {/* Header Profile Card - Premium Design */}
+                {/* Header Profile Card - Premium Design */}
         <View style={[styles.header, { marginBottom: moderateScale(24) }]}>
             <View 
               style={[styles.profileCard, { borderRadius: moderateScale(30) }]}
             >
-               {/* Decorative Background Elements */}
-               <View style={[styles.decorativeCircle1, { width: moderateScale(200), height: moderateScale(200), borderRadius: moderateScale(100), top: moderateScale(-60), right: moderateScale(-60) }]} />
-               <View style={[styles.decorativeCircle2, { width: moderateScale(240), height: moderateScale(240), borderRadius: moderateScale(120), bottom: moderateScale(-40), left: moderateScale(-80) }]} />
+               {/* Premium Mesh Background for Card - Uniquely positioned */}
+               <View style={styles.cardMeshContainer}>
+                  <View style={[styles.cardMeshGradient, styles.cardMesh1]} />
+                  <View style={[styles.cardMeshGradient, styles.cardMesh2]} />
+                  <View style={[styles.cardMeshGradient, styles.cardMesh3]} />
+               </View>
                
                <View style={[styles.profileContent, { padding: moderateScale(24), paddingBottom: moderateScale(20) }]}>
                    <View style={[styles.avatarContainer, { marginRight: moderateScale(20) }]}>
@@ -247,25 +250,38 @@ export default function SettingsScreen() {
                      </View>
                    </View>
                    
-                   <View style={[styles.userInfo, { height: moderateScale(88), paddingLeft: moderateScale(4) }]}>
-                     <View style={[styles.nameRow, { marginBottom: moderateScale(4), gap: moderateScale(8) }]}>
-                         <Text style={[styles.userName, { fontSize: moderateScale(24) }]}>{userProfile.name}</Text>
-                         <TouchableOpacity 
-                             style={[styles.editNameButton, { padding: moderateScale(4), borderRadius: moderateScale(12) }]} 
-                             onPress={handleEditProfile}
-                             activeOpacity={0.6}
-                         >
-                             <IconSymbol name="pencil" size={moderateScale(14)} color="rgba(255,255,255,0.8)" />
-                         </TouchableOpacity>
-                     </View>
-                     <Text style={[styles.userEmail, { fontSize: moderateScale(14), marginBottom: moderateScale(10) }]}>{userProfile.email}</Text>
-                     
-                     <View style={[styles.badgesRow, { gap: moderateScale(8) }]}>
-                         <View style={[styles.premiumBadge, { paddingVertical: moderateScale(6), paddingHorizontal: moderateScale(12), borderRadius: moderateScale(20), gap: moderateScale(6) }]}>
-                             <IconSymbol name="crown.fill" size={moderateScale(12)} color="#FFD700" />
-                             <Text style={[styles.premiumText, { fontSize: moderateScale(12) }]}>{t('settings.goldMember')}</Text>
-                         </View>
-                     </View>
+                   <View style={styles.userInfo}>
+                      <View style={[styles.nameRow, { marginBottom: moderateScale(4) }]}>
+                          <Text 
+                            style={[styles.userName, { fontSize: moderateScale(20) }]} 
+                            numberOfLines={1}
+                            adjustsFontSizeToFit
+                            minimumFontScale={0.7}
+                          >
+                            {userProfile.name}
+                          </Text>
+                          <TouchableOpacity 
+                              style={[styles.editNameButton, { padding: moderateScale(4), borderRadius: moderateScale(12), marginLeft: moderateScale(8) }]} 
+                              onPress={handleEditProfile}
+                              activeOpacity={0.6}
+                          >
+                              <IconSymbol name="pencil" size={moderateScale(14)} color="rgba(255,255,255,0.8)" />
+                          </TouchableOpacity>
+                      </View>
+                      <Text 
+                        style={[styles.userEmail, { fontSize: moderateScale(13), marginBottom: moderateScale(10) }]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {userProfile.email}
+                      </Text>
+                      
+                      <View style={[styles.badgesRow, { gap: moderateScale(8) }]}>
+                          <View style={[styles.premiumBadge, { paddingVertical: moderateScale(6), paddingHorizontal: moderateScale(12), borderRadius: moderateScale(20), gap: moderateScale(6) }]}>
+                              <IconSymbol name="crown.fill" size={moderateScale(12)} color="#FFD700" />
+                              <Text style={[styles.premiumText, { fontSize: moderateScale(12) }]}>{t('settings.goldMember')}</Text>
+                          </View>
+                      </View>
                    </View>
                </View>
             </View>
@@ -613,18 +629,38 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 24,
     elevation: 12,
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#0F172A', // Changed to dark premium background
     overflow: 'hidden',
     position: 'relative',
   },
-  decorativeCircle1: {
-    position: 'absolute',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    transform: [{ scale: 1.2 }],
+  cardMeshContainer: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.8,
   },
-  decorativeCircle2: {
+  cardMeshGradient: {
     position: 'absolute',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 999,
+  },
+  cardMesh1: {
+    width: '120%',
+    height: '120%',
+    backgroundColor: 'rgba(42, 157, 143, 0.15)',
+    top: '-30%',
+    left: '-20%',
+  },
+  cardMesh2: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    bottom: '-20%',
+    right: '-10%',
+  },
+  cardMesh3: {
+    width: '60%',
+    height: '60%',
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+    top: '20%',
+    right: '-10%',
   },
   profileContent: {
       flexDirection: 'row',
@@ -653,6 +689,7 @@ const styles = StyleSheet.create({
   userInfo: {
     flex: 1,
     justifyContent: 'center',
+    minWidth: 0, // Important for text truncation to work in flex container
   },
   nameRow: {
     flexDirection: 'row',
@@ -662,13 +699,16 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#FFF',
     letterSpacing: -0.5,
+    flexShrink: 1, // Allow name to shrink if needed
   },
   editNameButton: {
     backgroundColor: 'rgba(255,255,255,0.15)',
+    flexShrink: 0, // Don't shrink the edit button
   },
   userEmail: {
     color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '500',
+    flexShrink: 1,
   },
   badgesRow: {
       flexDirection: 'row',

@@ -12,7 +12,20 @@
           "package_name": "com.sehanfrs0.Cartify"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "445007497300-81pb3diga71885orhaktsvr0i61i85u5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sehanfrs0.Cartify",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "445007497300-epp7cms26r5s60b8ojbjb1i4i49aplcp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAcRVHQBfYZzJgkVO4yekP3ZRjzlU5-ce0"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "445007497300-epp7cms26r5s60b8ojbjb1i4i49aplcp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

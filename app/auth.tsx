@@ -1,17 +1,23 @@
-import { ForgotPasswordScreen, LoginScreen, RegisterScreen } from '@/src/components/auth';
+import {
+  ForgotPasswordScreen,
+  LoginScreen,
+  RegisterScreen,
+  VerificationPendingScreen
+} from '@/src/components/auth';
 import { useAuth } from '@/src/context/AuthContext';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
 
-type AuthScreen = 'login' | 'register' | 'forgot-password';
+type AuthScreen = 'login' | 'register' | 'forgot-password' | 'verification-pending';
 
 export default function AuthPage() {
   const router = useRouter();
   const { signInWithEmail, signUp, signInWithGoogle, sendPasswordReset } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<AuthScreen>('login');
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState('');
 
   // Navigate to home after successful auth
   const navigateToHome = useCallback(() => {
@@ -34,10 +40,24 @@ export default function AuthPage() {
       navigateToHome();
     } catch (error: any) {
       console.error('Login error:', error);
-      toast.error('Login failed', {
-        description: error.message || 'Please check your credentials',
-        duration: 3000,
-      });
+      
+      const errorMessage = error.message || 'Please check your credentials';
+      
+      // Check if it's an email verification error
+      if (errorMessage.includes('verify your email')) {
+        toast.warning('Email Not Verified', {
+          description: 'Please check your inbox and verify your email first.',
+          duration: 4000,
+        });
+        // Show verification pending screen
+        setPendingVerificationEmail(email);
+        setCurrentScreen('verification-pending');
+      } else {
+        // Show user-friendly error message
+        toast.error(errorMessage, {
+          duration: 4000,
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -56,10 +76,12 @@ export default function AuthPage() {
       navigateToHome();
     } catch (error: any) {
       console.error('Google login error:', error);
-      if (error.message !== 'Google sign in was cancelled') {
-        toast.error('Google sign in failed', {
-          description: error.message || 'Please try again',
-          duration: 3000,
+      const errorMessage = error.message || 'Please try again';
+      
+      // Don't show toast for cancelled sign-in
+      if (!errorMessage.includes('cancelled') && !errorMessage.includes('canceled')) {
+        toast.error(errorMessage, {
+          duration: 4000,
         });
       }
     } finally {
@@ -73,31 +95,56 @@ export default function AuthPage() {
   const handleRegister = useCallback(async (fullName: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      await signUp(email, password, fullName);
+      const result = await signUp(email, password, fullName);
       
-      toast.success('Account created!', {
-        description: 'Welcome to Cartify. Please check your email to verify your account.',
-        duration: 4000,
-      });
-      
-      // Note: Supabase might require email verification before allowing login
-      // If email confirmation is required, user needs to verify email first
-      navigateToHome();
+      if (result.requiresVerification) {
+        toast.success('Account Created!', {
+          description: 'Please check your email to verify your account.',
+          duration: 4000,
+        });
+        
+        // Show verification pending screen
+        setPendingVerificationEmail(email);
+        setCurrentScreen('verification-pending');
+      }
     } catch (error: any) {
       console.error('Register error:', error);
-      toast.error('Registration failed', {
-        description: error.message || 'Please try again',
-        duration: 3000,
+      const errorMessage = error.message || 'Please try again';
+      
+      // Show user-friendly error message
+      toast.error(errorMessage, {
+        duration: 4000,
       });
     } finally {
       setIsLoading(false);
     }
-  }, [signUp, navigateToHome]);
+  }, [signUp]);
 
   const handleGoogleRegister = useCallback(async () => {
     // Same as Google login - OAuth handles both
     await handleGoogleLogin();
   }, [handleGoogleLogin]);
+
+  // ========================
+  // VERIFICATION HANDLERS
+  // ========================
+  const handleResendVerification = useCallback(async () => {
+    try {
+      // We need to sign in temporarily to resend verification
+      // This is a limitation of Firebase - you can only resend verification for signed-in users
+      // For now, we'll just show a message
+      toast.info('Verification email', {
+        description: 'If you haven\'t received the email, please check your spam folder or try registering again.',
+        duration: 5000,
+      });
+    } catch (error: any) {
+      console.error('Resend verification error:', error);
+      toast.error('Failed to resend verification', {
+        description: error.message || 'Please try again',
+        duration: 3000,
+      });
+    }
+  }, []);
 
   // ========================
   // FORGOT PASSWORD HANDLERS
@@ -127,6 +174,7 @@ export default function AuthPage() {
   // NAVIGATION
   // ========================
   const navigateToLogin = useCallback(() => {
+    setPendingVerificationEmail('');
     setCurrentScreen('login');
   }, []);
 
@@ -170,6 +218,16 @@ export default function AuthPage() {
             onSendReset={handleSendReset}
             onBackToLogin={navigateToLogin}
             isLoading={isLoading}
+          />
+        );
+
+      case 'verification-pending':
+        return (
+          <VerificationPendingScreen
+            email={pendingVerificationEmail}
+            onResendEmail={handleResendVerification}
+            onBackToLogin={navigateToLogin}
+            onCheckVerification={navigateToLogin}
           />
         );
 

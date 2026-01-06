@@ -1,7 +1,7 @@
 import { Layout } from '@/src/constants/Layout';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Dimensions, StyleSheet, View } from 'react-native';
 import Animated, {
     Easing,
     useAnimatedStyle,
@@ -59,10 +59,28 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Background Gradient */}
-      <View style={styles.gradientOverlay}>
-        <View style={[styles.gradientCircle, styles.gradientCircle1]} />
-        <View style={[styles.gradientCircle, styles.gradientCircle2]} />
+      {/* Premium Gradient Background */}
+      <View style={styles.backgroundContainer}>
+        <View style={styles.gradientOverlay} />
+        
+        {/* Mesh gradients - center focused */}
+        <View style={[styles.meshGradient, styles.meshGradient1]} />
+        <View style={[styles.meshGradient, styles.meshGradient2]} />
+        <View style={[styles.meshGradient, styles.meshGradient3]} />
+        
+        {/* Grid pattern */}
+        <View style={styles.gridPattern}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <View key={`h-${i}`} style={[styles.gridLine, styles.gridLineHorizontal, { top: `${(i + 1) * 12.5}%` }]} />
+          ))}
+          {Array.from({ length: 6 }).map((_, i) => (
+            <View key={`v-${i}`} style={[styles.gridLine, styles.gridLineVertical, { left: `${(i + 1) * 16.66}%` }]} />
+          ))}
+        </View>
+        
+        {/* Glowing orbs - centered layout */}
+        <View style={[styles.glowOrb, styles.glowOrb1]} />
+        <View style={[styles.glowOrb, styles.glowOrb2]} />
       </View>
 
       <View style={styles.content}>
@@ -84,34 +102,98 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
   );
 };
 
+const { width, height } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A2332', // Dark blue background
+    backgroundColor: '#0F172A',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  gradientOverlay: {
+  // Premium Background Styles
+  backgroundContainer: {
     ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',
   },
-  gradientCircle: {
+  gradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#0F172A',
+  },
+  meshGradient: {
+    position: 'absolute',
+    borderRadius: 999,
+    opacity: 0.6,
+  },
+  meshGradient1: {
+    width: width * 1.0,
+    height: width * 1.0,
+    backgroundColor: 'rgba(42, 157, 143, 0.18)',
+    top: '20%',
+    left: '-20%',
+    transform: [{ rotate: '-20deg' }],
+  },
+  meshGradient2: {
+    width: width * 0.8,
+    height: width * 0.8,
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    bottom: '15%',
+    right: '-25%',
+    transform: [{ rotate: '25deg' }],
+  },
+  meshGradient3: {
+    width: width * 0.5,
+    height: width * 0.5,
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+    top: '5%',
+    right: '10%',
+    transform: [{ rotate: '10deg' }],
+  },
+  gridPattern: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.03,
+  },
+  gridLine: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+  },
+  gridLineHorizontal: {
+    left: 0,
+    right: 0,
+    height: 1,
+  },
+  gridLineVertical: {
+    top: 0,
+    bottom: 0,
+    width: 1,
+  },
+  glowOrb: {
     position: 'absolute',
     borderRadius: 999,
   },
-  gradientCircle1: {
-    width: 400,
-    height: 400,
-    backgroundColor: 'rgba(42, 157, 143, 0.15)', // Primary color with opacity
-    top: '20%',
-    left: '-30%',
+  glowOrb1: {
+    width: 180,
+    height: 180,
+    backgroundColor: 'rgba(42, 157, 143, 0.25)',
+    top: height * 0.25,
+    left: -60,
+    shadowColor: '#2A9D8F',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 80,
+    elevation: 20,
   },
-  gradientCircle2: {
-    width: 350,
-    height: 350,
-    backgroundColor: 'rgba(16, 185, 129, 0.1)', // Secondary color with opacity
-    bottom: '10%',
-    right: '-20%',
+  glowOrb2: {
+    width: 140,
+    height: 140,
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    bottom: height * 0.25,
+    right: -50,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 60,
+    elevation: 15,
   },
   content: {
     flexDirection: 'row',
@@ -125,7 +207,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Layout.colors.primary,
-    // Gradient simulation
     shadowColor: Layout.colors.secondary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,

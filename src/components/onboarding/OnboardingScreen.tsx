@@ -168,10 +168,29 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Background gradient circles */}
-      <View style={styles.gradientOverlay}>
-        <View style={[styles.gradientCircle, styles.gradientCircle1]} />
-        <View style={[styles.gradientCircle, styles.gradientCircle2]} />
+      {/* Premium Gradient Background */}
+      <View style={styles.backgroundContainer}>
+        <View style={styles.gradientOverlay} />
+        
+        {/* Mesh gradients - different positions from Login/Register */}
+        <View style={[styles.meshGradient, styles.meshGradient1]} />
+        <View style={[styles.meshGradient, styles.meshGradient2]} />
+        <View style={[styles.meshGradient, styles.meshGradient3]} />
+        
+        {/* Grid pattern */}
+        <View style={styles.gridPattern}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <View key={`h-${i}`} style={[styles.gridLine, styles.gridLineHorizontal, { top: `${(i + 1) * 12.5}%` }]} />
+          ))}
+          {Array.from({ length: 6 }).map((_, i) => (
+            <View key={`v-${i}`} style={[styles.gridLine, styles.gridLineVertical, { left: `${(i + 1) * 16.66}%` }]} />
+          ))}
+        </View>
+        
+        {/* Glowing orbs - top-left and bottom-right */}
+        <View style={[styles.glowOrb, styles.glowOrb1]} />
+        <View style={[styles.glowOrb, styles.glowOrb2]} />
+        <View style={[styles.glowOrb, styles.glowOrb3]} />
       </View>
 
       {/* Slides */}
@@ -225,29 +244,103 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A2332', // Dark blue background seperti referensi
+    backgroundColor: '#0F172A',
   },
-  gradientOverlay: {
+  // Premium Background Styles
+  backgroundContainer: {
     ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',
   },
-  gradientCircle: {
+  gradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#0F172A',
+  },
+  meshGradient: {
+    position: 'absolute',
+    borderRadius: 999,
+    opacity: 0.6,
+  },
+  meshGradient1: {
+    width: width * 1.1,
+    height: width * 1.1,
+    backgroundColor: 'rgba(42, 157, 143, 0.15)',
+    top: '-20%',
+    left: '-40%',
+    transform: [{ rotate: '-15deg' }],
+  },
+  meshGradient2: {
+    width: width * 0.9,
+    height: width * 0.9,
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    bottom: '-5%',
+    right: '-35%',
+    transform: [{ rotate: '20deg' }],
+  },
+  meshGradient3: {
+    width: width * 0.5,
+    height: width * 0.5,
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+    top: '50%',
+    left: '60%',
+    transform: [{ rotate: '30deg' }],
+  },
+  gridPattern: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.03,
+  },
+  gridLine: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+  },
+  gridLineHorizontal: {
+    left: 0,
+    right: 0,
+    height: 1,
+  },
+  gridLineVertical: {
+    top: 0,
+    bottom: 0,
+    width: 1,
+  },
+  glowOrb: {
     position: 'absolute',
     borderRadius: 999,
   },
-  gradientCircle1: {
-    width: 500,
-    height: 500,
-    backgroundColor: 'rgba(42, 157, 143, 0.12)', // Primary teal dengan opacity
-    top: '-10%',
-    right: '-30%',
+  glowOrb1: {
+    width: 160,
+    height: 160,
+    backgroundColor: 'rgba(42, 157, 143, 0.25)',
+    top: 60,
+    left: -40,
+    shadowColor: '#2A9D8F',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 70,
+    elevation: 18,
   },
-  gradientCircle2: {
-    width: 400,
-    height: 400,
-    backgroundColor: 'rgba(16, 185, 129, 0.08)', // Secondary green dengan opacity
-    bottom: '30%',
-    left: '-20%',
+  glowOrb2: {
+    width: 180,
+    height: 180,
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    bottom: height * 0.15,
+    right: -60,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 65,
+    elevation: 16,
+  },
+  glowOrb3: {
+    width: 100,
+    height: 100,
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    top: height * 0.4,
+    right: 30,
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 40,
+    elevation: 10,
   },
   slideContainer: {
     width,

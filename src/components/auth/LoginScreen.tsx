@@ -19,7 +19,7 @@ import Animated, {
     FadeInUp,
 } from 'react-native-reanimated';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 interface LoginScreenProps {
   onLogin: (email: string, password: string) => void;
@@ -65,11 +65,30 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Background gradient circles */}
-      <View style={styles.gradientOverlay}>
-        <View style={[styles.gradientCircle, styles.gradientCircle1]} />
-        <View style={[styles.gradientCircle, styles.gradientCircle2]} />
-        <View style={[styles.gradientCircle, styles.gradientCircle3]} />
+      {/* Premium Gradient Background */}
+      <View style={styles.backgroundContainer}>
+        {/* Main gradient overlay */}
+        <View style={styles.gradientOverlay} />
+        
+        {/* Animated mesh gradient effect */}
+        <View style={[styles.meshGradient, styles.meshGradient1]} />
+        <View style={[styles.meshGradient, styles.meshGradient2]} />
+        <View style={[styles.meshGradient, styles.meshGradient3]} />
+        
+        {/* Subtle grid pattern overlay */}
+        <View style={styles.gridPattern}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <View key={`h-${i}`} style={[styles.gridLine, styles.gridLineHorizontal, { top: `${(i + 1) * 12.5}%` }]} />
+          ))}
+          {Array.from({ length: 6 }).map((_, i) => (
+            <View key={`v-${i}`} style={[styles.gridLine, styles.gridLineVertical, { left: `${(i + 1) * 16.66}%` }]} />
+          ))}
+        </View>
+        
+        {/* Glowing orbs */}
+        <View style={[styles.glowOrb, styles.glowOrb1]} />
+        <View style={[styles.glowOrb, styles.glowOrb2]} />
+        <View style={[styles.glowOrb, styles.glowOrb3]} />
       </View>
 
       <KeyboardAvoidingView 
@@ -223,36 +242,103 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A2332',
+    backgroundColor: '#0F172A',
   },
-  gradientOverlay: {
+  // Premium Background Styles
+  backgroundContainer: {
     ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',
   },
-  gradientCircle: {
+  gradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#0F172A',
+  },
+  meshGradient: {
+    position: 'absolute',
+    borderRadius: 999,
+    opacity: 0.6,
+  },
+  meshGradient1: {
+    width: width * 1.2,
+    height: width * 1.2,
+    backgroundColor: 'rgba(42, 157, 143, 0.15)',
+    top: '-30%',
+    right: '-40%',
+    transform: [{ rotate: '45deg' }],
+  },
+  meshGradient2: {
+    width: width * 0.8,
+    height: width * 0.8,
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    bottom: '10%',
+    left: '-30%',
+    transform: [{ rotate: '-30deg' }],
+  },
+  meshGradient3: {
+    width: width * 0.6,
+    height: width * 0.6,
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+    top: '40%',
+    right: '-20%',
+    transform: [{ rotate: '15deg' }],
+  },
+  gridPattern: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.03,
+  },
+  gridLine: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+  },
+  gridLineHorizontal: {
+    left: 0,
+    right: 0,
+    height: 1,
+  },
+  gridLineVertical: {
+    top: 0,
+    bottom: 0,
+    width: 1,
+  },
+  glowOrb: {
     position: 'absolute',
     borderRadius: 999,
   },
-  gradientCircle1: {
-    width: 400,
-    height: 400,
-    backgroundColor: 'rgba(42, 157, 143, 0.12)',
-    top: '-15%',
-    right: '-20%',
-  },
-  gradientCircle2: {
-    width: 300,
-    height: 300,
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
-    bottom: '20%',
-    left: '-15%',
-  },
-  gradientCircle3: {
+  glowOrb1: {
     width: 200,
     height: 200,
-    backgroundColor: 'rgba(42, 157, 143, 0.06)',
-    bottom: '-5%',
-    right: '10%',
+    backgroundColor: 'rgba(42, 157, 143, 0.25)',
+    top: -50,
+    right: -50,
+    shadowColor: '#2A9D8F',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 80,
+    elevation: 20,
+  },
+  glowOrb2: {
+    width: 150,
+    height: 150,
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    bottom: height * 0.3,
+    left: -40,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 60,
+    elevation: 15,
+  },
+  glowOrb3: {
+    width: 100,
+    height: 100,
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    bottom: 100,
+    right: 50,
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 40,
+    elevation: 10,
   },
   keyboardView: {
     flex: 1,

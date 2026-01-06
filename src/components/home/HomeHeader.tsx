@@ -21,8 +21,30 @@ export function HomeHeader() {
   // Generate display name from user data
   const displayName = useMemo(() => {
     if (user?.fullName) {
-      // Get first name only for header
-      return user.fullName.split(' ')[0];
+      const nameParts = user.fullName.trim().split(/\s+/);
+      
+      // Find the first "real" name (not an initial or short abbreviation)
+      // Initials are typically: single letters, or letters followed by period like "M." "Dr." "H."
+      const isInitialOrAbbreviation = (part: string) => {
+        // Single character
+        if (part.length === 1) return true;
+        // Ends with period and is short (like "M.", "Dr.", "H.")
+        if (part.endsWith('.') && part.length <= 4) return true;
+        // All uppercase and short (like "MR", "DR")
+        if (part === part.toUpperCase() && part.length <= 3) return true;
+        return false;
+      };
+      
+      // Find first meaningful name
+      const meaningfulName = nameParts.find(part => !isInitialOrAbbreviation(part));
+      
+      if (meaningfulName) {
+        // Capitalize first letter, lowercase rest for clean display
+        return meaningfulName.charAt(0).toUpperCase() + meaningfulName.slice(1).toLowerCase();
+      }
+      
+      // Fallback to first name if all parts are initials
+      return nameParts[0];
     }
     if (user?.email) {
       // Use email username as fallback

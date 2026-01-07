@@ -57,18 +57,25 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Premium Gradient Background */}
+      {/* Splash Background */}
       <View style={styles.backgroundContainer}>
         <View style={styles.gradientOverlay} />
         
-        {/* Mesh gradients - center focused */}
+        {/* Group 1: Top Left (Teal Anchor) */}
         <View style={[styles.meshGradient, styles.meshGradient1]} />
-        <View style={[styles.meshGradient, styles.meshGradient2]} />
-        <View style={[styles.meshGradient, styles.meshGradient3]} />
-        
-        {/* Glowing orbs - centered layout */}
         <View style={[styles.glowOrb, styles.glowOrb1]} />
+
+        {/* Group 2: Bottom Right (Emerald Anchor) */}
+        <View style={[styles.meshGradient, styles.meshGradient2]} />
         <View style={[styles.glowOrb, styles.glowOrb2]} />
+
+        {/* Group 3: Top Right (Blue Accent) */}
+        <View style={[styles.meshGradient, styles.meshGradient3]} />
+        <View style={[styles.glowOrb, styles.glowOrb3]} />
+
+        {/* Group 4: Bottom Left (Cyan Accent) */}
+        <View style={[styles.meshGradient, styles.meshGradient4]} />
+        <View style={[styles.glowOrb, styles.glowOrb4]} />
       </View>
 
       {/* Main Content Wrapper */}
@@ -116,58 +123,106 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     opacity: 0.6,
   },
-  meshGradient1: {
-    width: width * 1.0,
-    height: width * 1.0,
-    backgroundColor: 'rgba(42, 157, 143, 0.18)',
-    top: '20%',
-    left: '-20%',
-    transform: [{ rotate: '-20deg' }],
-  },
-  meshGradient2: {
-    width: width * 0.8,
-    height: width * 0.8,
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    bottom: '15%',
-    right: '-25%',
-    transform: [{ rotate: '25deg' }],
-  },
-  meshGradient3: {
-    width: width * 0.5,
-    height: width * 0.5,
-    backgroundColor: 'rgba(59, 130, 246, 0.08)',
-    top: '5%',
-    right: '10%',
-    transform: [{ rotate: '10deg' }],
-  },
   glowOrb: {
     position: 'absolute',
     borderRadius: 999,
-  },
-  glowOrb1: {
-    width: 180,
-    height: 180,
-    backgroundColor: 'rgba(42, 157, 143, 0.25)',
-    top: height * 0.25,
-    left: -60,
-    shadowColor: '#2A9D8F',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
-    shadowRadius: 80,
+  },
+  
+  // Group 1: Top Left (Teal - Large Anchor)
+  // Anchor Center: roughly 10% from top-left
+  meshGradient1: {
+    width: width * 0.65,
+    height: width * 0.65,
+    backgroundColor: 'rgba(42, 157, 143, 0.12)',
+    position: 'absolute',
+    top: -width * 0.15, // Center Y approx 17%
+    left: -width * 0.15, // Center X approx 17%
+  },
+  glowOrb1: {
+    width: 120,
+    height: 120,
+    backgroundColor: 'rgba(42, 157, 143, 0.3)',
+    position: 'absolute',
+    // Centered relative to mesh1 center
+    // Mesh Center = (-0.15w + 0.325w) = 0.175w
+    // Orb Center target = 0.175w
+    // Orb Top = 0.175w - (120/2)
+    top: (width * 0.325) - 60 - (width * 0.15), 
+    left: (width * 0.325) - 60 - (width * 0.15),
+    shadowColor: '#2A9D8F',
+    shadowRadius: 60,
     elevation: 20,
   },
+
+  // Group 2: Bottom Right (Emerald - Large Anchor)
+  // Anchor Center: roughly 10% from bottom-right
+  meshGradient2: {
+    width: width * 0.7,
+    height: width * 0.7,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    position: 'absolute',
+    bottom: -width * 0.2, 
+    right: -width * 0.2,
+  },
   glowOrb2: {
-    width: 140,
-    height: 140,
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
-    bottom: height * 0.25,
-    right: -50,
+    width: 130,
+    height: 130,
+    backgroundColor: 'rgba(16, 185, 129, 0.25)',
+    position: 'absolute',
+    // Centered relative to mesh2 center
+    bottom: (width * 0.35) - 65 - (width * 0.2),
+    right: (width * 0.35) - 65 - (width * 0.2),
     shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 60,
+    shadowRadius: 50,
     elevation: 15,
   },
+
+  // Group 3: Top Right (Blue - Small Accent)
+  meshGradient3: {
+    width: width * 0.4,
+    height: width * 0.4,
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+    position: 'absolute',
+    top: height * 0.1,
+    right: -width * 0.1,
+  },
+  glowOrb3: {
+    width: 70,
+    height: 70,
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    position: 'absolute',
+    // Centered relative to mesh3
+    top: (height * 0.1) + (width * 0.2) - 35,
+    right: (-width * 0.1) + (width * 0.2) - 35,
+    shadowColor: '#3B82F6',
+    shadowRadius: 30,
+    elevation: 10,
+  },
+
+  // Group 4: Bottom Left (Cyan - Medium Accent)
+  meshGradient4: {
+    width: width * 0.5,
+    height: width * 0.5,
+    backgroundColor: 'rgba(45, 212, 191, 0.08)',
+    position: 'absolute',
+    bottom: height * 0.15,
+    left: -width * 0.15,
+  },
+  glowOrb4: {
+    width: 90,
+    height: 90,
+    backgroundColor: 'rgba(45, 212, 191, 0.2)',
+    position: 'absolute',
+    // Centered relative to mesh4
+    bottom: (height * 0.15) + (width * 0.25) - 45,
+    left: (-width * 0.15) + (width * 0.25) - 45,
+    shadowColor: '#2DD4BF',
+    shadowRadius: 40,
+    elevation: 12,
+  },
+
   // Wrapper to ensure absolute centering of the group
   contentWrapper: {
     flex: 1,
@@ -184,8 +239,8 @@ const styles = StyleSheet.create({
   logoImage: {
     width: 200,
     height: 200,
-    marginLeft: -60,
-    // Removed negative margin here to keep logic clean
+    marginLeft: -50,
+    // Negative margin to pull text closer
   },
   appName: {
     fontSize: 48,
@@ -194,7 +249,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     includeFontPadding: false,
     textAlignVertical: 'center',
-    // Pull text closer using marginLeft on the text itself
     marginLeft: -50, 
     zIndex: 10,
     elevation: 10,

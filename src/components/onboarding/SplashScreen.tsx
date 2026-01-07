@@ -71,20 +71,23 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
         <View style={[styles.glowOrb, styles.glowOrb2]} />
       </View>
 
-      <View style={styles.content}>
-        {/* Logo Icon */}
-        <Animated.View style={logoAnimatedStyle}>
-          <Image 
-            source={require('@/assets/images/cartify-logo.png')}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
-        </Animated.View>
+      {/* Main Content Wrapper */}
+      <View style={styles.contentWrapper}>
+        <View style={styles.logoTextContainer}>
+          {/* Logo Icon */}
+          <Animated.View style={logoAnimatedStyle}>
+            <Image 
+              source={require('@/assets/images/cartify-logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+          </Animated.View>
 
-        {/* App Name */}
-        <Animated.Text style={[styles.appName, textAnimatedStyle]}>
-          cartify
-        </Animated.Text>
+          {/* App Name */}
+          <Animated.Text style={[styles.appName, textAnimatedStyle]}>
+            cartify
+          </Animated.Text>
+        </View>
       </View>
     </View>
   );
@@ -165,20 +168,35 @@ const styles = StyleSheet.create({
     shadowRadius: 60,
     elevation: 15,
   },
-  content: {
+  // Wrapper to ensure absolute centering of the group
+  contentWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  logoTextContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    // We let the container shrink-wrap the content
   },
   logoImage: {
-    width: 160,
-    height: 160,
-    marginRight: -45,
+    width: 200,
+    height: 200,
+    marginLeft: -60,
+    // Removed negative margin here to keep logic clean
   },
   appName: {
-    fontSize: 42,
+    fontSize: 48,
     fontWeight: '700',
     color: '#FFFFFF',
-    letterSpacing: 1,
+    letterSpacing: 0.5,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+    // Pull text closer using marginLeft on the text itself
+    marginLeft: -50, 
+    zIndex: 10,
+    elevation: 10,
   },
 });

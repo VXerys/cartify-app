@@ -3,21 +3,24 @@ import { validateEmail, validateFullName, validatePassword } from '@/src/types/a
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import {
-  Dimensions,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeInUp,
+    FadeIn,
+    FadeInDown,
+    FadeInUp,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
 } from 'react-native-reanimated';
 import { LegalModal } from './LegalModal';
 
@@ -82,6 +85,86 @@ const calculatePasswordStrength = (password: string): PasswordStrengthResult => 
 
   return { strength, score, label, color, requirements };
 };
+
+interface PasswordStrengthIndicatorProps {
+  result: PasswordStrengthResult | null;
+}
+
+const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({ result }) => {
+  // If no result (no password), we don't render anything to keep layout clean
+  // OR we could render a hidden view to maintain layout space if requested, 
+  // but "fixed" usually means "don't flash", which moving the component solves.
+  if (!result) return null;
+
+  const { strength, label, color, requirements } = result;
+
+  // Derived animation values
+  // We use key to force unique animations if needed, but shared values handle updates efficiently
+  const progress = useSharedValue(0);
+  
+  // Update progress based on strength
+  React.useEffect(() => {
+    let target = 0;
+    if (strength === 'weak') target = 33;
+    else if (strength === 'medium') target = 66;
+    else if (strength === 'strong') target = 100;
+    
+    progress.value = withTiming(target, { duration: 300 });
+  }, [strength]);
+
+  const animatedBarStyle = useAnimatedStyle(() => {
+    return {
+      width: `${progress.value}%`,
+      backgroundColor: withTiming(color, { duration: 300 }),
+    };
+  });
+
+  return (
+    <Animated.View 
+      entering={FadeInDown.duration(300)} 
+      style={styles.strengthContainer}
+    >
+      {/* Strength Bar */}
+      <View style={styles.strengthBarContainer}>
+        <Animated.View 
+          style={[styles.strengthBar, animatedBarStyle]} 
+        />
+      </View>
+      
+      {/* Strength Label */}
+      <View style={styles.strengthLabelRow}>
+        <Text style={[styles.strengthLabel, { color }]}>{label}</Text>
+        <Text style={styles.strengthScore}>{result.score}/5 requirements</Text>
+      </View>
+
+      {/* Requirements Checklist */}
+      <View style={styles.requirementsContainer}>
+        <RequirementItem met={requirements.minLength} label="At least 8 characters" />
+        <RequirementItem met={requirements.hasUppercase} label="One uppercase letter" />
+        <RequirementItem met={requirements.hasLowercase} label="One lowercase letter" />
+        <RequirementItem met={requirements.hasNumber} label="One number" />
+        {/* Optional: Add special char requirement if enforced, but strict list said: */}
+        {/* "At least 8 characters", "One uppercase", "One lowercase", "One number" in original UI */}
+      </View>
+    </Animated.View>
+  );
+};
+
+const RequirementItem: React.FC<{ met: boolean; label: string }> = ({ met, label }) => (
+  <View style={styles.requirementRow}>
+    <Ionicons 
+      name={met ? "checkmark-circle" : "ellipse-outline"} 
+      size={14} 
+      color={met ? '#10B981' : 'rgba(255,255,255,0.4)'} 
+    />
+    <Text style={[
+      styles.requirementText,
+      met && styles.requirementMet
+    ]}>
+      {label}
+    </Text>
+  </View>
+);
 
 export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   onRegister,
@@ -165,91 +248,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     }
   };
 
-  // Password strength indicator component
-  const PasswordStrengthIndicator = () => {
-    if (!password) return null;
 
-    const { strength, label, color, requirements } = passwordStrength;
-    const barWidth = strength === 'weak' ? '33%' : strength === 'medium' ? '66%' : '100%';
-
-    return (
-      <Animated.View 
-        entering={FadeIn.duration(300)} 
-        style={styles.strengthContainer}
-      >
-        {/* Strength Bar */}
-        <View style={styles.strengthBarContainer}>
-          <View 
-            style={[
-              styles.strengthBar, 
-              { width: barWidth as any, backgroundColor: color }
-            ]} 
-          />
-        </View>
-        
-        {/* Strength Label */}
-        <View style={styles.strengthLabelRow}>
-          <Text style={[styles.strengthLabel, { color }]}>{label}</Text>
-        </View>
-
-        {/* Requirements Checklist */}
-        <View style={styles.requirementsContainer}>
-          <View style={styles.requirementRow}>
-            <Ionicons 
-              name={requirements.minLength ? "checkmark-circle" : "ellipse-outline"} 
-              size={14} 
-              color={requirements.minLength ? '#10B981' : 'rgba(255,255,255,0.4)'} 
-            />
-            <Text style={[
-              styles.requirementText,
-              requirements.minLength && styles.requirementMet
-            ]}>
-              At least 8 characters
-            </Text>
-          </View>
-          <View style={styles.requirementRow}>
-            <Ionicons 
-              name={requirements.hasUppercase ? "checkmark-circle" : "ellipse-outline"} 
-              size={14} 
-              color={requirements.hasUppercase ? '#10B981' : 'rgba(255,255,255,0.4)'} 
-            />
-            <Text style={[
-              styles.requirementText,
-              requirements.hasUppercase && styles.requirementMet
-            ]}>
-              One uppercase letter
-            </Text>
-          </View>
-          <View style={styles.requirementRow}>
-            <Ionicons 
-              name={requirements.hasLowercase ? "checkmark-circle" : "ellipse-outline"} 
-              size={14} 
-              color={requirements.hasLowercase ? '#10B981' : 'rgba(255,255,255,0.4)'} 
-            />
-            <Text style={[
-              styles.requirementText,
-              requirements.hasLowercase && styles.requirementMet
-            ]}>
-              One lowercase letter
-            </Text>
-          </View>
-          <View style={styles.requirementRow}>
-            <Ionicons 
-              name={requirements.hasNumber ? "checkmark-circle" : "ellipse-outline"} 
-              size={14} 
-              color={requirements.hasNumber ? '#10B981' : 'rgba(255,255,255,0.4)'} 
-            />
-            <Text style={[
-              styles.requirementText,
-              requirements.hasNumber && styles.requirementMet
-            ]}>
-              One number
-            </Text>
-          </View>
-        </View>
-      </Animated.View>
-    );
-  };
 
   return (
     <View style={styles.container}>
@@ -392,7 +391,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 <Text style={styles.errorText}>{errors.password}</Text>
               )}
               {/* Password Strength Indicator */}
-              <PasswordStrengthIndicator />
+              <PasswordStrengthIndicator result={password ? passwordStrength : null} />
             </View>
 
             {/* Confirm Password Input */}
@@ -725,6 +724,10 @@ const styles = StyleSheet.create({
   strengthLabel: {
     fontSize: 13,
     fontWeight: '700',
+  },
+  strengthScore: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.5)',
   },
   requirementsContainer: {
     flexDirection: 'row',

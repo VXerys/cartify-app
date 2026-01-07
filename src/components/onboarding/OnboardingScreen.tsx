@@ -172,15 +172,21 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       <View style={styles.backgroundContainer}>
         <View style={styles.gradientOverlay} />
         
-        {/* Mesh gradients - different positions from Login/Register */}
+        {/* Group 1: Top Left (Teal Anchor) */}
         <View style={[styles.meshGradient, styles.meshGradient1]} />
-        <View style={[styles.meshGradient, styles.meshGradient2]} />
-        <View style={[styles.meshGradient, styles.meshGradient3]} />
-        
-        {/* Glowing orbs - top-left and bottom-right */}
         <View style={[styles.glowOrb, styles.glowOrb1]} />
+
+        {/* Group 2: Bottom Right (Emerald Anchor) */}
+        <View style={[styles.meshGradient, styles.meshGradient2]} />
         <View style={[styles.glowOrb, styles.glowOrb2]} />
+
+        {/* Group 3: Top Right (Blue Accent) */}
+        <View style={[styles.meshGradient, styles.meshGradient3]} />
         <View style={[styles.glowOrb, styles.glowOrb3]} />
+
+        {/* Group 4: Bottom Left (Cyan Accent) */}
+        <View style={[styles.meshGradient, styles.meshGradient4]} />
+        <View style={[styles.glowOrb, styles.glowOrb4]} />
       </View>
 
       {/* Slides */}
@@ -236,7 +242,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0F172A',
   },
-  // Premium Background Styles
   backgroundContainer: {
     ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',
@@ -250,70 +255,96 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     opacity: 0.6,
   },
-  meshGradient1: {
-    width: width * 1.1,
-    height: width * 1.1,
-    backgroundColor: 'rgba(42, 157, 143, 0.15)',
-    top: '-20%',
-    left: '-40%',
-    transform: [{ rotate: '-15deg' }],
-  },
-  meshGradient2: {
-    width: width * 0.9,
-    height: width * 0.9,
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    bottom: '-5%',
-    right: '-35%',
-    transform: [{ rotate: '20deg' }],
-  },
-  meshGradient3: {
-    width: width * 0.5,
-    height: width * 0.5,
-    backgroundColor: 'rgba(59, 130, 246, 0.08)',
-    top: '50%',
-    left: '60%',
-    transform: [{ rotate: '30deg' }],
-  },
   glowOrb: {
     position: 'absolute',
     borderRadius: 999,
   },
-  glowOrb1: {
-    width: 160,
-    height: 160,
-    backgroundColor: 'rgba(42, 157, 143, 0.25)',
-    top: 60,
-    left: -40,
-    shadowColor: '#2A9D8F',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 70,
-    elevation: 18,
-  },
-  glowOrb2: {
-    width: 180,
-    height: 180,
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
-    bottom: height * 0.15,
-    right: -60,
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 65,
-    elevation: 16,
+  
+  // Top Left (Small Blue)
+  meshGradient3: {
+    width: width * 0.45,
+    height: width * 0.45,
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+    position: 'absolute',
+    top: height * 0.15,
+    left: -width * 0.2,
   },
   glowOrb3: {
-    width: 100,
-    height: 100,
-    backgroundColor: 'rgba(59, 130, 246, 0.15)',
-    top: height * 0.4,
-    right: 30,
+    width: 80,
+    height: 80,
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    position: 'absolute',
+    top: (height * 0.15) + (width * 0.225) - 40,
+    left: (-width * 0.2) + (width * 0.225) - 40,
     shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 40,
+    shadowRadius: 30,
     elevation: 10,
   },
+
+  // Top Right (Large Teal)
+  meshGradient1: {
+    width: width * 0.65,
+    height: width * 0.65,
+    backgroundColor: 'rgba(42, 157, 143, 0.12)',
+    position: 'absolute',
+    top: -width * 0.1,
+    right: -width * 0.15,
+  },
+  glowOrb1: {
+    width: 120,
+    height: 120,
+    backgroundColor: 'rgba(42, 157, 143, 0.3)',
+    position: 'absolute',
+    top: (width * 0.325) - 60 - (width * 0.1),
+    right: (width * 0.325) - 60 - (width * 0.15),
+    shadowColor: '#2A9D8F',
+    shadowRadius: 60,
+    elevation: 20,
+  },
+
+  // Bottom Left (Large Emerald)
+  meshGradient2: {
+    width: width * 0.7,
+    height: width * 0.7,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    position: 'absolute',
+    bottom: -width * 0.15,
+    left: -width * 0.2,
+  },
+  glowOrb2: {
+    width: 130,
+    height: 130,
+    backgroundColor: 'rgba(16, 185, 129, 0.25)',
+    position: 'absolute',
+    bottom: (width * 0.35) - 65 - (width * 0.15),
+    left: (width * 0.35) - 65 - (width * 0.2),
+    shadowColor: '#10B981',
+    shadowRadius: 50,
+    elevation: 15,
+  },
+
+  // Bottom Right (Medium Cyan)
+  meshGradient4: {
+    width: width * 0.55,
+    height: width * 0.55,
+    backgroundColor: 'rgba(45, 212, 191, 0.08)',
+    position: 'absolute',
+    bottom: height * 0.12,
+    right: -width * 0.15,
+  },
+  glowOrb4: {
+    width: 90,
+    height: 90,
+    backgroundColor: 'rgba(45, 212, 191, 0.2)',
+    position: 'absolute',
+    bottom: (height * 0.12) + (width * 0.275) - 45,
+    right: (-width * 0.15) + (width * 0.275) - 45,
+    shadowColor: '#2DD4BF',
+    shadowRadius: 40,
+    elevation: 12,
+  },
+
+  // Other styles remain unchanged
   slideContainer: {
     width,
     paddingHorizontal: 24,
@@ -334,21 +365,19 @@ const styles = StyleSheet.create({
   imagePlaceholder: {
     width: width * 0.75,
     height: height * 0.45,
-    backgroundColor: '#2A3444', // Slightly lighter dark
+    backgroundColor: '#2A3444', 
     borderRadius: 24,
     position: 'relative',
     overflow: 'visible',
-    // Warm gradient effect
     shadowColor: Layout.colors.primary,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 30,
     elevation: 15,
   },
-  // Mock phone screen styles
   mockPhoneScreen: {
     flex: 1,
-    backgroundColor: '#F8F0FF', // Light purple/pink warm tone
+    backgroundColor: '#F8F0FF',
     borderRadius: 20,
     overflow: 'hidden',
     margin: 8,
@@ -428,7 +457,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#666',
   },
-  // Floating icons
   floatingIcon: {
     position: 'absolute',
     width: 50,
@@ -490,7 +518,6 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: 'center',
     marginBottom: 16,
-    // Shadow
     shadowColor: Layout.colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,

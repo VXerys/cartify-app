@@ -2,18 +2,20 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    Dimensions,
-    Image,
-    RefreshControl,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Dimensions,
+  Image,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 import { AppModal } from '../../src/components/ui/AppModal';
@@ -28,6 +30,36 @@ const { width } = Dimensions.get('window');
 
 // Default avatar for users without profile picture
 const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?name=User&background=2A9D8F&color=fff&size=200';
+
+const AnimatedPressable = ({ onPress, style, children }: any) => {
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={() => { 
+        scale.value = withTiming(0.98, { duration: 100 }); 
+        opacity.value = withTiming(0.7, { duration: 100 });
+      }}
+      onPressOut={() => { 
+        scale.value = withTiming(1, { duration: 150 }); 
+        opacity.value = withTiming(1, { duration: 150 });
+      }}
+    >
+      <Animated.View style={[style, animatedStyle]}>
+        {children}
+      </Animated.View>
+    </Pressable>
+  );
+};
+
+
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -232,7 +264,17 @@ export default function SettingsScreen() {
             >
                {/* Clean Premium Background - Only Glowing Orbs */}
                <View style={styles.cardMeshContainer}>
-                  {/* Glowing orbs only for subtle premium effect */}
+                  {/* Grid Pattern Overlay - Consistent with HistoryHeader */}
+                  <View style={styles.cardGridPattern}>
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <View key={`h-${i}`} style={[styles.gridLine, styles.gridHorizontal, { top: `${(i + 1) * 25}%` }]} />
+                      ))}
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <View key={`v-${i}`} style={[styles.gridLine, styles.gridVertical, { left: `${(i + 1) * 20}%` }]} />
+                      ))}
+                  </View>
+
+                  {/* Glowing orbs */}
                   <View style={[styles.cardGlowOrb, styles.cardGlowOrb1]} />
                   <View style={[styles.cardGlowOrb, styles.cardGlowOrb2]} />
                </View>
@@ -342,20 +384,17 @@ export default function SettingsScreen() {
           />
         </SettingSection>
 
-        {/* Logout Button - Clean Design */}
-        <View style={[styles.logoutSection, { marginTop: moderateScale(16), marginBottom: moderateScale(24) }]}>
-           <TouchableOpacity 
-              style={[styles.logoutButton, { 
-                paddingVertical: moderateScale(16), 
-                paddingHorizontal: moderateScale(20), 
-                borderRadius: moderateScale(16),
-              }]} 
-              onPress={() => setModalVisible({ type: 'logout', isOpen: true })} 
-              activeOpacity={0.7}
-           >
-              <IconSymbol name="rectangle.portrait.and.arrow.right.fill" size={moderateScale(20)} color={COLORS.danger} />
-              <Text style={[styles.logoutText, { fontSize: moderateScale(15) }]}>{t('settings.logOut')}</Text>
-           </TouchableOpacity>
+        {/* Logout Button - Clean Premium Design */}
+        <View style={[styles.section, { marginBottom: moderateScale(40) }]}>
+          <View style={[styles.sectionContent, { borderRadius: moderateScale(20) }]}>
+            <AnimatedPressable 
+                style={[styles.logoutTouchable, { padding: moderateScale(18) }]} 
+                onPress={() => setModalVisible({ type: 'logout', isOpen: true })} 
+            >
+                <IconSymbol name="rectangle.portrait.and.arrow.right.fill" size={moderateScale(22)} color={COLORS.danger} />
+                <Text style={[styles.logoutText, { fontSize: moderateScale(16) }]}>{t('settings.logOut')}</Text>
+            </AnimatedPressable>
+          </View>
         </View>
         
         {/* Version Info */}
@@ -606,8 +645,9 @@ export default function SettingsScreen() {
         onClose={() => setModalVisible({ type: null, isOpen: false })}
         onSave={handleLogout}
         saveLabel={t('settings.logOut')}
+        cancelLabel={t('common.cancel')}
         variant="danger"
-        headerIcon={<IconSymbol name="rectangle.portrait.and.arrow.right.fill" size={moderateScale(32)} color={COLORS.danger} />}
+        headerIcon={<IconSymbol name="rectangle.portrait.and.arrow.right.fill" size={moderateScale(36)} color="#DC2626" />}
       />
 
     </SafeAreaView>
@@ -640,6 +680,24 @@ const styles = StyleSheet.create({
   cardMeshContainer: {
     ...StyleSheet.absoluteFillObject,
     opacity: 0.9,
+  },
+  cardGridPattern: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.06,
+  },
+  gridLine: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+  },
+  gridVertical: {
+    top: 0,
+    bottom: 0,
+    width: 1,
+  },
+  gridHorizontal: {
+    left: 0,
+    right: 0,
+    height: 1,
   },
   cardGlowOrb: {
     position: 'absolute',
@@ -783,22 +841,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
   },
   
-  // Logout Section - Premium Redesign
-  logoutSection: {
-    width: '100%',
-  },
-  logoutButton: {
+  // Logout Section
+  logoutTouchable: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1.5,
-    borderColor: '#FECACA',
+    justifyContent: 'flex-start', // Align left for consistency
+    gap: 12,
+    width: '100%',
   },
   logoutText: {
     color: COLORS.danger,
-    fontWeight: '600',
+    fontWeight: '600', // Match SettingItem weight (600)
+    letterSpacing: -0.2, // Match SettingItem letterSpacing
   },
   
   // Version Info

@@ -18,8 +18,9 @@ import Animated, {
     FadeInDown,
     FadeInUp,
 } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 interface ForgotPasswordScreenProps {
   onSendReset: (email: string) => void;
@@ -55,13 +56,25 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
   if (isSuccess) {
     return (
       <View style={styles.container}>
-        {/* Background gradient circles */}
-        <View style={styles.gradientOverlay}>
-          <View style={[styles.gradientCircle, styles.gradientCircle1]} />
-          <View style={[styles.gradientCircle, styles.gradientCircle2]} />
+        {/* Premium Gradient Background */}
+        <View style={styles.backgroundContainer}>
+          <View style={styles.gradientOverlay} />
+          
+          {/* Group 1: Top Right (Large Teal) */}
+          <View style={[styles.meshGradient, styles.meshGradient1]} />
+          <View style={[styles.glowOrb, styles.glowOrb1]} />
+
+          {/* Group 2: Bottom Left (Medium Emerald) */}
+          <View style={[styles.meshGradient, styles.meshGradient2]} />
+          <View style={[styles.glowOrb, styles.glowOrb2]} />
+
+          {/* Group 3: Top Left (Small Blue Accent) */}
+          <View style={[styles.meshGradient, styles.meshGradient3]} />
+          <View style={[styles.glowOrb, styles.glowOrb3]} />
         </View>
 
-        <View style={styles.successContent}>
+        <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+          <View style={styles.successContent}>
           <Animated.View 
             entering={FadeInUp.duration(500)}
             style={styles.successIconContainer}
@@ -107,29 +120,41 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
               </Text>
             </TouchableOpacity>
           </Animated.View>
-        </View>
+          </View>
+        </SafeAreaView>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* Background gradient circles */}
-      <View style={styles.gradientOverlay}>
-        <View style={[styles.gradientCircle, styles.gradientCircle1]} />
-        <View style={[styles.gradientCircle, styles.gradientCircle2]} />
-        <View style={[styles.gradientCircle, styles.gradientCircle3]} />
+      {/* Premium Gradient Background */}
+      <View style={styles.backgroundContainer}>
+        <View style={styles.gradientOverlay} />
+        
+        {/* Group 1: Top Right (Large Teal) */}
+        <View style={[styles.meshGradient, styles.meshGradient1]} />
+        <View style={[styles.glowOrb, styles.glowOrb1]} />
+
+        {/* Group 2: Bottom Left (Medium Emerald) */}
+        <View style={[styles.meshGradient, styles.meshGradient2]} />
+        <View style={[styles.glowOrb, styles.glowOrb2]} />
+
+        {/* Group 3: Top Left (Small Blue Accent) */}
+        <View style={[styles.meshGradient, styles.meshGradient3]} />
+        <View style={[styles.glowOrb, styles.glowOrb3]} />
       </View>
 
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
         >
+          <ScrollView 
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
           {/* Back Button */}
           <Animated.View entering={FadeIn.duration(300)}>
             <TouchableOpacity
@@ -204,22 +229,10 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
             </TouchableOpacity>
           </Animated.View>
 
-          {/* Back to Login Link */}
-          <Animated.View 
-            entering={FadeIn.delay(500).duration(400)}
-            style={styles.loginContainer}
-          >
-            <TouchableOpacity 
-              style={styles.loginLink}
-              onPress={onBackToLogin}
-              disabled={isLoading}
-            >
-              <Ionicons name="arrow-back" size={16} color={Layout.colors.primary} />
-              <Text style={styles.loginLinkText}>Back to Sign In</Text>
-            </TouchableOpacity>
-          </Animated.View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </View>
   );
 };
@@ -229,34 +242,82 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1A2332',
   },
-  gradientOverlay: {
+  backgroundContainer: {
     ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',
   },
-  gradientCircle: {
+  gradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#1A2332',
+  },
+  meshGradient: {
+    position: 'absolute',
+    borderRadius: 999,
+    opacity: 0.6,
+  },
+  glowOrb: {
     position: 'absolute',
     borderRadius: 999,
   },
-  gradientCircle1: {
-    width: 400,
-    height: 400,
+  // Group 1: Top Right
+  meshGradient1: {
+    width: width * 0.7,
+    height: width * 0.7,
     backgroundColor: 'rgba(42, 157, 143, 0.12)',
-    top: '-15%',
-    right: '-20%',
+    position: 'absolute',
+    top: -width * 0.2,
+    right: -width * 0.2,
   },
-  gradientCircle2: {
-    width: 300,
-    height: 300,
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
-    bottom: '20%',
-    left: '-15%',
+  glowOrb1: {
+    width: 120,
+    height: 120,
+    backgroundColor: 'rgba(42, 157, 143, 0.3)',
+    position: 'absolute',
+    top: (width * 0.35) - 60 - (width * 0.2),
+    right: (width * 0.35) - 60 - (width * 0.2),
+    shadowColor: '#2A9D8F',
+    shadowRadius: 60,
+    elevation: 20,
   },
-  gradientCircle3: {
-    width: 200,
-    height: 200,
-    backgroundColor: 'rgba(42, 157, 143, 0.06)',
-    bottom: '-5%',
-    right: '10%',
+  // Group 2: Bottom Left
+  meshGradient2: {
+    width: width * 0.6,
+    height: width * 0.6,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    position: 'absolute',
+    bottom: -width * 0.1,
+    left: -width * 0.2,
+  },
+  glowOrb2: {
+    width: 100,
+    height: 100,
+    backgroundColor: 'rgba(16, 185, 129, 0.25)',
+    position: 'absolute',
+    bottom: (width * 0.3) - 50 - (width * 0.1),
+    left: (width * 0.3) - 50 - (width * 0.2),
+    shadowColor: '#10B981',
+    shadowRadius: 50,
+    elevation: 15,
+  },
+  // Group 3: Top Left Accent
+  meshGradient3: {
+    width: width * 0.4,
+    height: width * 0.4,
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+    position: 'absolute',
+    top: height * 0.1,
+    left: -width * 0.15,
+  },
+  glowOrb3: {
+    width: 60,
+    height: 60,
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    position: 'absolute',
+    top: (height * 0.1) + (width * 0.2) - 30,
+    left: (-width * 0.15) + (width * 0.2) - 30,
+    shadowColor: '#3B82F6',
+    shadowRadius: 30,
+    elevation: 10,
   },
   keyboardView: {
     flex: 1,
@@ -264,7 +325,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 60,
+    paddingTop: 10,
     paddingBottom: 40,
   },
   backButton: {
@@ -366,21 +427,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
     letterSpacing: 0.5,
-  },
-  loginContainer: {
-    marginTop: 'auto',
-    paddingTop: 40,
-    alignItems: 'center',
-  },
-  loginLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  loginLinkText: {
-    fontSize: 15,
-    color: Layout.colors.primary,
-    fontWeight: '600',
   },
   // Success state styles
   successContent: {

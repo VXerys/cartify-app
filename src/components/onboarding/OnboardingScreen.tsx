@@ -18,6 +18,7 @@ import Animated, {
     useAnimatedStyle,
     useSharedValue
 } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { OnboardingSlide, onboardingSlides } from './OnboardingData';
 
 const { width, height } = Dimensions.get('window');
@@ -189,50 +190,52 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         <View style={[styles.glowOrb, styles.glowOrb4]} />
       </View>
 
-      {/* Slides */}
-      <FlatList
-        ref={flatListRef}
-        data={onboardingSlides}
-        keyExtractor={(item) => item.id}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
-        renderItem={({ item, index }) => (
-          <SlideItem item={item} index={index} scrollX={scrollX} />
-        )}
-      />
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+        {/* Slides */}
+        <FlatList
+          ref={flatListRef}
+          data={onboardingSlides}
+          keyExtractor={(item) => item.id}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
+          renderItem={({ item, index }) => (
+            <SlideItem item={item} index={index} scrollX={scrollX} />
+          )}
+        />
 
-      {/* Pagination */}
-      <Animated.View 
-        entering={FadeIn.delay(600).duration(400)}
-        style={styles.bottomContainer}
-      >
-        <Pagination data={onboardingSlides} currentIndex={currentIndex} />
-
-        {/* Get Started Button */}
-        <TouchableOpacity
-          style={styles.getStartedButton}
-          onPress={handleNext}
-          activeOpacity={0.8}
+        {/* Pagination */}
+        <Animated.View 
+          entering={FadeIn.delay(600).duration(400)}
+          style={styles.bottomContainer}
         >
-          <Text style={styles.getStartedText}>
-            {currentIndex === onboardingSlides.length - 1 ? 'GET STARTED' : 'NEXT'}
-          </Text>
-        </TouchableOpacity>
+          <Pagination data={onboardingSlides} currentIndex={currentIndex} />
 
-        {/* Login Link */}
-        <TouchableOpacity
-          style={styles.loginButton}
-          onPress={onLogin}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.loginText}>I am already registered</Text>
-        </TouchableOpacity>
-      </Animated.View>
+          {/* Get Started Button */}
+          <TouchableOpacity
+            style={styles.getStartedButton}
+            onPress={handleNext}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.getStartedText}>
+              {currentIndex === onboardingSlides.length - 1 ? 'GET STARTED' : 'NEXT'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Login Link */}
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={onLogin}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.loginText}>I am already registered</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </SafeAreaView>
     </View>
   );
 };
@@ -348,7 +351,7 @@ const styles = StyleSheet.create({
   slideContainer: {
     width,
     paddingHorizontal: 24,
-    paddingTop: 60,
+    paddingTop: 10,
   },
   slideTitle: {
     fontSize: 32,

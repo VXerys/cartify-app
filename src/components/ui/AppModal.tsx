@@ -1,21 +1,21 @@
 import React from 'react';
 import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-  ViewStyle
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    Pressable,
+    StyleSheet,
+    Text,
+    TouchableWithoutFeedback,
+    View,
+    ViewStyle
 } from 'react-native';
 import Animated, {
-  FadeInDown,
-  ZoomIn,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring
+    FadeIn,
+    FadeInUp,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming
 } from 'react-native-reanimated';
 
 interface AppModalProps {
@@ -25,6 +25,7 @@ interface AppModalProps {
   onClose: () => void;
   onSave?: () => void;
   saveLabel?: string;
+  cancelLabel?: string;
   children?: React.ReactNode;
   headerIcon?: React.ReactNode;
   contentStyle?: ViewStyle;
@@ -38,31 +39,29 @@ export function AppModal({
   onClose, 
   onSave, 
   saveLabel = 'Save',
+  cancelLabel = 'Batal',
   children,
   headerIcon,
   variant = 'default'
 }: AppModalProps) {
   
-  // Button Animation State
-  const scale = useSharedValue(1);
+  // Subtle button animation states
+  const saveOpacity = useSharedValue(1);
+  const cancelOpacity = useSharedValue(1);
 
-  const animatedButtonStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+  const animatedSaveStyle = useAnimatedStyle(() => ({
+    opacity: saveOpacity.value,
   }));
 
-  const onPressIn = () => {
-    scale.value = withSpring(0.95);
-  };
-
-  const onPressOut = () => {
-    scale.value = withSpring(1);
-  };
+  const animatedCancelStyle = useAnimatedStyle(() => ({
+    opacity: cancelOpacity.value,
+  }));
 
   if (!visible) return null;
 
   // Colors based on variant
   const primaryColor = variant === 'danger' ? '#EF4444' : '#059669';
-  const lightColor = variant === 'danger' ? '#FEE2E2' : '#ECFDF5';
+  const lightColor = variant === 'danger' ? '#FEF2F2' : '#ECFDF5';
 
   return (
     <Modal
@@ -76,15 +75,17 @@ export function AppModal({
         style={styles.centeredView}
       >
         <TouchableWithoutFeedback onPress={onClose}>
-            <View style={StyleSheet.absoluteFill} />
+            <View style={[StyleSheet.absoluteFill, styles.backdrop]} />
         </TouchableWithoutFeedback>
 
         <Animated.View 
-          entering={ZoomIn.duration(300).springify()}
+          entering={FadeIn.duration(200)}
           style={styles.modalView}
         >
+          {/* Clean Header Line */}
           <View style={[styles.headerDecoration, { backgroundColor: primaryColor }]} />
           
+          {/* Icon Container */}
           {headerIcon && (
               <View style={[styles.iconContainer, { backgroundColor: lightColor }]}>
                   {headerIcon}
@@ -92,7 +93,7 @@ export function AppModal({
           )}
 
           <Animated.Text 
-            entering={FadeInDown.delay(100).springify()}
+            entering={FadeInUp.delay(50).duration(200)}
             style={styles.modalTitle}
           >
             {title}
@@ -100,7 +101,7 @@ export function AppModal({
           
           {subtitle && (
             <Animated.Text 
-                entering={FadeInDown.delay(200).springify()}
+                entering={FadeInUp.delay(100).duration(200)}
                 style={styles.modalSubtitle}
             >
                 {subtitle}
@@ -108,44 +109,40 @@ export function AppModal({
           )}
           
           {children && (
-            <Animated.View 
-                entering={FadeInDown.delay(300).springify()}
-                style={styles.contentContainer}
-            >
+            <View style={styles.contentContainer}>
                 {children}
-            </Animated.View>
+            </View>
           )}
 
+          {/* Button Row */}
           <View style={styles.buttonRow}>
-            <TouchableOpacity 
-              style={[styles.button, styles.buttonCancel]} 
-              onPress={onClose}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.textCancel}>Cancel</Text>
-            </TouchableOpacity>
+            {/* Cancel Button */}
+            <Animated.View style={[styles.buttonContainer, animatedCancelStyle]}>
+              <Pressable 
+                style={[styles.button, styles.buttonCancel]} 
+                onPress={onClose}
+                onPressIn={() => { cancelOpacity.value = withTiming(0.6, { duration: 100 }); }}
+                onPressOut={() => { cancelOpacity.value = withTiming(1, { duration: 150 }); }}
+              >
+                <Text style={styles.textCancel}>{cancelLabel}</Text>
+              </Pressable>
+            </Animated.View>
             
+            {/* Action Button */}
             {onSave && (
-                <Animated.View style={[styles.buttonContainer, animatedButtonStyle]}>
-                <TouchableOpacity 
-                    style={[
-                        styles.button, 
-                        { 
-                            backgroundColor: primaryColor,
-                            shadowColor: primaryColor,
-                            shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: 0.3,
-                            shadowRadius: 8,
-                            elevation: 4,
-                        } 
-                    ]} 
-                    onPress={onSave}
-                    onPressIn={onPressIn}
-                    onPressOut={onPressOut}
-                    activeOpacity={0.9}
-                >
-                    <Text style={styles.textSave}>{saveLabel}</Text>
-                </TouchableOpacity>
+                <Animated.View style={[styles.buttonContainer, animatedSaveStyle]}>
+                  <Pressable 
+                      style={[
+                          styles.button, 
+                          styles.buttonSave,
+                          { backgroundColor: primaryColor } 
+                      ]} 
+                      onPress={onSave}
+                      onPressIn={() => { saveOpacity.value = withTiming(0.7, { duration: 100 }); }}
+                      onPressOut={() => { saveOpacity.value = withTiming(1, { duration: 150 }); }}
+                  >
+                      <Text style={styles.textSave}>{saveLabel}</Text>
+                  </Pressable>
                 </Animated.View>
             )}
           </View>
@@ -160,57 +157,56 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+  backdrop: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalView: {
     width: '85%',
+    maxWidth: 360,
     backgroundColor: 'white',
-    borderRadius: 28,
+    borderRadius: 24,
     padding: 24,
+    paddingTop: 28,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
     elevation: 10,
     overflow: 'hidden',
-    position: 'relative',
   },
   headerDecoration: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: 6,
+    height: 4,
   },
   iconContainer: {
-      marginBottom: 12,
-      padding: 12,
+      marginBottom: 16,
+      padding: 14,
       borderRadius: 16,
   },
   modalTitle: {
-    marginTop: 0,
     marginBottom: 8,
     textAlign: 'center',
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1A1A1A',
-    letterSpacing: -0.5,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+    letterSpacing: -0.3,
   },
   modalSubtitle: {
     marginBottom: 24,
     textAlign: 'center',
-    fontSize: 15,
-    color: '#8E8E93',
+    fontSize: 14,
+    color: '#6B7280',
     lineHeight: 20,
+    paddingHorizontal: 4,
   },
   contentContainer: {
     width: '100%',
-    marginBottom: 24,
-    gap: 16,
+    marginBottom: 20,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -221,25 +217,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   button: {
-    flex: 1,
-    borderRadius: 16,
-    paddingVertical: 16,
+    borderRadius: 14,
+    paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   buttonCancel: {
-    backgroundColor: '#F2F2F7',
-    borderWidth: 1,
-    borderColor: 'transparent',
+    backgroundColor: '#F3F4F6',
+  },
+  buttonSave: {
+    // backgroundColor set inline based on variant
   },
   textCancel: {
-    color: '#8E8E93',
+    color: '#6B7280',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 15,
   },
   textSave: {
     color: 'white',
-    fontWeight: '700',
-    fontSize: 16,
+    fontWeight: '600',
+    fontSize: 15,
   },
 });

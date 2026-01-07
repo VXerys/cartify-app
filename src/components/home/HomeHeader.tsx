@@ -96,8 +96,8 @@ export function HomeHeader() {
           {Array.from({ length: 4 }).map((_, i) => (
             <View key={`h-${i}`} style={[styles.gridLine, styles.gridLineHorizontal, { top: `${(i + 1) * 25}%` }]} />
           ))}
-          {Array.from({ length: 6 }).map((_, i) => (
-            <View key={`v-${i}`} style={[styles.gridLine, styles.gridLineVertical, { left: `${(i + 1) * 16.66}%` }]} />
+          {Array.from({ length: 5 }).map((_, i) => (
+            <View key={`v-${i}`} style={[styles.gridLine, styles.gridLineVertical, { left: `${(i + 1) * 20}%` }]} />
           ))}
         </View>
         
@@ -119,13 +119,13 @@ export function HomeHeader() {
             <View style={styles.textContainer}>
                 <Animated.Text 
                     entering={FadeInDown.delay(100).springify()} 
-                    style={[styles.greeting, { fontSize: moderateScale(13) }]}
+                    style={[styles.greeting, { fontSize: moderateScale(15) }]}
                 >
                     {t(greetingKey)},
                 </Animated.Text>
                 <Animated.Text 
                     entering={FadeInDown.delay(200).springify()} 
-                    style={[styles.name, { fontSize: moderateScale(18) }]}
+                    style={[styles.name, { fontSize: moderateScale(22) }]}
                 >
                     {displayName}
                 </Animated.Text>
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   },
   gridPattern: {
     ...StyleSheet.absoluteFillObject,
-    opacity: 0.04,
+    opacity: 0.06,
   },
   gridLine: {
     position: 'absolute',

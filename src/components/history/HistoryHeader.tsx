@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   },
   gridPattern: {
     ...StyleSheet.absoluteFillObject,
-    opacity: 0.04,
+    opacity: 0.06,
   },
   gridLine: {
     position: 'absolute',

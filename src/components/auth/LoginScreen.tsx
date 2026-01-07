@@ -4,10 +4,11 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import * as RN from 'react-native';
 import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeInUp,
+    FadeIn,
+    FadeInDown,
+    FadeInUp,
 } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 const { Dimensions, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image } = RN;
 
 const { width, height } = Dimensions.get('window');
@@ -72,152 +73,154 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         <View style={[styles.glowOrb, styles.glowOrb3]} />
       </View>
 
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
         >
-          {/* Header */}
-          <Animated.View 
-            entering={FadeInUp.delay(100).duration(500)}
-            style={styles.header}
+          <ScrollView 
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
-            <Image 
-              source={require('@/assets/images/cartify-logo.png')}
-              style={styles.logoImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.welcomeText}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to continue shopping</Text>
-          </Animated.View>
+            {/* Header */}
+            <Animated.View 
+              entering={FadeInUp.delay(100).duration(500)}
+              style={styles.header}
+            >
+              <Image 
+                source={require('@/assets/images/cartify-logo.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.welcomeText}>Welcome Back</Text>
+              <Text style={styles.subtitle}>Sign in to continue shopping</Text>
+            </Animated.View>
 
-          {/* Form */}
-          <Animated.View 
-            entering={FadeInDown.delay(300).duration(500)}
-            style={styles.formContainer}
-          >
-            {/* Email Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Email Address</Text>
-              <View style={[
-                styles.inputContainer,
-                errors.email && styles.inputError
-              ]}>
-                <Ionicons name="mail-outline" size={20} color="#9BA1A6" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your email"
-                  placeholderTextColor="#6B7280"
-                  value={email}
-                  onChangeText={(text) => {
-                    setEmail(text);
-                    if (errors.email) setErrors({ ...errors, email: undefined });
-                  }}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  editable={!isLoading}
-                />
-              </View>
-              {errors.email && (
-                <Text style={styles.errorText}>{errors.email}</Text>
-              )}
-            </View>
-
-            {/* Password Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Password</Text>
-              <View style={[
-                styles.inputContainer,
-                errors.password && styles.inputError
-              ]}>
-                <Ionicons name="lock-closed-outline" size={20} color="#9BA1A6" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your password"
-                  placeholderTextColor="#6B7280"
-                  value={password}
-                  onChangeText={(text) => {
-                    setPassword(text);
-                    if (errors.password) setErrors({ ...errors, password: undefined });
-                  }}
-                  secureTextEntry={!showPassword}
-                  editable={!isLoading}
-                />
-                <TouchableOpacity 
-                  onPress={() => setShowPassword(!showPassword)}
-                  style={styles.eyeButton}
-                >
-                  <Ionicons 
-                    name={showPassword ? "eye-outline" : "eye-off-outline"} 
-                    size={20} 
-                    color="#9BA1A6" 
+            {/* Form */}
+            <Animated.View 
+              entering={FadeInDown.delay(300).duration(500)}
+              style={styles.formContainer}
+            >
+              {/* Email Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Email Address</Text>
+                <View style={[
+                  styles.inputContainer,
+                  errors.email && styles.inputError
+                ]}>
+                  <Ionicons name="mail-outline" size={20} color="#9BA1A6" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter your email"
+                    placeholderTextColor="#6B7280"
+                    value={email}
+                    onChangeText={(text) => {
+                      setEmail(text);
+                      if (errors.email) setErrors({ ...errors, email: undefined });
+                    }}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    editable={!isLoading}
                   />
-                </TouchableOpacity>
+                </View>
+                {errors.email && (
+                  <Text style={styles.errorText}>{errors.email}</Text>
+                )}
               </View>
-              {errors.password && (
-                <Text style={styles.errorText}>{errors.password}</Text>
-              )}
-            </View>
 
-            {/* Forgot Password */}
-            <TouchableOpacity 
-              style={styles.forgotPasswordButton}
-              onPress={onForgotPassword}
-              disabled={isLoading}
+              {/* Password Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Password</Text>
+                <View style={[
+                  styles.inputContainer,
+                  errors.password && styles.inputError
+                ]}>
+                  <Ionicons name="lock-closed-outline" size={20} color="#9BA1A6" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter your password"
+                    placeholderTextColor="#6B7280"
+                    value={password}
+                    onChangeText={(text) => {
+                      setPassword(text);
+                      if (errors.password) setErrors({ ...errors, password: undefined });
+                    }}
+                    secureTextEntry={!showPassword}
+                    editable={!isLoading}
+                  />
+                  <TouchableOpacity 
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.eyeButton}
+                  >
+                    <Ionicons 
+                      name={showPassword ? "eye-outline" : "eye-off-outline"} 
+                      size={20} 
+                      color="#9BA1A6" 
+                    />
+                  </TouchableOpacity>
+                </View>
+                {errors.password && (
+                  <Text style={styles.errorText}>{errors.password}</Text>
+                )}
+              </View>
+
+              {/* Forgot Password */}
+              <TouchableOpacity 
+                style={styles.forgotPasswordButton}
+                onPress={onForgotPassword}
+                disabled={isLoading}
+              >
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              </TouchableOpacity>
+
+              {/* Login Button */}
+              <TouchableOpacity
+                style={[styles.loginButton, isLoading && styles.buttonDisabled]}
+                onPress={handleLogin}
+                activeOpacity={0.8}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Text style={styles.loginButtonText}>Signing in...</Text>
+                ) : (
+                  <Text style={styles.loginButtonText}>Sign In</Text>
+                )}
+              </TouchableOpacity>
+
+              {/* Divider */}
+              <View style={styles.dividerContainer}>
+                <View style={styles.divider} />
+                <Text style={styles.dividerText}>or continue with</Text>
+                <View style={styles.divider} />
+              </View>
+
+              {/* Google Login */}
+              <TouchableOpacity
+                style={styles.googleButton}
+                onPress={onGoogleLogin}
+                activeOpacity={0.8}
+                disabled={isLoading}
+              >
+                <Ionicons name="logo-google" size={20} color="#FFFFFF" />
+                <Text style={styles.googleButtonText}>Continue with Google</Text>
+              </TouchableOpacity>
+            </Animated.View>
+
+            {/* Register Link */}
+            <Animated.View 
+              entering={FadeIn.delay(500).duration(400)}
+              style={styles.registerContainer}
             >
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-            </TouchableOpacity>
-
-            {/* Login Button */}
-            <TouchableOpacity
-              style={[styles.loginButton, isLoading && styles.buttonDisabled]}
-              onPress={handleLogin}
-              activeOpacity={0.8}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Text style={styles.loginButtonText}>Signing in...</Text>
-              ) : (
-                <Text style={styles.loginButtonText}>Sign In</Text>
-              )}
-            </TouchableOpacity>
-
-            {/* Divider */}
-            <View style={styles.dividerContainer}>
-              <View style={styles.divider} />
-              <Text style={styles.dividerText}>or continue with</Text>
-              <View style={styles.divider} />
-            </View>
-
-            {/* Google Login */}
-            <TouchableOpacity
-              style={styles.googleButton}
-              onPress={onGoogleLogin}
-              activeOpacity={0.8}
-              disabled={isLoading}
-            >
-              <Ionicons name="logo-google" size={20} color="#FFFFFF" />
-              <Text style={styles.googleButtonText}>Continue with Google</Text>
-            </TouchableOpacity>
-          </Animated.View>
-
-          {/* Register Link */}
-          <Animated.View 
-            entering={FadeIn.delay(500).duration(400)}
-            style={styles.registerContainer}
-          >
-            <Text style={styles.registerText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={onRegister} disabled={isLoading}>
-              <Text style={styles.registerLink}>Sign Up</Text>
-            </TouchableOpacity>
-          </Animated.View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+              <Text style={styles.registerText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={onRegister} disabled={isLoading}>
+                <Text style={styles.registerLink}>Sign Up</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </View>
   );
 };
@@ -311,7 +314,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 40,
+    paddingTop: 10,
     paddingBottom: 40,
   },
   header: {

@@ -1,13 +1,11 @@
-import { Layout } from '@/src/constants/Layout';
-import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, View } from 'react-native';
 import Animated, {
-    Easing,
-    useAnimatedStyle,
-    useSharedValue,
-    withDelay,
-    withTiming,
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
 } from 'react-native-reanimated';
 
 interface SplashScreenProps {
@@ -68,16 +66,6 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
         <View style={[styles.meshGradient, styles.meshGradient2]} />
         <View style={[styles.meshGradient, styles.meshGradient3]} />
         
-        {/* Grid pattern */}
-        <View style={styles.gridPattern}>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <View key={`h-${i}`} style={[styles.gridLine, styles.gridLineHorizontal, { top: `${(i + 1) * 12.5}%` }]} />
-          ))}
-          {Array.from({ length: 6 }).map((_, i) => (
-            <View key={`v-${i}`} style={[styles.gridLine, styles.gridLineVertical, { left: `${(i + 1) * 16.66}%` }]} />
-          ))}
-        </View>
-        
         {/* Glowing orbs - centered layout */}
         <View style={[styles.glowOrb, styles.glowOrb1]} />
         <View style={[styles.glowOrb, styles.glowOrb2]} />
@@ -85,11 +73,11 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
 
       <View style={styles.content}>
         {/* Logo Icon */}
-        <Animated.View style={[styles.iconContainer, logoAnimatedStyle]}>
-          <Ionicons 
-            name="cart" 
-            size={48} 
-            color="#FFFFFF" 
+        <Animated.View style={logoAnimatedStyle}>
+          <Image 
+            source={require('@/assets/images/cartify-logo.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
           />
         </Animated.View>
 
@@ -149,24 +137,6 @@ const styles = StyleSheet.create({
     right: '10%',
     transform: [{ rotate: '10deg' }],
   },
-  gridPattern: {
-    ...StyleSheet.absoluteFillObject,
-    opacity: 0.03,
-  },
-  gridLine: {
-    position: 'absolute',
-    backgroundColor: '#FFFFFF',
-  },
-  gridLineHorizontal: {
-    left: 0,
-    right: 0,
-    height: 1,
-  },
-  gridLineVertical: {
-    top: 0,
-    bottom: 0,
-    width: 1,
-  },
   glowOrb: {
     position: 'absolute',
     borderRadius: 999,
@@ -198,20 +168,12 @@ const styles = StyleSheet.create({
   content: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-  },
-  iconContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 20,
     justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Layout.colors.primary,
-    shadowColor: Layout.colors.secondary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 15,
-    elevation: 10,
+  },
+  logoImage: {
+    width: 160,
+    height: 160,
+    marginRight: -45,
   },
   appName: {
     fontSize: 42,

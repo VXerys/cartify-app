@@ -5,9 +5,11 @@ import { formatDate } from '@/src/utils/date';
 import { MaterialIcons } from '@expo/vector-icons';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const { width } = Dimensions.get('window');
 
 export function HomeHeader() {
   const { t, i18n } = useTranslation();
@@ -81,9 +83,28 @@ export function HomeHeader() {
   
   return (
     <View style={[styles.container, { paddingTop: insets.top + verticalScale(8) }]}>
-      {/* Background Decor - Scaled */}
-      <View style={isTablet ? styles.decorativeCircleTablet1 : styles.decorativeCircle1} />
-      <View style={isTablet ? styles.decorativeCircleTablet2 : styles.decorativeCircle2} />
+      {/* Premium Background Container */}
+      <View style={styles.backgroundContainer}>
+        <View style={styles.gradientOverlay} />
+        
+        {/* Mesh gradients - aligned positioning */}
+        <View style={[styles.meshGradient, styles.meshGradient1]} />
+        <View style={[styles.meshGradient, styles.meshGradient2]} />
+        
+        {/* Grid pattern */}
+        <View style={styles.gridPattern}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <View key={`h-${i}`} style={[styles.gridLine, styles.gridLineHorizontal, { top: `${(i + 1) * 25}%` }]} />
+          ))}
+          {Array.from({ length: 6 }).map((_, i) => (
+            <View key={`v-${i}`} style={[styles.gridLine, styles.gridLineVertical, { left: `${(i + 1) * 16.66}%` }]} />
+          ))}
+        </View>
+        
+        {/* Glowing orbs - aligned */}
+        <View style={[styles.glowOrb, styles.glowOrb1]} />
+        <View style={[styles.glowOrb, styles.glowOrb2]} />
+      </View>
 
       <View style={[styles.contentRow, contentContainerStyle as import('react-native').ViewStyle, { paddingHorizontal: containerPadding }]}>
         <View style={styles.leftSection}>
@@ -128,54 +149,94 @@ export function HomeHeader() {
 const styles = StyleSheet.create({
   container: {
     paddingBottom: Layout.spacing.m,
-    backgroundColor: Layout.colors.primary, 
+    backgroundColor: Layout.colors.primary,
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
     zIndex: 10,
     overflow: 'hidden',
     width: '100%',
     ...Layout.shadows.medium,
+    position: 'relative',
+  },
+  // Premium Background Styles
+  backgroundContainer: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: 'hidden',
+  },
+  gradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Layout.colors.primary,
+  },
+  meshGradient: {
+    position: 'absolute',
+    borderRadius: 999,
+    opacity: 0.65,
+  },
+  meshGradient1: {
+    width: width * 0.9,
+    height: width * 0.9,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    top: -80,
+    left: -40,
+  },
+  meshGradient2: {
+    width: width * 0.75,
+    height: width * 0.75,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    top: -60,
+    right: -50,
+  },
+  gridPattern: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.04,
+  },
+  gridLine: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+  },
+  gridLineHorizontal: {
+    left: 0,
+    right: 0,
+    height: 1,
+  },
+  gridLineVertical: {
+    top: 0,
+    bottom: 0,
+    width: 1,
+  },
+  glowOrb: {
+    position: 'absolute',
+    borderRadius: 999,
+  },
+  glowOrb1: {
+    width: 120,
+    height: 120,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    top: -20,
+    left: -30,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 40,
+    elevation: 15,
+  },
+  glowOrb2: {
+    width: 100,
+    height: 100,
+    backgroundColor: 'rgba(255, 255, 255, 0.10)',
+    top: -15,
+    right: -25,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 35,
+    elevation: 12,
   },
   contentRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-  },
-  decorativeCircle1: {
-      position: 'absolute',
-      bottom: -30,
-      left: -30,
-      width: 120,
-      height: 120,
-      borderRadius: 60,
-      backgroundColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  decorativeCircle2: {
-      position: 'absolute',
-      top: -60,
-      right: -20, 
-      width: 200,
-      height: 200,
-      borderRadius: 100,
-      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  decorativeCircleTablet1: {
-      position: 'absolute',
-      bottom: -50,
-      left: -50,
-      width: 250,
-      height: 250,
-      borderRadius: 125,
-      backgroundColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  decorativeCircleTablet2: {
-      position: 'absolute',
-      top: -100,
-      right: -40, 
-      width: 350,
-      height: 350,
-      borderRadius: 175,
-      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    zIndex: 2,
   },
   leftSection: {
     flexDirection: 'row',

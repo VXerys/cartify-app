@@ -3,20 +3,21 @@ import { validateEmail, validateFullName, validatePassword } from '@/src/types/a
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import {
-    Dimensions,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Animated, {
-    FadeIn,
-    FadeInDown,
-    FadeInUp,
+  FadeIn,
+  FadeInDown,
+  FadeInUp,
 } from 'react-native-reanimated';
 import { LegalModal } from './LegalModal';
 
@@ -262,17 +263,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
         <View style={[styles.meshGradient, styles.meshGradient2]} />
         <View style={[styles.meshGradient, styles.meshGradient3]} />
         
-        {/* Subtle grid pattern overlay */}
-        <View style={styles.gridPattern}>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <View key={`h-${i}`} style={[styles.gridLine, styles.gridLineHorizontal, { top: `${(i + 1) * 12.5}%` }]} />
-          ))}
-          {Array.from({ length: 6 }).map((_, i) => (
-            <View key={`v-${i}`} style={[styles.gridLine, styles.gridLineVertical, { left: `${(i + 1) * 16.66}%` }]} />
-          ))}
-        </View>
-        
-        {/* Glowing orbs */}
+        {/* Glowing orbs - Premium background effect */}
         <View style={[styles.glowOrb, styles.glowOrb1]} />
         <View style={[styles.glowOrb, styles.glowOrb2]} />
         <View style={[styles.glowOrb, styles.glowOrb3]} />
@@ -292,9 +283,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
             entering={FadeInUp.delay(100).duration(500)}
             style={styles.header}
           >
-            <View style={styles.logoContainer}>
-              <Ionicons name="cart" size={36} color="#FFFFFF" />
-            </View>
+            <Image 
+              source={require('@/assets/images/cartify-logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
             <Text style={styles.welcomeText}>Create Account</Text>
             <Text style={styles.subtitle}>Start your shopping journey</Text>
           </Animated.View>
@@ -556,89 +549,71 @@ const styles = StyleSheet.create({
   meshGradient: {
     position: 'absolute',
     borderRadius: 999,
-    opacity: 0.6,
+    opacity: 0.5,
   },
   meshGradient1: {
-    width: width * 1.2,
-    height: width * 1.2,
-    backgroundColor: 'rgba(42, 157, 143, 0.15)',
-    top: '-30%',
-    right: '-40%',
+    width: width * 0.7,
+    height: width * 0.7,
+    backgroundColor: 'rgba(42, 157, 143, 0.12)',
+    top: -width * 0.25,
+    right: -width * 0.2,
     transform: [{ rotate: '45deg' }],
   },
   meshGradient2: {
-    width: width * 0.8,
-    height: width * 0.8,
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    bottom: '10%',
-    left: '-30%',
+    width: width * 0.6,
+    height: width * 0.6,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    bottom: height * 0.2,
+    left: -width * 0.2,
     transform: [{ rotate: '-30deg' }],
   },
   meshGradient3: {
-    width: width * 0.6,
-    height: width * 0.6,
+    width: width * 0.5,
+    height: width * 0.5,
     backgroundColor: 'rgba(59, 130, 246, 0.08)',
-    top: '40%',
-    right: '-20%',
+    bottom: height * 0.08,
+    right: -width * 0.1,
     transform: [{ rotate: '15deg' }],
-  },
-  gridPattern: {
-    ...StyleSheet.absoluteFillObject,
-    opacity: 0.03,
-  },
-  gridLine: {
-    position: 'absolute',
-    backgroundColor: '#FFFFFF',
-  },
-  gridLineHorizontal: {
-    left: 0,
-    right: 0,
-    height: 1,
-  },
-  gridLineVertical: {
-    top: 0,
-    bottom: 0,
-    width: 1,
   },
   glowOrb: {
     position: 'absolute',
     borderRadius: 999,
   },
   glowOrb1: {
-    width: 200,
-    height: 200,
+    width: width * 0.45,
+    height: width * 0.45,
     backgroundColor: 'rgba(42, 157, 143, 0.25)',
-    top: -50,
-    right: -50,
+    top: -width * 0.125,
+    right: -width * 0.025,
     shadowColor: '#2A9D8F',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.6,
     shadowRadius: 80,
     elevation: 20,
   },
   glowOrb2: {
-    width: 150,
-    height: 150,
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    width: width * 0.4,
+    height: width * 0.4,
+    backgroundColor: 'rgba(16, 185, 129, 0.22)',
     bottom: height * 0.3,
-    left: -40,
+    left: -width * 0.1,
     shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 70,
+    elevation: 18,
+  },
+  glowOrb3: {
+    width: width * 0.35,
+    height: width * 0.35,
+    backgroundColor: 'rgba(59, 130, 246, 0.18)',
+    bottom: height * 0.155,
+    right: width * 0.025,
+    shadowColor: '#3B82F6',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
     shadowRadius: 60,
     elevation: 15,
-  },
-  glowOrb3: {
-    width: 100,
-    height: 100,
-    backgroundColor: 'rgba(59, 130, 246, 0.15)',
-    bottom: 100,
-    right: 50,
-    shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 40,
-    elevation: 10,
   },
   keyboardView: {
     flex: 1,
@@ -653,19 +628,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
-  logoContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 20,
-    backgroundColor: Layout.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: Layout.colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 12,
+  logoImage: {
+    width: 180,
+    height: 180,
+    marginBottom: -20,
+    marginTop: -25,
   },
   welcomeText: {
     fontSize: 28,

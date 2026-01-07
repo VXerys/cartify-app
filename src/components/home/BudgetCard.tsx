@@ -5,7 +5,7 @@ import { formatCurrency } from '@/src/utils/currency';
 import { useTranslation } from 'react-i18next';
 
 import React, { useEffect } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
     FadeInDown,
     useAnimatedStyle,
@@ -13,6 +13,8 @@ import Animated, {
     withDelay,
     withSpring
 } from 'react-native-reanimated';
+
+const { width } = Dimensions.get('window');
 
 interface BudgetCardProps {
   budget: number;
@@ -68,15 +70,34 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
         style={[
             styles.card, 
             { 
-                backgroundColor: '#2A9D8F', 
+                backgroundColor: Layout.colors.primary,
                 paddingHorizontal: moderateScale(20), 
                 paddingVertical: moderateScale(18) 
             }
         ]}
       >
-        {/* Decorative background elements - Dynamic */}
-        <View style={[styles.decorativeCircle, { width: moderateScale(180), height: moderateScale(180), borderRadius: moderateScale(90) }]} />
-        <View style={[styles.decorativeCircleSmall, { width: moderateScale(100), height: moderateScale(100), borderRadius: moderateScale(50) }]} />
+        {/* Premium Background Container */}
+        <View style={styles.backgroundContainer}>
+          <View style={styles.gradientOverlay} />
+          
+          {/* Mesh gradients - aligned with header */}
+          <View style={[styles.meshGradient, styles.meshGradient1]} />
+          <View style={[styles.meshGradient, styles.meshGradient2]} />
+          
+          {/* Grid pattern */}
+          <View style={styles.gridPattern}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <View key={`h-${i}`} style={[styles.gridLine, styles.gridLineHorizontal, { top: `${(i + 1) * 33}%` }]} />
+            ))}
+            {Array.from({ length: 5 }).map((_, i) => (
+              <View key={`v-${i}`} style={[styles.gridLine, styles.gridLineVertical, { left: `${(i + 1) * 20}%` }]} />
+            ))}
+          </View>
+          
+          {/* Glowing orbs */}
+          <View style={[styles.glowOrb, styles.glowOrb1]} />
+          <View style={[styles.glowOrb, styles.glowOrb2]} />
+        </View>
 
         {/* Top Section: Title & Edit */}
         <View style={styles.topRow}>
@@ -149,21 +170,81 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 24,
     position: 'relative',
-    overflow: 'hidden', 
+    overflow: 'hidden',
   },
-  decorativeCircle: {
-      position: 'absolute',
-      top: -50,
-      right: -50,
-      backgroundColor: 'rgba(255, 255, 255, 0.08)',
-      zIndex: 0,
+  // Premium Background Styles
+  backgroundContainer: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: 'hidden',
   },
-  decorativeCircleSmall: {
-      position: 'absolute',
-      bottom: -30,
-      left: -30,
-      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-      zIndex: 0,
+  gradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Layout.colors.primary,
+  },
+  meshGradient: {
+    position: 'absolute',
+    borderRadius: 999,
+    opacity: 0.65,
+  },
+  meshGradient1: {
+    width: width * 0.7,
+    height: width * 0.7,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    top: -60,
+    left: -50,
+  },
+  meshGradient2: {
+    width: width * 0.6,
+    height: width * 0.6,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    bottom: -60,
+    right: -40,
+  },
+  gridPattern: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.04,
+  },
+  gridLine: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+  },
+  gridLineHorizontal: {
+    left: 0,
+    right: 0,
+    height: 1,
+  },
+  gridLineVertical: {
+    top: 0,
+    bottom: 0,
+    width: 1,
+  },
+  glowOrb: {
+    position: 'absolute',
+    borderRadius: 999,
+  },
+  glowOrb1: {
+    width: 110,
+    height: 110,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    top: -25,
+    left: -35,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 35,
+    elevation: 14,
+  },
+  glowOrb2: {
+    width: 90,
+    height: 90,
+    backgroundColor: 'rgba(255, 255, 255, 0.10)',
+    bottom: -20,
+    right: -30,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 30,
+    elevation: 12,
   },
   topRow: {
     flexDirection: 'row',

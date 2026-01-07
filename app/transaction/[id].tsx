@@ -7,13 +7,15 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, Pressable, RefreshControl, StatusBar, StyleSheet, Text, View } from 'react-native';
 import Animated, {
     FadeIn,
     FadeInDown,
     FadeInUp,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const { width } = Dimensions.get('window');
 
 export default function TransactionDetailScreen() {
   const { t, i18n } = useTranslation();
@@ -132,6 +134,27 @@ export default function TransactionDetailScreen() {
       
       {/* Header Background */}
       <View style={[styles.header, { height: verticalScale(220), paddingTop: insets.top }]}>
+        {/* Premium Background */}
+        <View style={styles.headerBackground}>
+          {/* Mesh gradients */}
+          <View style={[styles.meshGradient, styles.meshGradient1]} />
+          <View style={[styles.meshGradient, styles.meshGradient2]} />
+          
+          {/* Grid pattern */}
+          <View style={styles.gridPattern}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <View key={`h-${i}`} style={[styles.gridLine, styles.gridLineHorizontal, { top: `${(i + 1) * 25}%` }]} />
+            ))}
+            {Array.from({ length: 5 }).map((_, i) => (
+              <View key={`v-${i}`} style={[styles.gridLine, styles.gridLineVertical, { left: `${(i + 1) * 20}%` }]} />
+            ))}
+          </View>
+          
+          {/* Glowing orbs */}
+          <View style={[styles.glowOrb, styles.glowOrb1]} />
+          <View style={[styles.glowOrb, styles.glowOrb2]} />
+        </View>
+        
         <View style={[styles.headerTop, contentContainerStyle as any, { paddingHorizontal: containerPadding }]}>
              <Pressable 
                 onPress={() => router.back()} 
@@ -287,6 +310,11 @@ export default function TransactionDetailScreen() {
                         </Text>
                     </View>
                     <Text style={[styles.itemTotal, { fontSize: moderateScale(15) }]}>{formatCurrency(item.total_price)}</Text>
+                    
+                    {/* Subtle premium background for items */}
+                    <View style={styles.itemBackground}>
+                      <View style={[styles.itemGlow, { backgroundColor: `${color}08` }]} />
+                    </View>
                 </Animated.View>
             );
         }}
@@ -314,6 +342,76 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 36,
     zIndex: 0,
     width: '100%',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  // Premium Header Background
+  headerBackground: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  meshGradient: {
+    position: 'absolute',
+    borderRadius: 999,
+  },
+  meshGradient1: {
+    width: width * 0.7,
+    height: width * 0.7,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    top: -50,
+    right: -60,
+  },
+  meshGradient2: {
+    width: width * 0.5,
+    height: width * 0.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    top: -20,
+    left: -40,
+  },
+  gridPattern: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.04,
+  },
+  gridLine: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+  },
+  gridLineHorizontal: {
+    left: 0,
+    right: 0,
+    height: 1,
+  },
+  gridLineVertical: {
+    top: 0,
+    bottom: 0,
+    width: 1,
+  },
+  glowOrb: {
+    position: 'absolute',
+    borderRadius: 999,
+  },
+  glowOrb1: {
+    width: 100,
+    height: 100,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    top: 30,
+    right: -20,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 30,
+    elevation: 10,
+  },
+  glowOrb2: {
+    width: 80,
+    height: 80,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    bottom: 20,
+    left: -15,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 25,
+    elevation: 8,
   },
   headerTop: {
       flexDirection: 'row',
@@ -471,6 +569,19 @@ const styles = StyleSheet.create({
       shadowOpacity: 0.03,
       shadowRadius: 8,
       elevation: 2,
+      position: 'relative',
+      overflow: 'hidden',
+  },
+  itemBackground: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.3,
+  },
+  itemGlow: {
+    position: 'absolute',
+    width: '40%',
+    height: '100%',
+    right: 0,
+    borderRadius: 999,
   },
   iconBox: {
       justifyContent: 'center',

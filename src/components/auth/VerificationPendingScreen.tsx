@@ -2,21 +2,21 @@ import { Layout } from '@/src/constants/Layout';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
-   Dimensions,
-   StyleSheet,
-   Text,
-   TouchableOpacity,
-   View,
+    Dimensions,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Animated, {
-   FadeIn,
-   FadeInDown,
-   FadeInUp,
-   useAnimatedStyle,
-   useSharedValue,
-   withRepeat,
-   withSequence,
-   withTiming,
+    FadeIn,
+    FadeInDown,
+    FadeInUp,
+    useAnimatedStyle,
+    useSharedValue,
+    withRepeat,
+    withSequence,
+    withTiming,
 } from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
@@ -94,16 +94,6 @@ export const VerificationPendingScreen: React.FC<VerificationPendingScreenProps>
         <View style={[styles.meshGradient, styles.meshGradient1]} />
         <View style={[styles.meshGradient, styles.meshGradient2]} />
         <View style={[styles.meshGradient, styles.meshGradient3]} />
-        
-        {/* Grid pattern */}
-        <View style={styles.gridPattern}>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <View key={`h-${i}`} style={[styles.gridLine, styles.gridLineHorizontal, { top: `${(i + 1) * 12.5}%` }]} />
-          ))}
-          {Array.from({ length: 6 }).map((_, i) => (
-            <View key={`v-${i}`} style={[styles.gridLine, styles.gridLineVertical, { left: `${(i + 1) * 16.66}%` }]} />
-          ))}
-        </View>
         
         {/* Glowing orbs - spread out */}
         <View style={[styles.glowOrb, styles.glowOrb1]} />

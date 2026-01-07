@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+    Dimensions,
     Image,
     RefreshControl,
     ScrollView,
@@ -23,6 +24,7 @@ import { useResponsive } from '../../src/hooks/useResponsive';
 import { useSettings } from '../../src/hooks/useSettings';
 
 const COLORS = Layout.colors;
+const { width } = Dimensions.get('window');
 
 // Default avatar for users without profile picture
 const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?name=User&background=2A9D8F&color=fff&size=200';
@@ -146,14 +148,16 @@ export default function SettingsScreen() {
     }
   };
 
-  const SettingSection = ({ title, children, index = 0 }: { title: string, children: React.ReactNode, index?: number }) => (
-    <View style={[styles.section, { marginBottom: moderateScale(24) }]}>
-      <Text style={[styles.sectionTitle, { fontSize: moderateScale(13), marginLeft: moderateScale(12), marginBottom: moderateScale(10) }]}>{title}</Text>
-      <View style={[styles.sectionContent, { borderRadius: moderateScale(20) }]}>
-        {children}
+  const SettingSection = ({ title, children, index = 0 }: { title: string, children: React.ReactNode, index?: number }) => {
+    return (
+      <View style={[styles.section, { marginBottom: moderateScale(24) }]}>
+        <Text style={[styles.sectionTitle, { fontSize: moderateScale(13), marginLeft: moderateScale(12), marginBottom: moderateScale(10) }]}>{title}</Text>
+        <View style={[styles.sectionContent, { borderRadius: moderateScale(20) }]}>
+          {children}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   const SettingItem = ({ 
     icon, 
@@ -226,11 +230,11 @@ export default function SettingsScreen() {
             <View 
               style={[styles.profileCard, { borderRadius: moderateScale(30) }]}
             >
-               {/* Premium Mesh Background for Card - Uniquely positioned */}
+               {/* Clean Premium Background - Only Glowing Orbs */}
                <View style={styles.cardMeshContainer}>
-                  <View style={[styles.cardMeshGradient, styles.cardMesh1]} />
-                  <View style={[styles.cardMeshGradient, styles.cardMesh2]} />
-                  <View style={[styles.cardMeshGradient, styles.cardMesh3]} />
+                  {/* Glowing orbs only for subtle premium effect */}
+                  <View style={[styles.cardGlowOrb, styles.cardGlowOrb1]} />
+                  <View style={[styles.cardGlowOrb, styles.cardGlowOrb2]} />
                </View>
                
                <View style={[styles.profileContent, { padding: moderateScale(24), paddingBottom: moderateScale(20) }]}>
@@ -629,38 +633,41 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 24,
     elevation: 12,
-    backgroundColor: '#0F172A', // Changed to dark premium background
+    backgroundColor: COLORS.primary,
     overflow: 'hidden',
     position: 'relative',
   },
   cardMeshContainer: {
     ...StyleSheet.absoluteFillObject,
-    opacity: 0.8,
+    opacity: 0.9,
   },
-  cardMeshGradient: {
+  cardGlowOrb: {
     position: 'absolute',
     borderRadius: 999,
   },
-  cardMesh1: {
-    width: '120%',
-    height: '120%',
-    backgroundColor: 'rgba(42, 157, 143, 0.15)',
-    top: '-30%',
-    left: '-20%',
+  cardGlowOrb1: {
+    width: 90,
+    height: 90,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    top: -20,
+    right: -20,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 25,
+    elevation: 10,
   },
-  cardMesh2: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    bottom: '-20%',
-    right: '-10%',
-  },
-  cardMesh3: {
-    width: '60%',
-    height: '60%',
-    backgroundColor: 'rgba(59, 130, 246, 0.08)',
-    top: '20%',
-    right: '-10%',
+  cardGlowOrb2: {
+    width: 70,
+    height: 70,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    bottom: -15,
+    left: -15,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 8,
   },
   profileContent: {
       flexDirection: 'row',

@@ -177,16 +177,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         <View style={[styles.meshGradient, styles.meshGradient2]} />
         <View style={[styles.meshGradient, styles.meshGradient3]} />
         
-        {/* Grid pattern */}
-        <View style={styles.gridPattern}>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <View key={`h-${i}`} style={[styles.gridLine, styles.gridLineHorizontal, { top: `${(i + 1) * 12.5}%` }]} />
-          ))}
-          {Array.from({ length: 6 }).map((_, i) => (
-            <View key={`v-${i}`} style={[styles.gridLine, styles.gridLineVertical, { left: `${(i + 1) * 16.66}%` }]} />
-          ))}
-        </View>
-        
         {/* Glowing orbs - top-left and bottom-right */}
         <View style={[styles.glowOrb, styles.glowOrb1]} />
         <View style={[styles.glowOrb, styles.glowOrb2]} />
@@ -283,24 +273,6 @@ const styles = StyleSheet.create({
     top: '50%',
     left: '60%',
     transform: [{ rotate: '30deg' }],
-  },
-  gridPattern: {
-    ...StyleSheet.absoluteFillObject,
-    opacity: 0.03,
-  },
-  gridLine: {
-    position: 'absolute',
-    backgroundColor: '#FFFFFF',
-  },
-  gridLineHorizontal: {
-    left: 0,
-    right: 0,
-    height: 1,
-  },
-  gridLineVertical: {
-    top: 0,
-    bottom: 0,
-    width: 1,
   },
   glowOrb: {
     position: 'absolute',

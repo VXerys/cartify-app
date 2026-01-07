@@ -5,9 +5,11 @@ import { formatCurrency } from '@/src/utils/currency';
 import { formatDate, formatTime } from '@/src/utils/date';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Animated as RNAnimated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Animated as RNAnimated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+
+const { width } = Dimensions.get('window');
 
 export interface HistoryItemType {
   id: string;
@@ -69,6 +71,26 @@ export function HistoryCard({ item, index, onPress, onDelete }: HistoryCardProps
             activeOpacity={0.7}
             onPress={onPress}
           >
+            {/* Premium Background */}
+            <View style={styles.cardBackground}>
+              {/* Mesh gradients - bottom-right corner */}
+              <View style={[styles.meshGradient, styles.meshGradient1]} />
+              <View style={[styles.meshGradient, styles.meshGradient2]} />
+              
+              {/* Grid pattern */}
+              <View style={styles.gridPattern}>
+                {[0, 1].map((i) => (
+                  <View key={`h-${i}`} style={[styles.gridLine, styles.gridLineHorizontal, { top: `${(i + 1) * 50}%` }]} />
+                ))}
+                {[0, 1, 2].map((i) => (
+                  <View key={`v-${i}`} style={[styles.gridLine, styles.gridLineVertical, { left: `${(i + 1) * 33}%` }]} />
+                ))}
+              </View>
+              
+              {/* Glowing orb */}
+              <View style={styles.glowOrb} />
+            </View>
+            
             {/* Left Accent Strip */}
             <View style={styles.leftAccent} />
 
@@ -123,6 +145,64 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
     flexDirection: 'row',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  // Premium Background Styles
+  cardBackground: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 1,
+    zIndex: 0,
+  },
+  meshGradient: {
+    position: 'absolute',
+    borderRadius: 999,
+  },
+  meshGradient1: {
+    width: width * 0.4,
+    height: width * 0.4,
+    backgroundColor: 'rgba(42, 157, 143, 0.08)',
+    bottom: -30,
+    right: -20,
+  },
+  meshGradient2: {
+    width: width * 0.3,
+    height: width * 0.3,
+    backgroundColor: 'rgba(16, 185, 129, 0.06)',
+    top: -15,
+    left: -15,
+  },
+  gridPattern: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.15,
+  },
+  gridLine: {
+    position: 'absolute',
+    backgroundColor: '#2A9D8F',
+  },
+  gridLineHorizontal: {
+    left: 0,
+    right: 0,
+    height: 1,
+  },
+  gridLineVertical: {
+    top: 0,
+    bottom: 0,
+    width: 1,
+  },
+  glowOrb: {
+    position: 'absolute',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(42, 157, 143, 0.12)',
+    bottom: -10,
+    right: -10,
+    shadowColor: '#2A9D8F',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 5,
   },
   leftAccent: {
       width: 6,

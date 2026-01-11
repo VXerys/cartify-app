@@ -1,20 +1,29 @@
-import { Stack } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { IconSymbol } from '../src/components/ui/icon-symbol';
 import { Layout } from '../src/constants/Layout';
 
 const COLORS = Layout.colors;
 
 export default function TermsPolicyScreen() {
+    const router = useRouter();
+
     return (
-        <SafeAreaView style={styles.container} edges={['bottom']}>
-            <Stack.Screen options={{ 
-                headerTitle: 'Syarat & Kebijakan', 
-                headerStyle: { backgroundColor: COLORS.background },
-                headerTintColor: COLORS.text,
-                headerShadowVisible: false,
-            }} />
+        <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
+            {/* Custom Header */}
+            <View style={styles.header}>
+                <TouchableOpacity 
+                    style={styles.backButton} 
+                    onPress={() => router.back()}
+                    activeOpacity={0.7}
+                >
+                    <IconSymbol name="chevron.left" size={24} color={COLORS.text} />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Syarat & Kebijakan</Text>
+                <View style={styles.headerSpacer} />
+            </View>
             
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 
@@ -69,6 +78,32 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: COLORS.background,
     },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: COLORS.border,
+        backgroundColor: COLORS.background,
+    },
+    backButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#F3F4F6',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: COLORS.text,
+    },
+    headerSpacer: {
+        width: 40,
+    },
     scrollContent: {
         padding: 24,
         paddingBottom: 40,
@@ -90,7 +125,7 @@ const styles = StyleSheet.create({
     },
     paragraph: {
         fontSize: 15,
-        color: '#4B5563', // Gray-600
+        color: '#4B5563',
         lineHeight: 24,
         textAlign: 'justify',
     },
@@ -106,3 +141,4 @@ const styles = StyleSheet.create({
         color: COLORS.subtext,
     }
 });
+

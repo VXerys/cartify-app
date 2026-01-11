@@ -14,11 +14,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "445007497300-81pb3diga71885orhaktsvr0i61i85u5.apps.googleusercontent.com",
+          "client_id": "445007497300-09pk8q0bih23v9prtog3cnqr860hk3nt.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.sehanfrs0.Cartify",
-            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+            "certificate_hash": "82a8f89f443021c4214ba30fca2ebb872e4e5146"
           }
         },
         {

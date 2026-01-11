@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
   logoImage: {
     width: 200,
     height: 200,
-    marginLeft: -50,
+    marginLeft: -60,
     // Negative margin to pull text closer
   },
   appName: {
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     includeFontPadding: false,
     textAlignVertical: 'center',
-    marginLeft: -50, 
+    marginLeft: -60, 
     zIndex: 10,
     elevation: 10,
   },

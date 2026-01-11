@@ -11,8 +11,12 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 // Import Google Sign-In configuration
 import { configureGoogleSignIn } from './googleSignIn';
 
-// Initialize Google Sign-In
-configureGoogleSignIn();
+// Initialize Google Sign-In safely
+try {
+  configureGoogleSignIn();
+} catch (error) {
+  console.error('Failed to initialize Google Sign-In:', error);
+}
 
 // User profile type
 export interface UserProfile {

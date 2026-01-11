@@ -2,18 +2,18 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Dimensions,
-  Image,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Dimensions,
+    Image,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -616,15 +616,15 @@ export default function SettingsScreen() {
                 onPress={() => handleVoicePositionChange(option.key)}
                 activeOpacity={0.7}
              >
-                <View style={styles.languageRow}>
-                  <Text style={styles.languageFlag}>{option.emoji}</Text>
-                  <View>
+                <View style={styles.voicePositionRow}>
+                  <Text style={[styles.languageFlag, { marginTop: moderateScale(2) }]}>{option.emoji}</Text>
+                  <View style={styles.voicePositionTextContainer}>
                     <Text style={[
                         styles.languageText,
                         { fontSize: moderateScale(16) },
                         voiceButtonPosition === option.key && styles.languageTextSelected
                     ]}>{option.label}</Text>
-                    <Text style={[styles.positionDescription, { marginTop: moderateScale(2) }]}>
+                    <Text style={[styles.positionDescription, { fontSize: moderateScale(12), marginTop: moderateScale(2) }]}>
                       {option.key === 'right' ? t('settings.rightDescription') : t('settings.leftDescription')}
                     </Text>
                   </View>
@@ -952,6 +952,14 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       gap: 12,
   },
+  voicePositionRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+  },
+  voicePositionTextContainer: {
+      flex: 1,
+  },
   languageFlag: {
       fontSize: 24,
   },
@@ -964,9 +972,8 @@ const styles = StyleSheet.create({
       fontWeight: '600',
   },
   
-  // Voice Position Modal Styles - Uses languageOption styles for consistency
+  // Voice Position Modal Styles
   positionDescription: {
-      fontSize: 12,
       color: COLORS.subtext,
   },
 });

@@ -21,67 +21,90 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const segments = useSegments();
   const { isAuthenticated, isLoading } = useAuth();
-  const [isReady, setIsReady] = useState(false);
+  const [isNavigationReady, setIsNavigationReady] = useState(false);
+  const [hasNavigated, setHasNavigated] = useState(false);
   const previousAuthState = useRef<boolean | null>(null);
-  const isInitialMount = useRef(true);
 
+  // Step 1: Wait for auth to finish loading, then determine initial route
   useEffect(() => {
-    // Wait for auth to finish loading
-    if (!isLoading) {
-      // Small delay to ensure navigation state is stable after hot reload
-      const timer = setTimeout(() => {
-        setIsReady(true);
-        isInitialMount.current = false;
-      }, 100);
-      return () => clearTimeout(timer);
-    }
+    if (isLoading) return;
+    
+    // Auth is done loading, now we can navigate
+    const timer = setTimeout(() => {
+      setIsNavigationReady(true);
+    }, 50);
+    
+    return () => clearTimeout(timer);
   }, [isLoading]);
 
+  // Step 2: Handle initial navigation and subsequent auth changes
   useEffect(() => {
-    if (!isReady) return;
+    if (!isNavigationReady) return;
 
-    const inOnboarding = segments[0] === 'onboarding';
-    const inAuth = segments[0] === 'auth';
-    const inProtectedRoute = segments[0] === '(tabs)' || 
-                             segments[0] === 'security-privacy' || 
-                             segments[0] === 'help-center' ||
-                             segments[0] === 'terms-policy' ||
-                             segments[0] === 'transaction';
+    const currentSegment = segments[0];
+    const inOnboarding = currentSegment === 'onboarding';
+    const inAuth = currentSegment === 'auth';
+    const inProtectedRoute = currentSegment === '(tabs)' || 
+                             currentSegment === 'security-privacy' || 
+                             currentSegment === 'help-center' ||
+                             currentSegment === 'terms-policy' ||
+                             currentSegment === 'transaction';
 
-    // Detect logout: was authenticated, now not authenticated
+    // Detect logout scenario
     const wasAuthenticated = previousAuthState.current === true;
     const justLoggedOut = wasAuthenticated && !isAuthenticated;
     
-    // Update previous state
+    // Update previous state for next comparison
     previousAuthState.current = isAuthenticated;
 
-    // Handle logout - redirect to onboarding
+    // Handle logout - always redirect to onboarding
     if (justLoggedOut) {
       console.log('User logged out, redirecting to onboarding');
       router.replace('/onboarding');
+      setHasNavigated(true);
       return;
     }
 
-    // If authenticated and in onboarding/auth, redirect to home
+    // Initial mount or auth state resolved
+    if (!hasNavigated) {
+      if (isAuthenticated) {
+        // User is logged in - go to home if not already there
+        if (!inProtectedRoute) {
+          console.log('User authenticated on mount, redirecting to tabs');
+          router.replace('/(tabs)');
+        }
+      } else {
+        // User is not logged in - go to onboarding if not already there
+        if (!inOnboarding && !inAuth) {
+          console.log('User not authenticated on mount, redirecting to onboarding');
+          router.replace('/onboarding');
+        }
+      }
+      setHasNavigated(true);
+      return;
+    }
+
+    // Handle subsequent navigation attempts (after initial mount)
     if (isAuthenticated && (inOnboarding || inAuth)) {
       console.log('User authenticated, redirecting to tabs');
       router.replace('/(tabs)');
       return;
     }
 
-    // If not authenticated and trying to access protected route, redirect to onboarding
     if (!isAuthenticated && inProtectedRoute) {
       console.log('User not authenticated, redirecting to onboarding');
       router.replace('/onboarding');
       return;
     }
-  }, [isReady, isAuthenticated, segments, router]);
+  }, [isNavigationReady, hasNavigated, isAuthenticated, segments, router]);
 
-  // Use overlay approach - covers everything including cached routes
+  // Show loading overlay until navigation is ready AND has navigated
+  const showLoading = !isNavigationReady || !hasNavigated;
+
   return (
     <>
       {children}
-      {!isReady && (
+      {showLoading && (
         <View style={styles.loadingOverlay}>
           <View style={styles.loadingLogo}>
             <ActivityIndicator size="large" color={Layout.colors.primary} />

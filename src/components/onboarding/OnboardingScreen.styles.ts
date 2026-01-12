@@ -115,19 +115,23 @@ export const styles = StyleSheet.create({
   slideContainer: {
     width,
     paddingHorizontal: 24,
-    paddingTop: 10,
+    paddingTop: 20,
   },
   slideTitle: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: '700',
     color: '#FFFFFF',
     textAlign: 'center',
-    lineHeight: 42,
-    marginBottom: 40,
+    lineHeight: 32,
+    marginBottom: 20,
   },
   imageContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  onboardingImage: {
+    width: width * 0.92,
+    height: height * 0.58,
   },
   imagePlaceholder: {
     width: width * 0.75,
@@ -260,7 +264,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   dot: {
     height: 10,
@@ -277,14 +281,15 @@ export const styles = StyleSheet.create({
   },
   bottomContainer: {
     paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingBottom: 20,
+    paddingTop: 5,
   },
   getStartedButton: {
     backgroundColor: Layout.colors.primary,
     paddingVertical: 18,
     borderRadius: 30,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
     shadowColor: Layout.colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
@@ -299,7 +304,7 @@ export const styles = StyleSheet.create({
   },
   loginButton: {
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 8,
   },
   loginText: {
     fontSize: 14,

@@ -1,10 +1,8 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Image, View } from 'react-native';
 import Animated, { FadeInUp, interpolate, useAnimatedStyle } from 'react-native-reanimated';
 import { styles, width } from './OnboardingScreen.styles';
 import { SlideItemProps } from './OnboardingScreen.types';
-
-const MOCK_CATEGORIES = ['Home', 'Food', 'Health', 'Restaurants', 'Sport'];
 
 export const OnboardingSlideItem: React.FC<SlideItemProps> = ({ item, index, scrollX }) => {
   const animatedStyle = useAnimatedStyle(() => {
@@ -26,49 +24,13 @@ export const OnboardingSlideItem: React.FC<SlideItemProps> = ({ item, index, scr
         {item.title}
       </Animated.Text>
 
-      {/* Image Placeholder - Mock phone screen */}
+      {/* Onboarding Image */}
       <Animated.View style={[styles.imageContainer, animatedStyle]}>
-        <View style={styles.imagePlaceholder}>
-          <View style={styles.mockPhoneScreen}>
-            <View style={styles.mockHeader}>
-              <View style={styles.mockTime}>
-                <Text style={styles.mockTimeText}>9:30</Text>
-              </View>
-              <View style={styles.mockSignal} />
-            </View>
-            <View style={styles.mockContent}>
-              <View style={styles.mockTitleBar}>
-                <View style={styles.mockBackButton} />
-                <Text style={styles.mockScreenTitle}>Categories</Text>
-              </View>
-              {/* Mock category items */}
-              {MOCK_CATEGORIES.map((cat, idx) => (
-                <View key={cat} style={styles.mockCategoryItem}>
-                  <View
-                    style={[
-                      styles.mockCategoryIcon,
-                      { backgroundColor: idx % 2 === 0 ? '#34C759' : '#FF6B6B' },
-                    ]}
-                  />
-                  <Text style={styles.mockCategoryText}>{cat}</Text>
-                  <View style={styles.mockEditButton}>
-                    <Text style={styles.mockEditText}>Edit</Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
-          {/* Floating icons simulation */}
-          <View style={[styles.floatingIcon, styles.floatingIcon1]}>
-            <View style={styles.floatingIconInner} />
-          </View>
-          <View style={[styles.floatingIcon, styles.floatingIcon2]}>
-            <View style={[styles.floatingIconInner, { backgroundColor: '#FF6B6B' }]} />
-          </View>
-          <View style={[styles.floatingIcon, styles.floatingIcon3]}>
-            <View style={[styles.floatingIconInner, { backgroundColor: '#4A90D9' }]} />
-          </View>
-        </View>
+        <Image
+          source={item.image}
+          style={styles.onboardingImage}
+          resizeMode="contain"
+        />
       </Animated.View>
     </View>
   );

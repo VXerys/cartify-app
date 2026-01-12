@@ -21,25 +21,14 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const segments = useSegments();
   const { isAuthenticated, isLoading } = useAuth();
-  const [isNavigationReady, setIsNavigationReady] = useState(false);
-  const [hasNavigated, setHasNavigated] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const previousAuthState = useRef<boolean | null>(null);
+  const hasInitialNavigation = useRef(false);
 
-  // Step 1: Wait for auth to finish loading, then determine initial route
+  // Handle navigation logic
   useEffect(() => {
+    // Wait for auth to finish loading
     if (isLoading) return;
-    
-    // Auth is done loading, now we can navigate
-    const timer = setTimeout(() => {
-      setIsNavigationReady(true);
-    }, 50);
-    
-    return () => clearTimeout(timer);
-  }, [isLoading]);
-
-  // Step 2: Handle initial navigation and subsequent auth changes
-  useEffect(() => {
-    if (!isNavigationReady) return;
 
     const currentSegment = segments[0];
     const inOnboarding = currentSegment === 'onboarding';
@@ -61,12 +50,13 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
     if (justLoggedOut) {
       console.log('User logged out, redirecting to onboarding');
       router.replace('/onboarding');
-      setHasNavigated(true);
       return;
     }
 
-    // Initial mount or auth state resolved
-    if (!hasNavigated) {
+    // Initial navigation (only once)
+    if (!hasInitialNavigation.current) {
+      hasInitialNavigation.current = true;
+      
       if (isAuthenticated) {
         // User is logged in - go to home if not already there
         if (!inProtectedRoute) {
@@ -80,7 +70,11 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
           router.replace('/onboarding');
         }
       }
-      setHasNavigated(true);
+      
+      // Small delay to ensure navigation completes before showing content
+      setTimeout(() => {
+        setIsReady(true);
+      }, 100);
       return;
     }
 
@@ -96,23 +90,20 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
       router.replace('/onboarding');
       return;
     }
-  }, [isNavigationReady, hasNavigated, isAuthenticated, segments, router]);
+  }, [isLoading, isAuthenticated, segments, router]);
 
-  // Show loading overlay until navigation is ready AND has navigated
-  const showLoading = !isNavigationReady || !hasNavigated;
-
-  return (
-    <>
-      {children}
-      {showLoading && (
-        <View style={styles.loadingOverlay}>
-          <View style={styles.loadingLogo}>
-            <ActivityIndicator size="large" color={Layout.colors.primary} />
-          </View>
+  // Show loading screen until ready
+  if (!isReady) {
+    return (
+      <View style={styles.loadingOverlay}>
+        <View style={styles.loadingLogo}>
+          <ActivityIndicator size="large" color={Layout.colors.primary} />
         </View>
-      )}
-    </>
-  );
+      </View>
+    );
+  }
+
+  return <>{children}</>;
 }
 
 function RootStack() {

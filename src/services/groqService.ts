@@ -125,13 +125,13 @@ const SYSTEM_PROMPT = `
                 -> Math: 2 * 8000 = 16000.
                 -> **Output price: 16000**.
 
-            **F. CATEGORY (category)**
-            - 'food': Rice, noodles, bread, meat, vegetables, cooking ingredients, snacks (if unsure).
-            - 'drink': Water, milk, coffee, tea, juice, yogurt, soft drinks.
-            - 'snacks': Chips, biscuits, chocolate, candy, ice cream.
-            - 'fruit': Fresh fruits only.
-            - 'household': Detergent, soap, tissue, shampoo, toothpaste, cleaning products.
-            - 'other': Stationery, medicines, unknown items, clothing.
+            **F. CATEGORY (category) - STRICT CLASSIFICATION**
+            - 'food': Nasi, mie instan, roti/bakery, daging, sayuran, bumbu masak, makanan berat/siap saji (nasi goreng, pizza, burger), telur, tahu, tempe.
+            - 'drink': Air mineral, susu, kopi, teh, jus, yogurt, minuman bersoda, minuman energi.
+            - 'snacks': Keripik (Chitato, Lays, Pringles), biskuit (Oreo, Roma, Khong Guan), coklat (Silverqueen, Cadbury), permen, wafer, es krim, kue kering, kacang-kacangan kemasan.
+            - 'fruit': Buah segar saja (jeruk, apel, pisang, mangga, dll).
+            - 'household': Deterjen, sabun, tisu, shampo, pasta gigi, pembersih, cairan pel, pewangi.
+            - 'other': Alat tulis, obat-obatan, pakaian, item tidak dikenal.
 
             **G. SAFETY & VALIDATION**
             - **REFUSAL_PROFANITY**: Hate speech, swearing, insults (e.g., "Bodoh", "Bangsat").

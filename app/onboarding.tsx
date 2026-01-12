@@ -1,39 +1,31 @@
-import { LoadingScreen, OnboardingScreen, SplashScreen } from '@/src/components/onboarding';
+import { OnboardingScreen, SplashScreen } from '@/src/components/onboarding';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-type OnboardingPhase = 'loading' | 'splash' | 'onboarding';
+type OnboardingPhase = 'splash' | 'onboarding';
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const [phase, setPhase] = useState<OnboardingPhase>('loading');
+  const [phase, setPhase] = useState<OnboardingPhase>('splash');
 
-  // Phase 1: Loading screen selesai -> ke Splash
-  const handleLoadingFinish = useCallback(() => {
-    setPhase('splash');
-  }, []);
-
-  // Phase 2: Splash screen selesai -> ke Onboarding slides
+  // Splash screen selesai -> ke Onboarding slides
   const handleSplashFinish = useCallback(() => {
     setPhase('onboarding');
   }, []);
 
-  // Phase 3a: Get Started button pressed -> ke Auth (register)
+  // Get Started button pressed -> ke Auth (register)
   const handleGetStarted = useCallback(() => {
     router.push('/auth');
   }, [router]);
 
-  // Phase 3b: Already registered link pressed -> ke Auth (login)
+  // Already registered link pressed -> ke Auth (login)
   const handleLogin = useCallback(() => {
     router.push('/auth');
   }, [router]);
 
   // Render berdasarkan phase
   switch (phase) {
-    case 'loading':
-      return <LoadingScreen onFinish={handleLoadingFinish} duration={2000} />;
-    
     case 'splash':
       return <SplashScreen onFinish={handleSplashFinish} duration={1800} />;
     
@@ -56,3 +48,4 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A2332',
   },
 });
+

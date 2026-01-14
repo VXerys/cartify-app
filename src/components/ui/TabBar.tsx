@@ -1,198 +1,204 @@
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { PlatformPressable } from '@react-navigation/elements';
-import { useLinkBuilder, useTheme } from '@react-navigation/native';
+import { useLinkBuilder } from '@react-navigation/native';
 
 import * as Haptics from 'expo-haptics';
 import React, { useEffect } from 'react';
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-  const { colors } = useTheme();
   const { buildHref } = useLinkBuilder();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   
-  // Calculate responsive horizontal margin (15% of screen width on each side)
-  const horizontalMargin = Math.max(width * 0.15, 40);
+  // Calculate responsive horizontal margin - reduced for better visibility
+  // Use 10% margin on each side, with minimum 24px
+  const horizontalMargin = Math.max(width * 0.10, 24);
+  
+  // Calculate bottom position - account for edge-to-edge on Android
+  const bottomPosition = Platform.select({
+    android: Math.max(insets.bottom, 16) + 12, // Ensure minimum spacing on Android
+    ios: insets.bottom + 20,
+    default: 20,
+  });
 
   return (
-    <View style={[styles.container, { bottom: insets.bottom + 25, left: horizontalMargin, right: horizontalMargin }]}>
-        <View style={[styles.blur, { backgroundColor: 'rgba(255, 255, 255, 0.9)' }]}>
-            <View style={styles.tabsContainer}>
-                {state.routes.map((route, index) => {
-                    const { options } = descriptors[route.key];
-                    const label =
-                    options.tabBarLabel !== undefined
-                        ? options.tabBarLabel
-                        : options.title !== undefined
-                        ? options.title
-                        : route.name;
+    <View 
+      style={[
+        styles.container, 
+        { 
+          bottom: bottomPosition, 
+          left: horizontalMargin, 
+          right: horizontalMargin 
+        }
+      ]}
+    >
+      <View style={styles.tabBarBackground}>
+        <View style={styles.tabsContainer}>
+          {state.routes.map((route, index) => {
+            const { options } = descriptors[route.key];
+            const label =
+              options.tabBarLabel !== undefined
+                ? options.tabBarLabel
+                : options.title !== undefined
+                ? options.title
+                : route.name;
 
-                    const isFocused = state.index === index;
+            const isFocused = state.index === index;
 
-                    const onPress = () => {
-                        const event = navigation.emit({
-                            type: 'tabPress',
-                            target: route.key,
-                            canPreventDefault: true,
-                        });
+            const onPress = () => {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
 
-                        if (!isFocused && !event.defaultPrevented) {
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                            navigation.navigate(route.name, route.params);
-                        }
-                    };
+              if (!isFocused && !event.defaultPrevented) {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                navigation.navigate(route.name, route.params);
+              }
+            };
 
-                    const onLongPress = () => {
-                        navigation.emit({
-                            type: 'tabLongPress',
-                            target: route.key,
-                        });
-                    };
+            const onLongPress = () => {
+              navigation.emit({
+                type: 'tabLongPress',
+                target: route.key,
+              });
+            };
 
-                    return (
-                        <TabItem
-                            key={route.key}
-                            isFocused={isFocused}
-                            options={options}
-                            onPress={onPress}
-                            onLongPress={onLongPress}
-                            label={typeof label === 'string' ? label : route.name}
-                            href={buildHref(route.name, route.params)}
-                        />
-                    );
-                })}
-            </View>
+            return (
+              <TabItem
+                key={route.key}
+                isFocused={isFocused}
+                options={options}
+                onPress={onPress}
+                onLongPress={onLongPress}
+                label={typeof label === 'string' ? label : route.name}
+                href={buildHref(route.name, route.params)}
+              />
+            );
+          })}
         </View>
+      </View>
     </View>
   );
 }
 
 function TabItem({ 
-    isFocused, 
-    options, 
-    onPress, 
-    onLongPress, 
-    label,
-    href
+  isFocused, 
+  options, 
+  onPress, 
+  onLongPress, 
+  label,
+  href
 }: { 
-    isFocused: boolean, 
-    options: any, 
-    onPress: () => void, 
-    onLongPress: () => void,
-    label: string,
-    href: string | undefined
+  isFocused: boolean, 
+  options: any, 
+  onPress: () => void, 
+  onLongPress: () => void,
+  label: string,
+  href: string | undefined
 }) {
-    const scale = useSharedValue(1);
-    
-    useEffect(() => {
-        scale.value = withSpring(isFocused ? 1 : 0, { duration: 300 });
-    }, [isFocused]);
+  const scale = useSharedValue(1);
+  
+  useEffect(() => {
+    scale.value = withSpring(isFocused ? 1 : 0, { duration: 300 });
+  }, [isFocused]);
 
-    const animatedIconStyle = useAnimatedStyle(() => {
-        return {
-            transform: [{ scale: withSpring(isFocused ? 1.1 : 1) }]
-        }
-    });
+  const animatedIconStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: withSpring(isFocused ? 1.15 : 1) }]
+    }
+  });
 
-    const animatedIndicatorStyle = useAnimatedStyle(() => {
-        return {
-            opacity: withTiming(isFocused ? 1 : 0, { duration: 200 }),
-            transform: [{ scale: withSpring(isFocused ? 1 : 0.5) }]
-        }
-    });
+  const animatedIndicatorStyle = useAnimatedStyle(() => {
+    return {
+      opacity: withTiming(isFocused ? 1 : 0, { duration: 200 }),
+      transform: [{ scale: withSpring(isFocused ? 1 : 0.5) }]
+    }
+  });
 
-    return (
-        <PlatformPressable
-            href={href}
-            accessibilityState={isFocused ? { selected: true } : {}}
-            accessibilityLabel={options.tabBarAccessibilityLabel}
-            testID={options.tabBarTestID}
-            onPress={onPress}
-            onLongPress={onLongPress}
-            style={styles.tabItem}
-        >
-            <View style={styles.iconContainer}>
-                 {/* Active Indicator Background */}
-                 <Animated.View style={[styles.activeIndicator, animatedIndicatorStyle]} />
-                 
-                <Animated.View style={animatedIconStyle}>
-                     {/* We expect tabBarIcon to be a function provided in _layout that returns the IconSymbol */}
-                    {options.tabBarIcon ? options.tabBarIcon({ 
-                        focused: isFocused, 
-                        color: isFocused ? '#FFFFFF' : '#8E8E93', // White when selected, gray when not
-                        size: 24 
-                    }) : null}
-                </Animated.View>
-            </View>
-            
-            {/* Optional Label - uncomment if user wants labels */}
-            {/* 
-            <Text style={{ 
-                color: isFocused ? '#1A1A1A' : '#8E8E93', 
-                fontSize: 10,
-                marginTop: 4,
-                fontWeight: isFocused ? '600' : '400'
-            }}>
-                {label}
-            </Text> 
-            */}
-        </PlatformPressable>
-    );
+  // Colors for better contrast
+  const iconColor = isFocused ? '#FFFFFF' : '#6B7280'; // Darker gray for inactive
+
+  return (
+    <PlatformPressable
+      href={href}
+      accessibilityState={isFocused ? { selected: true } : {}}
+      accessibilityLabel={options.tabBarAccessibilityLabel}
+      testID={options.tabBarTestID}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      style={styles.tabItem}
+    >
+      <View style={styles.iconContainer}>
+        {/* Active Indicator Background */}
+        <Animated.View style={[styles.activeIndicator, animatedIndicatorStyle]} />
+        
+        <Animated.View style={animatedIconStyle}>
+          {options.tabBarIcon ? options.tabBarIcon({ 
+            focused: isFocused, 
+            color: iconColor,
+            size: 26 // Slightly larger icons
+          }) : null}
+        </Animated.View>
+      </View>
+    </PlatformPressable>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 30, // Safe area + margin (overridden by inline style)
-    // left and right are now calculated dynamically in the component
-    // Provide shadow for depth
-    shadowColor: "#000",
+    // left, right, bottom are set dynamically
+    zIndex: 100, // Ensure TabBar is above other content
+  },
+  tabBarBackground: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 35,
+    height: 70,
+    // Shadow for iOS
+    shadowColor: '#000',
     shadowOffset: {
-        width: 0,
-        height: 8,
+      width: 0,
+      height: 4,
     },
     shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 10, // Increased for better visibility on Android
-    borderRadius: 35,
-    overflow: 'hidden', // Clip the BlurView
-    // Add border for better edge definition
+    shadowRadius: 12,
+    // Elevation for Android
+    elevation: 12,
+    // Border for better definition
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
-  },
-  blur: {
-    width: '100%',
-    height: 70, // Fixed height for consistency
-    borderRadius: 35, // Match container borderRadius
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
   tabsContainer: {
     flexDirection: 'row',
     height: '100%',
     alignItems: 'center',
-    justifyContent: 'space-evenly',
-    paddingHorizontal: 10, // Increased padding
+    justifyContent: 'space-around', // Changed from space-evenly
+    paddingHorizontal: 16,
   },
   tabItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
+    minWidth: 60, // Ensure minimum touch target
   },
   iconContainer: {
-    width: 50,
-    height: 50,
+    width: 52,
+    height: 52,
     justifyContent: 'center',
     alignItems: 'center',
   },
   activeIndicator: {
     position: 'absolute',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#2A9D8F', // Active pill color (Black)
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#2A9D8F', // Teal color matching app theme
   }
 });
 

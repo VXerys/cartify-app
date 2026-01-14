@@ -7,6 +7,13 @@
 // Define __DEV__ for React Native
 global.__DEV__ = true;
 
+// Mock react-native modules that are commonly used
+jest.mock('react-native/Libraries/Utilities/Dimensions', () => ({
+  get: jest.fn().mockReturnValue({ width: 375, height: 812 }),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+}));
+
 // Mock @expo/vector-icons
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
@@ -75,6 +82,17 @@ jest.mock('@react-native-firebase/auth', () => {
 
 // Mock Google Sign-In
 jest.mock('@react-native-google-signin/google-signin', () => ({
+  GoogleSignin: {
+    configure: jest.fn(),
+    hasPlayServices: jest.fn().mockResolvedValue(true),
+    signIn: jest.fn().mockResolvedValue({ data: { idToken: 'mock-token' } }),
+    signOut: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+// Mock local googleSignIn service to prevent environment var warnings
+jest.mock('@/src/services/googleSignIn', () => ({
+  configureGoogleSignIn: jest.fn(),
   GoogleSignin: {
     configure: jest.fn(),
     hasPlayServices: jest.fn().mockResolvedValue(true),

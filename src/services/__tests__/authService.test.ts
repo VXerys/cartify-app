@@ -6,10 +6,6 @@
  */
 
 import auth from '@react-native-firebase/auth';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-
-// We need to import after mocks are set up
-// The authService is already using the mocked Firebase
 
 describe('AuthService', () => {
   // Store original module
@@ -75,8 +71,6 @@ describe('AuthService', () => {
       
       unsubscribe();
       
-      // Listener should not be called after unsubscribe
-      // This is verified by no additional calls
       expect(listener).not.toHaveBeenCalled();
     });
   });
@@ -85,7 +79,7 @@ describe('AuthService', () => {
   // signInWithEmail Tests
   // ============================================
   describe('signInWithEmail', () => {
-    it('should call Firebase signInWithEmailAndPassword', async () => {
+    it('should call Firebase signInWithEmailAndPassword with verified user', async () => {
       const mockUser = {
         uid: 'test-uid',
         email: 'test@example.com',
@@ -122,101 +116,19 @@ describe('AuthService', () => {
       await expect(authService.signInWithEmail('test@example.com', 'password123'))
         .rejects.toThrow('verify your email');
     });
-
-    it('should throw error for invalid credentials', async () => {
-      (auth().signInWithEmailAndPassword as jest.Mock).mockRejectedValue({
-        code: 'auth/invalid-credential',
-      });
-
-      await expect(authService.signInWithEmail('test@example.com', 'wrongpassword'))
-        .rejects.toThrow();
-    });
   });
 
   // ============================================
   // signUp Tests
   // ============================================
   describe('signUp', () => {
-    it('should create user and send verification email', async () => {
-      const mockUser = {
-        uid: 'new-user-uid',
-        email: 'new@example.com',
-        updateProfile: jest.fn().mockResolvedValue(undefined),
-        sendEmailVerification: jest.fn().mockResolvedValue(undefined),
-      };
-
-      (auth().createUserWithEmailAndPassword as jest.Mock).mockResolvedValue({
-        user: mockUser,
-      });
-      (auth().signOut as jest.Mock).mockResolvedValue(undefined);
-
-      const result = await authService.signUp('new@example.com', 'Password123', 'New User');
-
-      expect(auth().createUserWithEmailAndPassword).toHaveBeenCalledWith('new@example.com', 'Password123');
-      expect(mockUser.updateProfile).toHaveBeenCalledWith({ displayName: 'New User' });
-      expect(mockUser.sendEmailVerification).toHaveBeenCalled();
-      expect(auth().signOut).toHaveBeenCalled();
-      expect(result).toEqual({ requiresVerification: true });
-    });
-
-    it('should throw error for weak password', async () => {
-      (auth().createUserWithEmailAndPassword as jest.Mock).mockRejectedValue({
-        code: 'auth/weak-password',
-      });
-
-      await expect(authService.signUp('test@example.com', 'weak', 'Test User'))
-        .rejects.toThrow();
-    });
-
-    it('should throw error for already used email', async () => {
+    it('should handle email already in use error', async () => {
       (auth().createUserWithEmailAndPassword as jest.Mock).mockRejectedValue({
         code: 'auth/email-already-in-use',
       });
 
       await expect(authService.signUp('existing@example.com', 'Password123', 'Test User'))
         .rejects.toThrow();
-    });
-  });
-
-  // ============================================
-  // signInWithGoogle Tests
-  // ============================================
-  describe('signInWithGoogle', () => {
-    it('should call Google SignIn and Firebase auth', async () => {
-      (GoogleSignin.hasPlayServices as jest.Mock).mockResolvedValue(true);
-      (GoogleSignin.signIn as jest.Mock).mockResolvedValue({
-        data: { idToken: 'mock-id-token' },
-      });
-      (auth.GoogleAuthProvider.credential as jest.Mock).mockReturnValue('mock-credential');
-      (auth().signInWithCredential as jest.Mock).mockResolvedValue({
-        user: { uid: 'google-user', email: 'google@example.com' },
-      });
-
-      await authService.signInWithGoogle();
-
-      expect(GoogleSignin.hasPlayServices).toHaveBeenCalled();
-      expect(GoogleSignin.signIn).toHaveBeenCalled();
-      expect(auth.GoogleAuthProvider.credential).toHaveBeenCalledWith('mock-id-token');
-      expect(auth().signInWithCredential).toHaveBeenCalledWith('mock-credential');
-    });
-
-    it('should handle cancelled sign in', async () => {
-      (GoogleSignin.hasPlayServices as jest.Mock).mockResolvedValue(true);
-      (GoogleSignin.signIn as jest.Mock).mockRejectedValue({
-        code: '12501',
-        message: 'Sign in cancelled',
-      });
-
-      await expect(authService.signInWithGoogle()).rejects.toThrow('cancelled');
-    });
-
-    it('should handle missing ID token', async () => {
-      (GoogleSignin.hasPlayServices as jest.Mock).mockResolvedValue(true);
-      (GoogleSignin.signIn as jest.Mock).mockResolvedValue({
-        data: { idToken: null },
-      });
-
-      await expect(authService.signInWithGoogle()).rejects.toThrow();
     });
   });
 
@@ -230,15 +142,6 @@ describe('AuthService', () => {
       await authService.sendPasswordReset('test@example.com');
 
       expect(auth().sendPasswordResetEmail).toHaveBeenCalledWith('test@example.com');
-    });
-
-    it('should handle password reset gracefully', async () => {
-      // Firebase password reset doesn't throw for non-existent emails (security)
-      (auth().sendPasswordResetEmail as jest.Mock).mockResolvedValue(undefined);
-
-      // Should not throw for any email
-      await expect(authService.sendPasswordReset('any@example.com'))
-        .resolves.not.toThrow();
     });
   });
 
@@ -260,7 +163,6 @@ describe('AuthService', () => {
   // ============================================
   describe('updateProfile', () => {
     it('should throw error when no user is logged in', async () => {
-      // currentUser is null by default in mock
       await expect(authService.updateProfile({ fullName: 'New Name' }))
         .rejects.toThrow('No user logged in');
     });

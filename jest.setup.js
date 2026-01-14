@@ -4,6 +4,9 @@
  * Global mocks and configurations for all tests
  */
 
+// Define __DEV__ for React Native
+global.__DEV__ = true;
+
 // Mock @expo/vector-icons
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',

@@ -43,7 +43,8 @@
     "updatePhotoSubtitle": "Choose a new profile picture.",
     "chooseGallery": "Choose from Gallery",
     "saved": "Profile saved successfully",
-    "photoUpdated": "Profile photo updated"
+    "photoUpdated": "Profile photo updated",
+    "galleryPermissionDenied": "Gallery access permission is required to select a photo."
   },
   "home": {
     "recentItems": "Recent Items",

@@ -146,17 +146,28 @@ export const authService = {
         // Sign out the unverified user
         await auth().signOut();
         updateAuthState({ isLoading: false });
-        throw new Error('Please verify your email before logging in. Check your inbox for the verification link.');
+        
+        // Log as validation info, not error
+        console.log('[Auth] Validation: Email not verified for', email);
+        
+        // Create a custom validation error (not a system error)
+        const validationError = new Error('Please verify your email before logging in. Check your inbox for the verification link.');
+        (validationError as any).isValidation = true;
+        throw validationError;
       }
       
       const user = userToProfile(userCredential.user);
       return user!;
     } catch (error: any) {
       updateAuthState({ isLoading: false });
-      // Check if it's our custom error
-      if (error.message?.includes('verify your email')) {
-        throw error;
+      
+      // Check if it's validation (not an actual error)
+      if (error.isValidation || error.message?.includes('verify your email')) {
+        throw error; // Re-throw validation without logging as error
       }
+      
+      // Log actual Firebase errors
+      console.warn('[Auth] Login failed:', error.code);
       throw new Error(getFirebaseErrorMessage(error.code));
     }
   },

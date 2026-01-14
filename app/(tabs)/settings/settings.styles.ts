@@ -186,7 +186,7 @@ export const styles = StyleSheet.create({
   logoutTouchable: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     gap: 12,
     width: '100%',
   },

@@ -261,7 +261,9 @@ export const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
-    elevation: 8,
+    // Removed elevation to fix shadow artifact during animation on Android
+    borderWidth: 1,
+    borderColor: 'rgba(42, 157, 143, 0.8)',
   },
   buttonDisabled: {
     opacity: 0.5,

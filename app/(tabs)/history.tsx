@@ -28,7 +28,7 @@ export default function HistoryScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const db = useSQLiteContext();
-  const { moderateScale, containerPadding, contentContainerStyle, isTablet } = useResponsive();
+  const { width, moderateScale, containerPadding, contentContainerStyle, isTablet } = useResponsive();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -190,27 +190,36 @@ export default function HistoryScreen() {
             styles.calendarObj, 
             animatedCalendarStyle, 
             contentContainerStyle as any,
-            { marginHorizontal: containerPadding, borderRadius: moderateScale(24) }
+            { 
+              marginHorizontal: containerPadding, 
+              borderRadius: moderateScale(24),
+              width: width - (containerPadding * 2),
+            }
         ]}>
-        <Calendar
-            onDayPress={(day: { dateString: string }) => {
-                setSelectedDate(day.dateString);
-                setShowCalendar(false);
-            }}
-            markedDates={markedDates}
-            theme={{
-                todayTextColor: Layout.colors.primary,
-                selectedDayBackgroundColor: Layout.colors.primary,
-                arrowColor: Layout.colors.primary,
-                textDayFontWeight: '500',
-                textMonthFontWeight: 'bold',
-                textDayHeaderFontWeight: '500',
-                calendarBackground: 'transparent', 
-                textDayFontSize: moderateScale(14),
-                textMonthFontSize: moderateScale(16),
-                textDayHeaderFontSize: moderateScale(13)
-            }}
-        />
+        <View style={styles.calendarInner}>
+          <Calendar
+              onDayPress={(day: { dateString: string }) => {
+                  setSelectedDate(day.dateString);
+                  setShowCalendar(false);
+              }}
+              markedDates={markedDates}
+              style={{ 
+                width: width - (containerPadding * 2) - 16,
+              }}
+              theme={{
+                  todayTextColor: Layout.colors.primary,
+                  selectedDayBackgroundColor: Layout.colors.primary,
+                  arrowColor: Layout.colors.primary,
+                  textDayFontWeight: '500',
+                  textMonthFontWeight: 'bold',
+                  textDayHeaderFontWeight: '500',
+                  calendarBackground: 'transparent', 
+                  textDayFontSize: moderateScale(13),
+                  textMonthFontSize: moderateScale(15),
+                  textDayHeaderFontSize: moderateScale(12)
+              }}
+          />
+        </View>
       </Animated.View>
 
       <FlatList
@@ -335,6 +344,11 @@ const styles = StyleSheet.create({
       shadowRadius: 24,
       borderColor: '#F1F5F9',
       borderWidth: 1,
+  },
+  calendarInner: {
+      width: '100%',
+      overflow: 'hidden',
+      paddingHorizontal: 8,
   },
   listContent: {
       paddingBottom: 40,

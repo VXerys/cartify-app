@@ -43,7 +43,8 @@
     "updatePhotoSubtitle": "Pilih foto profil baru.",
     "chooseGallery": "Pilih dari Galeri",
     "saved": "Profil berhasil disimpan",
-    "photoUpdated": "Foto profil berhasil diperbarui"
+    "photoUpdated": "Foto profil berhasil diperbarui",
+    "galleryPermissionDenied": "Izin akses galeri diperlukan untuk memilih foto."
   },
   "home": {
     "recentItems": "Item Terbaru",

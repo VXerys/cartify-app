@@ -77,40 +77,85 @@ interface AvatarModalProps {
 
 export const AvatarModal: React.FC<AvatarModalProps> = ({
   visible, onClose, userAvatar, onSelectAvatar, moderateScale, t,
-}) => (
-  <AppModal
-    visible={visible}
-    title={t('profile.updatePhoto')}
-    subtitle={t('profile.updatePhotoSubtitle')}
-    onClose={onClose}
-    headerIcon={<IconSymbol name="camera.fill" size={moderateScale(32)} color={COLORS.primary} />}
-  >
-    <View style={[styles.avatarGrid, { gap: moderateScale(16), marginBottom: moderateScale(24) }]}>
-      {AVATAR_OPTIONS.map((uri, index) => (
-        <TouchableOpacity
-          key={index}
-          style={[
-            styles.avatarOption,
-            { width: moderateScale(80), height: moderateScale(80), borderRadius: moderateScale(40), padding: moderateScale(3), borderWidth: moderateScale(2) },
-            userAvatar === uri && styles.avatarOptionSelected,
-          ]}
-          onPress={() => onSelectAvatar(uri)}
-          activeOpacity={0.7}
-        >
-          <Image source={{ uri }} style={[styles.avatarThumb, { borderRadius: moderateScale(40) }]} />
-          {userAvatar === uri && (
-            <View style={[styles.avatarCheck, { width: moderateScale(24), height: moderateScale(24), borderRadius: moderateScale(12), borderWidth: moderateScale(2) }]}>
-              <IconSymbol name="checkmark" size={moderateScale(12)} color="#FFF" />
-            </View>
-          )}
-        </TouchableOpacity>
-      ))}
-    </View>
-    <TouchableOpacity style={[styles.uploadButton, { paddingVertical: moderateScale(14), borderRadius: moderateScale(14) }]}>
-      <Text style={[styles.uploadButtonText, { fontSize: moderateScale(14) }]}>{t('profile.chooseGallery')}</Text>
-    </TouchableOpacity>
-  </AppModal>
-);
+}) => {
+  const [loading, setLoading] = React.useState(false);
+
+  const pickImage = async () => {
+    try {
+      setLoading(true);
+      
+      // Dynamically import expo-image-picker
+      const ImagePicker = await import('expo-image-picker');
+      
+      // Request permission
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        alert(t('profile.galleryPermissionDenied'));
+        setLoading(false);
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        onSelectAvatar(result.assets[0].uri);
+        onClose();
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AppModal
+      visible={visible}
+      title={t('profile.updatePhoto')}
+      subtitle={t('profile.updatePhotoSubtitle')}
+      onClose={onClose}
+      headerIcon={<IconSymbol name="camera.fill" size={moderateScale(32)} color={COLORS.primary} />}
+    >
+      <View style={[styles.avatarGrid, { gap: moderateScale(16), marginBottom: moderateScale(24) }]}>
+        {AVATAR_OPTIONS.map((uri, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.avatarOption,
+              { width: moderateScale(80), height: moderateScale(80), borderRadius: moderateScale(40), padding: moderateScale(3), borderWidth: moderateScale(2) },
+              userAvatar === uri && styles.avatarOptionSelected,
+            ]}
+            onPress={() => onSelectAvatar(uri)}
+            activeOpacity={0.7}
+          >
+            <Image source={{ uri }} style={[styles.avatarThumb, { borderRadius: moderateScale(40) }]} />
+            {userAvatar === uri && (
+              <View style={[styles.avatarCheck, { width: moderateScale(24), height: moderateScale(24), borderRadius: moderateScale(12), borderWidth: moderateScale(2) }]}>
+                <IconSymbol name="checkmark" size={moderateScale(12)} color="#FFF" />
+              </View>
+            )}
+          </TouchableOpacity>
+        ))}
+      </View>
+      <TouchableOpacity 
+        style={[styles.uploadButton, { paddingVertical: moderateScale(14), borderRadius: moderateScale(14), opacity: loading ? 0.7 : 1 }]}
+        onPress={pickImage}
+        disabled={loading}
+      >
+        <Text style={[styles.uploadButtonText, { fontSize: moderateScale(14) }]}>
+          {loading ? t('common.loading') : t('profile.chooseGallery')}
+        </Text>
+      </TouchableOpacity>
+    </AppModal>
+  );
+};
 
 // Change Password Modal
 interface PasswordModalProps {

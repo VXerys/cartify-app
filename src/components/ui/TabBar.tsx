@@ -143,8 +143,8 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     bottom: 30, // Safe area + margin
-    left: 80,
-    right: 80,
+    left: 60,
+    right: 60,
     // Provide shadow for depth
     shadowColor: "#000",
     shadowOffset: {
@@ -165,8 +165,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     height: '100%',
     alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: 10,
+    justifyContent: 'space-evenly',
+    paddingHorizontal: 5,
   },
   tabItem: {
     flex: 1,

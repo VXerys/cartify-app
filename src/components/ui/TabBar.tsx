@@ -152,24 +152,28 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOffset: {
         width: 0,
-        height: 10,
+        height: 8,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 5,
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 10, // Increased for better visibility on Android
     borderRadius: 35,
     overflow: 'hidden', // Clip the BlurView
+    // Add border for better edge definition
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
   },
   blur: {
     width: '100%',
     height: 70, // Fixed height for consistency
+    borderRadius: 35, // Match container borderRadius
   },
   tabsContainer: {
     flexDirection: 'row',
     height: '100%',
     alignItems: 'center',
     justifyContent: 'space-evenly',
-    paddingHorizontal: 5,
+    paddingHorizontal: 10, // Increased padding
   },
   tabItem: {
     flex: 1,

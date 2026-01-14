@@ -22,9 +22,9 @@ const MAPPING = {
   'cube.box.fill': 'inbox',
   'banknote.fill': 'attach-money',
   'clock.fill': 'history',
-  'clock': 'schedule', // Outline clock
+  'clock': 'access-time', // Outline clock - fixed from 'schedule' for better visibility
   'person.fill': 'person',
-  'person': 'person-outline', // Outline person
+  'person': 'person-outline', // Outline person - MaterialIcons supports this
   'mic.fill': 'mic',
   'waveform': 'graphic-eq',
   'plus': 'add', // For the custom button

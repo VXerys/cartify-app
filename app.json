@@ -9,7 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSSpeechRecognitionUsageDescription": "Allow $(PRODUCT_NAME) to use speech recognition.",
+        "NSMicrophoneUsageDescription": "Izinkan Cartify mengakses mikrofon untuk fitur suara."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,6 +25,7 @@
       "edgeToEdgeEnabled": false,
       "predictiveBackGestureEnabled": false,
       "permissions": [
+        "android.permission.RECORD_AUDIO",
         "android.permission.RECORD_AUDIO"
       ],
       "package": "com.sehanfrs0.Cartify",
@@ -65,6 +70,12 @@
       "eas": {
         "projectId": "b7de47f5-1151-40f0-9896-2507f6575965"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/b7de47f5-1151-40f0-9896-2507f6575965"
     }
   }
 }

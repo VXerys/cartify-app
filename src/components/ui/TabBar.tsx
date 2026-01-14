@@ -4,7 +4,7 @@ import { useLinkBuilder, useTheme } from '@react-navigation/native';
 
 import * as Haptics from 'expo-haptics';
 import React, { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -12,9 +12,13 @@ function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { colors } = useTheme();
   const { buildHref } = useLinkBuilder();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  
+  // Calculate responsive horizontal margin (15% of screen width on each side)
+  const horizontalMargin = Math.max(width * 0.15, 40);
 
   return (
-    <View style={[styles.container, { bottom: insets.bottom + 25 }]}>
+    <View style={[styles.container, { bottom: insets.bottom + 25, left: horizontalMargin, right: horizontalMargin }]}>
         <View style={[styles.blur, { backgroundColor: 'rgba(255, 255, 255, 0.9)' }]}>
             <View style={styles.tabsContainer}>
                 {state.routes.map((route, index) => {
@@ -142,9 +146,8 @@ function TabItem({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 30, // Safe area + margin
-    left: 60,
-    right: 60,
+    bottom: 30, // Safe area + margin (overridden by inline style)
+    // left and right are now calculated dynamically in the component
     // Provide shadow for depth
     shadowColor: "#000",
     shadowOffset: {

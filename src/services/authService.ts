@@ -11,13 +11,6 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 // Import Google Sign-In configuration
 import { configureGoogleSignIn } from './googleSignIn';
 
-// Initialize Google Sign-In safely
-try {
-  configureGoogleSignIn();
-} catch (error) {
-  console.error('Failed to initialize Google Sign-In:', error);
-}
-
 // User profile type
 export interface UserProfile {
   id: string;
@@ -44,6 +37,9 @@ let currentAuthState: AuthState = {
   isLoading: true,
   isAuthenticated: false,
 };
+
+let didInitialize = false;
+let unsubscribeAuthListener: null | (() => void) = null;
 
 // Notify all listeners of state change
 const notifyListeners = () => {
@@ -76,37 +72,55 @@ const userToProfile = (user: FirebaseAuthTypes.User | null): UserProfile | null 
   };
 };
 
-// Initialize auth state listener
-auth().onAuthStateChanged((user) => {
-  const userProfile = userToProfile(user);
-  
-  // For email/password users, check if email is verified
-  // Google/Apple sign-in users are automatically verified
-  let isAuthenticated = false;
-  
-  if (user) {
-    const providerData = user.providerData[0];
-    const isEmailProvider = providerData?.providerId === 'password';
-    
-    if (isEmailProvider) {
-      // Email users must have verified email
-      isAuthenticated = user.emailVerified;
-      console.log('Firebase Auth State Changed:', user?.email, 'Verified:', user.emailVerified);
-    } else {
-      // OAuth users (Google, Apple) are always verified
-      isAuthenticated = true;
-      console.log('Firebase Auth State Changed (OAuth):', user?.email);
-    }
-  } else {
-    console.log('Firebase Auth State Changed: No user');
+const ensureInitialized = () => {
+  if (didInitialize) return;
+  didInitialize = true;
+
+  // Configure Google Sign-In (safe, do not crash app)
+  try {
+    configureGoogleSignIn();
+  } catch (error) {
+    console.error('Failed to initialize Google Sign-In:', error);
   }
 
-  updateAuthState({
-    user: isAuthenticated ? userProfile : null,
-    isLoading: false,
-    isAuthenticated,
+  // Subscribe to Firebase auth state
+  unsubscribeAuthListener = auth().onAuthStateChanged((user) => {
+    const userProfile = userToProfile(user);
+
+    // For email/password users, check if email is verified
+    // Google/Apple sign-in users are automatically verified
+    let isAuthenticated = false;
+
+    if (user) {
+      const providerData = user.providerData[0];
+      const isEmailProvider = providerData?.providerId === 'password';
+
+      if (isEmailProvider) {
+        // Email users must have verified email
+        isAuthenticated = user.emailVerified;
+        if (__DEV__) {
+          console.log('Firebase Auth State Changed:', user?.email, 'Verified:', user.emailVerified);
+        }
+      } else {
+        // OAuth users (Google, Apple) are always verified
+        isAuthenticated = true;
+        if (__DEV__) {
+          console.log('Firebase Auth State Changed (OAuth):', user?.email);
+        }
+      }
+    } else {
+      if (__DEV__) {
+        console.log('Firebase Auth State Changed: No user');
+      }
+    }
+
+    updateAuthState({
+      user: isAuthenticated ? userProfile : null,
+      isLoading: false,
+      isAuthenticated,
+    });
   });
-});
+};
 
 export const authService = {
   /**
@@ -118,6 +132,8 @@ export const authService = {
    * Subscribe to auth state changes
    */
   subscribe: (listener: AuthStateListener): (() => void) => {
+    // Ensure listener is active even if caller forgets to call initialize()
+    ensureInitialized();
     listeners.add(listener);
     listener(currentAuthState);
     return () => {
@@ -129,7 +145,7 @@ export const authService = {
    * Initialize auth (handled by onAuthStateChanged)
    */
   initialize: async (): Promise<void> => {
-    // No manual op needed for Firebase, it restores state automatically
+    ensureInitialized();
   },
 
   /**
@@ -137,6 +153,7 @@ export const authService = {
    * Checks if email is verified before allowing login
    */
   signInWithEmail: async (email: string, password: string): Promise<UserProfile> => {
+    ensureInitialized();
     updateAuthState({ isLoading: true });
     try {
       const userCredential = await auth().signInWithEmailAndPassword(email, password);
@@ -167,7 +184,9 @@ export const authService = {
       }
       
       // Log actual Firebase errors
-      console.warn('[Auth] Login failed:', error.code);
+      if (__DEV__) {
+        console.warn('[Auth] Login failed:', error.code);
+      }
       throw new Error(getFirebaseErrorMessage(error.code));
     }
   },
@@ -178,6 +197,7 @@ export const authService = {
    * User must verify email before they can login
    */
   signUp: async (email: string, password: string, fullName: string): Promise<{ requiresVerification: boolean }> => {
+    ensureInitialized();
     updateAuthState({ isLoading: true });
     try {
       const userCredential = await auth().createUserWithEmailAndPassword(email, password);
@@ -207,6 +227,7 @@ export const authService = {
    * Sign in with Google (Native Popup)
    */
   signInWithGoogle: async (): Promise<void> => {
+    ensureInitialized();
     updateAuthState({ isLoading: true });
     try {
       // Check Play Services
@@ -226,7 +247,9 @@ export const authService = {
       // Sign-in the user with the credential
       await auth().signInWithCredential(googleCredential);
       
-      console.log('Google Sign-In successful');
+      if (__DEV__) {
+        console.log('Google Sign-In successful');
+      }
     } catch (error: any) {
       console.error('Google Sign-In Error:', error);
       updateAuthState({ isLoading: false });
@@ -270,6 +293,7 @@ export const authService = {
    * Send password reset email
    */
   sendPasswordReset: async (email: string): Promise<void> => {
+    ensureInitialized();
     updateAuthState({ isLoading: true });
     try {
       await auth().sendPasswordResetEmail(email);
@@ -284,13 +308,23 @@ export const authService = {
    * Sign out
    */
   signOut: async (): Promise<void> => {
+    ensureInitialized();
     updateAuthState({ isLoading: true });
     try {
-      await GoogleSignin.signOut(); // Sign out from Google as well
+      // Best-effort Google sign-out; don't block Firebase sign-out.
+      try {
+        await GoogleSignin.signOut();
+      } catch (e) {
+        if (__DEV__) {
+          console.warn('[Auth] Google signOut failed (ignored):', e);
+        }
+      }
+
       await auth().signOut();
+      updateAuthState({ isLoading: false });
     } catch (error: any) {
       updateAuthState({ isLoading: false });
-      throw error;
+      throw new Error(getFirebaseErrorMessage(error.code));
     }
   },
 
@@ -298,6 +332,7 @@ export const authService = {
    * Update user profile
    */
   updateProfile: async (updates: { fullName?: string; avatarUrl?: string }): Promise<void> => {
+    ensureInitialized();
     const user = auth().currentUser;
     if (!user) throw new Error('No user logged in');
 
@@ -323,7 +358,7 @@ export const authService = {
 };
 
 // Helper: Map Firebase error codes to human-readable messages
-function getFirebaseErrorMessage(code: string): string {
+function getFirebaseErrorMessage(code?: string): string {
   switch (code) {
     // Email/Password errors
     case 'auth/email-already-in-use':
@@ -373,7 +408,9 @@ function getFirebaseErrorMessage(code: string): string {
     
     default:
       // Log unknown errors for debugging
-      console.warn('Unknown Firebase auth error:', code);
+      if (__DEV__) {
+        console.warn('Unknown Firebase auth error:', code);
+      }
       return 'Something went wrong. Please try again.';
   }
 }

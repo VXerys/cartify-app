@@ -10,35 +10,9 @@ import Animated, {
 import { styles } from './RegisterScreen.styles';
 import { PasswordStrengthResult } from './RegisterScreen.types';
 
-// Password strength calculation
-export const calculatePasswordStrength = (password: string): PasswordStrengthResult => {
-  const requirements = {
-    minLength: password.length >= 8,
-    hasUppercase: /[A-Z]/.test(password),
-    hasLowercase: /[a-z]/.test(password),
-    hasNumber: /[0-9]/.test(password),
-    hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(password),
-  };
+import { calculatePasswordStrength } from './passwordStrength';
 
-  const metRequirements = Object.values(requirements).filter(Boolean).length;
-  
-  let strength: 'weak' | 'medium' | 'strong' = 'weak';
-  let label = 'Weak';
-  let color = '#EF4444';
-  let score = metRequirements;
-
-  if (metRequirements >= 4) {
-    strength = 'strong';
-    label = 'Strong';
-    color = '#10B981';
-  } else if (metRequirements >= 3) {
-    strength = 'medium';
-    label = 'Medium';
-    color = '#F59E0B';
-  }
-
-  return { strength, score, label, color, requirements };
-};
+export { calculatePasswordStrength };
 
 interface RequirementItemProps {
   met: boolean;

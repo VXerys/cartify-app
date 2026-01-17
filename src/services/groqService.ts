@@ -1,4 +1,5 @@
 import Groq from "groq-sdk";
+import { normalizeCategory, normalizeMoney, normalizeQty, normalizeUnit } from "@/src/utils/normalize";
 
 // Load multiple API keys for failover rotation
 const API_KEYS = [
@@ -262,22 +263,33 @@ export const groqService = {
 
         const rawJson = JSON.parse(output);
 
+        // Normalize core fields so downstream stays consistent
+        const normalizedQty = normalizeQty(rawJson.qty);
+        const normalizedPrice = normalizeMoney(rawJson.price);
+        const normalizedCategory = normalizeCategory(rawJson.category);
+        const normalizedUnit = normalizeUnit(rawJson.unit);
+
         // Boundary Value Validation
         const MAX_PRICE_PER_ITEM = 1000000;
-        const unitPrice = rawJson.qty > 0 ? (rawJson.price / rawJson.qty) : rawJson.price;
+        const unitPrice = normalizedQty > 0 ? (normalizedPrice / normalizedQty) : normalizedPrice;
 
         if (unitPrice > MAX_PRICE_PER_ITEM) {
              return {
                  id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36),
                  product_name: "LIMIT_EXCEEDED", 
-                 price: rawJson.price, 
-                 qty: rawJson.qty, 
-                 category: rawJson.category || 'other'
+                 price: normalizedPrice,
+                 qty: normalizedQty,
+                 unit: normalizedUnit,
+                 category: normalizedCategory
              };
         }
 
         const json: ParsedItem = {
-            ...rawJson,
+              ...rawJson,
+              price: normalizedPrice,
+              qty: normalizedQty,
+              unit: normalizedUnit,
+              category: normalizedCategory,
             id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36)
         };
         return json;

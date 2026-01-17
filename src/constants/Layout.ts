@@ -1,6 +1,19 @@
 import { Dimensions, PixelRatio, Platform } from 'react-native';
 
-const { width, height } = Dimensions.get('window');
+const DEFAULT_WINDOW = { width: 375, height: 812 };
+const windowSize = (() => {
+  try {
+    const dims = (Dimensions as any)?.get?.('window');
+    if (dims && typeof dims.width === 'number' && typeof dims.height === 'number') {
+      return dims as { width: number; height: number };
+    }
+  } catch {
+    // ignore
+  }
+  return DEFAULT_WINDOW;
+})();
+
+const { width, height } = windowSize;
 
 // Guideline sizes are based on standard ~5" screen mobile device
 const guidelineBaseWidth = 350;

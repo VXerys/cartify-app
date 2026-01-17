@@ -23,7 +23,7 @@ export function EditItemModal({
     visible, 
     initialName, 
     initialPrice, 
-    initialUnit = 'unit',
+    initialUnit = 'pcs',
     onClose, 
     onSave 
 }: EditItemModalProps) {
@@ -31,12 +31,12 @@ export function EditItemModal({
     const [unit, setUnit] = useState(initialUnit);
     const [priceStr, setPriceStr] = useState('');
 
-    const COMMON_UNITS = ['pcs', 'kg', 'gr', 'liter', 'ml', 'pack', 'unit', 'box', 'porsi'];
+    const COMMON_UNITS = ['pcs', 'pack', 'botol', 'kaleng', 'dus', 'ikat', 'porsi', 'kg', 'gr', 'l', 'ml', 'box'];
 
     useEffect(() => {
         if (visible) {
             setName(initialName);
-            setUnit(initialUnit || 'unit');
+            setUnit(initialUnit || 'pcs');
             // Format existing price
             setPriceStr(parseCurrencyInput(initialPrice.toString()));
         }

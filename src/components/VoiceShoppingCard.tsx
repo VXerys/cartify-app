@@ -99,7 +99,7 @@ export function VoiceShoppingCard({
             <View style={styles.detailsRow}>
               <Text style={[styles.unitPrice, { fontSize: smallText }]}>
                   {formatCurrency(price / (qty || 1))}
-                  <Text style={[styles.unitLabel, { fontSize: moderateScale(11) }]}> / {unit || 'unit'}</Text>
+                  <Text style={[styles.unitLabel, { fontSize: moderateScale(11) }]}> / {unit || 'pcs'}</Text>
               </Text>
 
               {readOnly ? (

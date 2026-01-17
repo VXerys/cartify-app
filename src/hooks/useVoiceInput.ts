@@ -60,6 +60,18 @@ export function useVoiceInput(): UseVoiceInputResult {
      }
   }, []);
 
+  // Cleanup timers and recognition on unmount
+  useEffect(() => {
+    return () => {
+      clearSilenceTimer();
+      try {
+        ExpoSpeechRecognitionModule.stop();
+      } catch {
+        // ignore
+      }
+    };
+  }, [clearSilenceTimer]);
+
   useSpeechRecognitionEvent('start', () => {
       setIsListening(true);
       setError(null);

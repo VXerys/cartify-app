@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 // Storage keys
 const VOICE_BUTTON_POSITION_KEY = 'voice-button-position';
@@ -27,6 +27,13 @@ export interface UseSettingsResult {
 export function useSettings(): UseSettingsResult {
     const [voiceButtonPosition, setVoiceButtonPositionState] = useState<VoiceButtonPosition>('right');
     const [isLoading, setIsLoading] = useState(true);
+    const isMountedRef = useRef(true);
+
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     // Load settings on mount
     useEffect(() => {
@@ -48,12 +55,16 @@ export function useSettings(): UseSettingsResult {
         try {
             const storedPosition = await AsyncStorage.getItem(VOICE_BUTTON_POSITION_KEY);
             if (storedPosition === 'left' || storedPosition === 'right') {
-                setVoiceButtonPositionState(storedPosition);
+                if (isMountedRef.current) {
+                    setVoiceButtonPositionState(storedPosition);
+                }
             }
         } catch (error) {
             console.warn('Failed to load settings:', error);
         } finally {
-            setIsLoading(false);
+            if (isMountedRef.current) {
+                setIsLoading(false);
+            }
         }
     };
 

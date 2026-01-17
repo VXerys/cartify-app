@@ -19,7 +19,8 @@ import { VoiceShoppingCard } from '@/src/components/VoiceShoppingCard';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useVoiceInput } from '@/src/hooks/useVoiceInput';
 import { insertTransaction, Transaction } from '@/src/services/db';
-import { groqService as geminiService, ParsedItem } from '@/src/services/groqService';
+import { groqService, ParsedItem } from '@/src/services/groqService';
+import { normalizeCategory, normalizeMoney, normalizeQty, normalizeUnit } from '@/src/utils/normalize';
 import { useSQLiteContext } from 'expo-sqlite';
 import { toast } from 'sonner-native';
 
@@ -28,24 +29,23 @@ export default function HomeScreen() {
   const { isListening, transcript, finalResult, startRecording, stopRecording, error: voiceError } = useVoiceInput();
   const [items, setItems] = useState<ParsedItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const { moderateScale, isTablet, contentContainerStyle, containerPadding } = useResponsive();
   const { voiceButtonPosition } = useSettings();
 
-  const categories = [
-      // ... (no change to categories)
-      { key: 'All', label: t('categories.all') },
-      { key: 'Food', label: t('categories.food') },
-      { key: 'Drink', label: t('categories.drink') },
-      { key: 'Fruit', label: t('categories.fruit') },
-      { key: 'Snacks', label: t('categories.snacks') },
-      { key: 'Household', label: t('categories.household') },
-      { key: 'Other', label: t('categories.other') }
-  ];
+    const categories = [
+      { key: 'all', label: t('categories.all') },
+      { key: 'food', label: t('categories.food') },
+      { key: 'drink', label: t('categories.drink') },
+      { key: 'fruit', label: t('categories.fruit') },
+      { key: 'snacks', label: t('categories.snacks') },
+      { key: 'household', label: t('categories.household') },
+      { key: 'other', label: t('categories.other') }
+    ];
 
-  const filteredItems = selectedCategory === 'All' 
-    ? items 
-    : items.filter(item => item.category?.toLowerCase() === selectedCategory.toLowerCase());
+  const filteredItems = selectedCategory === 'all'
+    ? items
+    : items.filter(item => normalizeCategory(item.category) === selectedCategory);
   
   // Budget State
   const [budget, setBudget] = useState(500000); // Default IDR 500k
@@ -74,14 +74,19 @@ export default function HomeScreen() {
                 date: new Date().toISOString(),
                 total_amount: spent,
                 note: 'Shopping Session',
-                items: items.map(item => ({
+                items: items.map(item => {
+                  const qty = normalizeQty(item.qty);
+                  const totalPrice = normalizeMoney(item.price);
+                  const unitPrice = qty > 0 ? Math.round(totalPrice / qty) : totalPrice;
+                  return {
                     item_name: item.product_name,
-                    item_price: item.qty > 0 ? (item.price / item.qty) : item.price,
-                    quantity: item.qty,
-                    unit: item.unit,
-                    category: item.category || 'Other',
-                    total_price: item.price
-                }))
+                  item_price: unitPrice,
+                  quantity: qty,
+                  unit: normalizeUnit(item.unit),
+                  category: normalizeCategory(item.category),
+                  total_price: totalPrice
+                  };
+                })
             };
 
             await insertTransaction(db, transaction);
@@ -102,7 +107,7 @@ export default function HomeScreen() {
     setIsProcessing(true);
     try {
       console.log("Analyzing text:", text);
-      const result = await geminiService.analyzeVoiceText(text);
+      const result = await groqService.analyzeVoiceText(text);
       
       if (!result) {
         toast.error(t('voice.errorBoth'), { 
@@ -164,10 +169,13 @@ export default function HomeScreen() {
       }
 
       // Quantity Logic handled in prompt (defaults to 1) but ensure it's valid
-      const cleanItem = {
+        const cleanItem: ParsedItem = {
           ...result,
-          qty: result.qty > 0 ? result.qty : 1
-      };
+          qty: normalizeQty(result.qty),
+          price: normalizeMoney(result.price),
+          unit: normalizeUnit(result.unit),
+          category: normalizeCategory(result.category)
+        };
 
       setItems((prev) => [cleanItem, ...prev]);
 
@@ -200,7 +208,7 @@ export default function HomeScreen() {
       return prevItems.map(item => {
         if (item.id !== id) return item;
         
-        const unitPrice = item.qty > 0 ? (item.price / item.qty) : 0;
+        const unitPrice = item.qty > 0 ? Math.round(item.price / item.qty) : 0;
         const newQty = item.qty + change;
         
         if (newQty < 1) return item;
@@ -208,7 +216,7 @@ export default function HomeScreen() {
         return {
           ...item,
           qty: newQty,
-          price: Math.round(unitPrice * newQty)
+          price: unitPrice * newQty
         };
       });
     });
@@ -222,13 +230,13 @@ export default function HomeScreen() {
         if (item.id !== editingId) return item;
         
         // Recalculate total price based on new unit price
-        const newTotalPrice = unitPrice * item.qty;
+        const newTotalPrice = Math.round(unitPrice) * item.qty;
         
         return {
           ...item,
           product_name: name,
           price: newTotalPrice,
-          unit: unit // Update the unit
+          unit: normalizeUnit(unit) // Update the unit
         };
       });
     });
@@ -284,7 +292,7 @@ export default function HomeScreen() {
         {items.length > 0 && (
             <View style={[styles.titleWrapper, contentContainerStyle as any, { paddingHorizontal: isTablet ? 0 : containerPadding }]}>
                 <Text style={[styles.sectionTitle, { fontSize: moderateScale(18) }]}>
-                    {selectedCategory === 'All' 
+                    {selectedCategory === 'all' 
                         ? t('home.recentItems') 
                         : `${categories.find(c => c.key === selectedCategory)?.label || selectedCategory} Items`}
                 </Text>

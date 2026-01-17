@@ -44,7 +44,7 @@ SHA-1 fingerprint Anda untuk debug:
 
 ### Step 3: Update Environment Variables
 
-Buat file `.env` di root project (jika belum ada):
+Gunakan template [.env.example](.env.example) (sudah ada di repo), lalu buat/isi file `.env` di root project:
 
 ```env
 # Google Web Client ID dari Firebase Console

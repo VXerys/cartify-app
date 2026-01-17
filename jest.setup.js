@@ -1,6 +1,6 @@
 /**
  * Jest Setup File
- * 
+ *
  * Global mocks and configurations for all tests
  */
 
@@ -8,21 +8,21 @@
 global.__DEV__ = true;
 
 // Mock react-native modules that are commonly used
-jest.mock('react-native/Libraries/Utilities/Dimensions', () => ({
+jest.mock("react-native/Libraries/Utilities/Dimensions", () => ({
   get: jest.fn().mockReturnValue({ width: 375, height: 812 }),
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
 }));
 
 // Mock @expo/vector-icons
-jest.mock('@expo/vector-icons', () => ({
-  Ionicons: 'Ionicons',
-  MaterialIcons: 'MaterialIcons',
-  FontAwesome: 'FontAwesome',
+jest.mock("@expo/vector-icons", () => ({
+  Ionicons: "Ionicons",
+  MaterialIcons: "MaterialIcons",
+  FontAwesome: "FontAwesome",
 }));
 
 // Mock React Native Reanimated
-jest.mock('react-native-reanimated', () => {
+jest.mock("react-native-reanimated", () => {
   return {
     __esModule: true,
     default: {
@@ -35,10 +35,10 @@ jest.mock('react-native-reanimated', () => {
       set: jest.fn(),
       cond: jest.fn(),
       interpolate: jest.fn(),
-      View: 'Animated.View',
-      Text: 'Animated.Text',
-      Image: 'Animated.Image',
-      ScrollView: 'Animated.ScrollView',
+      View: "Animated.View",
+      Text: "Animated.Text",
+      Image: "Animated.Image",
+      ScrollView: "Animated.ScrollView",
     },
     useSharedValue: jest.fn(() => ({ value: 0 })),
     useAnimatedStyle: jest.fn(() => ({})),
@@ -46,15 +46,21 @@ jest.mock('react-native-reanimated', () => {
     withSpring: jest.fn((value) => value),
     withDelay: jest.fn((_, animation) => animation),
     FadeIn: { duration: () => ({ delay: () => ({}) }) },
-    FadeInUp: { duration: () => ({ delay: () => ({}) }), delay: () => ({ duration: () => ({}) }) },
-    FadeInDown: { duration: () => ({ delay: () => ({}) }), delay: () => ({ duration: () => ({}) }) },
+    FadeInUp: {
+      duration: () => ({ delay: () => ({}) }),
+      delay: () => ({ duration: () => ({}) }),
+    },
+    FadeInDown: {
+      duration: () => ({ delay: () => ({}) }),
+      delay: () => ({ duration: () => ({}) }),
+    },
     interpolate: jest.fn(),
-    Extrapolate: { CLAMP: 'clamp' },
+    Extrapolate: { CLAMP: "clamp" },
   };
 });
 
 // Mock Firebase Auth
-jest.mock('@react-native-firebase/auth', () => {
+jest.mock("@react-native-firebase/auth", () => {
   const mockAuth = {
     currentUser: null,
     signInWithEmailAndPassword: jest.fn(),
@@ -81,39 +87,39 @@ jest.mock('@react-native-firebase/auth', () => {
 });
 
 // Mock Google Sign-In
-jest.mock('@react-native-google-signin/google-signin', () => ({
+jest.mock("@react-native-google-signin/google-signin", () => ({
   GoogleSignin: {
     configure: jest.fn(),
     hasPlayServices: jest.fn().mockResolvedValue(true),
-    signIn: jest.fn().mockResolvedValue({ data: { idToken: 'mock-token' } }),
+    signIn: jest.fn().mockResolvedValue({ data: { idToken: "mock-token" } }),
     signOut: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
 // Mock local googleSignIn service to prevent environment var warnings
-jest.mock('@/src/services/googleSignIn', () => ({
+jest.mock("@/src/services/googleSignIn", () => ({
   configureGoogleSignIn: jest.fn(),
   GoogleSignin: {
     configure: jest.fn(),
     hasPlayServices: jest.fn().mockResolvedValue(true),
-    signIn: jest.fn().mockResolvedValue({ data: { idToken: 'mock-token' } }),
+    signIn: jest.fn().mockResolvedValue({ data: { idToken: "mock-token" } }),
     signOut: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
 // Mock expo-router
-jest.mock('expo-router', () => ({
+jest.mock("expo-router", () => ({
   useRouter: () => ({
     push: jest.fn(),
     replace: jest.fn(),
     back: jest.fn(),
   }),
   useLocalSearchParams: () => ({}),
-  Link: 'Link',
+  Link: "Link",
 }));
 
 // Mock Async Storage
-jest.mock('@react-native-async-storage/async-storage', () => ({
+jest.mock("@react-native-async-storage/async-storage", () => ({
   setItem: jest.fn().mockResolvedValue(undefined),
   getItem: jest.fn().mockResolvedValue(null),
   removeItem: jest.fn().mockResolvedValue(undefined),
@@ -121,7 +127,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 }));
 
 // Mock react-native-safe-area-context
-jest.mock('react-native-safe-area-context', () => {
+jest.mock("react-native-safe-area-context", () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
   return {
     SafeAreaProvider: ({ children }) => children,
@@ -131,7 +137,7 @@ jest.mock('react-native-safe-area-context', () => {
 });
 
 // Mock sonner-native
-jest.mock('sonner-native', () => ({
+jest.mock("sonner-native", () => ({
   toast: {
     success: jest.fn(),
     error: jest.fn(),
@@ -141,11 +147,11 @@ jest.mock('sonner-native', () => ({
 }));
 
 // Mock i18next
-jest.mock('react-i18next', () => ({
+jest.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key) => key,
     i18n: {
-      language: 'en',
+      language: "en",
       changeLanguage: jest.fn(),
     },
   }),

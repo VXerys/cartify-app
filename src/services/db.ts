@@ -67,7 +67,7 @@ export interface TransactionItem {
   item_price: number;
   quantity: number;
   unit?: string;
-  category: string;
+  category?: string;
   total_price: number;
 }
 
@@ -94,7 +94,7 @@ export const insertTransaction = async (db: SQLiteDatabase, transaction: Transac
             for (const item of transaction.items) {
                 await db.runAsync(
                     'INSERT INTO transaction_items (transaction_id, item_name, item_price, quantity, unit, category, total_price) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                    [transactionId, item.item_name, item.item_price, item.quantity, item.unit || null, item.category, item.total_price]
+                    [transactionId, item.item_name, item.item_price, item.quantity, item.unit || null, item.category || null, item.total_price]
                 );
             }
         }

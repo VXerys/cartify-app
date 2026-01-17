@@ -1,7 +1,7 @@
 import { Layout } from '@/src/constants/Layout';
-import { Dimensions, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Layout.window;
 
 export const styles = StyleSheet.create({
   container: {

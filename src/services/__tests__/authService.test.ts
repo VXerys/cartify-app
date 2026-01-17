@@ -5,15 +5,17 @@
  * Tests the business logic layer of authentication.
  */
 
-import auth from '@react-native-firebase/auth';
-
 describe('AuthService', () => {
   // Store original module
   let authService: typeof import('../../services/authService').authService;
+  let firebaseAuth: typeof import('@react-native-firebase/auth').default;
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetModules();
+
+    // Re-require after resetModules so we stub the same mock instance
+    firebaseAuth = require('@react-native-firebase/auth').default;
     
     // Re-import to get fresh instance
     const authModule = require('../../services/authService');
@@ -89,13 +91,13 @@ describe('AuthService', () => {
         providerData: [{ providerId: 'password' }],
       };
 
-      (auth().signInWithEmailAndPassword as jest.Mock).mockResolvedValue({
+      (firebaseAuth().signInWithEmailAndPassword as jest.Mock).mockResolvedValue({
         user: mockUser,
       });
 
       const result = await authService.signInWithEmail('test@example.com', 'password123');
 
-      expect(auth().signInWithEmailAndPassword).toHaveBeenCalledWith('test@example.com', 'password123');
+      expect(firebaseAuth().signInWithEmailAndPassword).toHaveBeenCalledWith('test@example.com', 'password123');
       expect(result).toBeDefined();
       expect(result.email).toBe('test@example.com');
     });
@@ -108,10 +110,10 @@ describe('AuthService', () => {
         providerData: [{ providerId: 'password' }],
       };
 
-      (auth().signInWithEmailAndPassword as jest.Mock).mockResolvedValue({
+      (firebaseAuth().signInWithEmailAndPassword as jest.Mock).mockResolvedValue({
         user: mockUnverifiedUser,
       });
-      (auth().signOut as jest.Mock).mockResolvedValue(undefined);
+      (firebaseAuth().signOut as jest.Mock).mockResolvedValue(undefined);
 
       await expect(authService.signInWithEmail('test@example.com', 'password123'))
         .rejects.toThrow('verify your email');
@@ -123,7 +125,7 @@ describe('AuthService', () => {
   // ============================================
   describe('signUp', () => {
     it('should handle email already in use error', async () => {
-      (auth().createUserWithEmailAndPassword as jest.Mock).mockRejectedValue({
+      (firebaseAuth().createUserWithEmailAndPassword as jest.Mock).mockRejectedValue({
         code: 'auth/email-already-in-use',
       });
 
@@ -137,11 +139,11 @@ describe('AuthService', () => {
   // ============================================
   describe('sendPasswordReset', () => {
     it('should call Firebase sendPasswordResetEmail', async () => {
-      (auth().sendPasswordResetEmail as jest.Mock).mockResolvedValue(undefined);
+      (firebaseAuth().sendPasswordResetEmail as jest.Mock).mockResolvedValue(undefined);
 
       await authService.sendPasswordReset('test@example.com');
 
-      expect(auth().sendPasswordResetEmail).toHaveBeenCalledWith('test@example.com');
+      expect(firebaseAuth().sendPasswordResetEmail).toHaveBeenCalledWith('test@example.com');
     });
   });
 
@@ -150,11 +152,11 @@ describe('AuthService', () => {
   // ============================================
   describe('signOut', () => {
     it('should call Firebase signOut', async () => {
-      (auth().signOut as jest.Mock).mockResolvedValue(undefined);
+      (firebaseAuth().signOut as jest.Mock).mockResolvedValue(undefined);
 
       await authService.signOut();
 
-      expect(auth().signOut).toHaveBeenCalled();
+      expect(firebaseAuth().signOut).toHaveBeenCalled();
     });
   });
 

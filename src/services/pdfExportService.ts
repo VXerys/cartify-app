@@ -3,6 +3,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import Groq from 'groq-sdk';
 import { Transaction } from './db';
+import { normalizeCategory } from '@/src/utils/normalize';
 
 // Groq API Key from environment
 const GROQ_API_KEY = process.env.EXPO_PUBLIC_GROQ_API_KEY;
@@ -61,7 +62,7 @@ const generateAISummary = async (transactions: Transaction[]): Promise<string | 
         const categoryTotals: Record<string, number> = {};
         transactions.forEach(t => {
             t.items?.forEach(item => {
-                const cat = item.category || 'other';
+                const cat = normalizeCategory(item.category);
                 categoryTotals[cat] = (categoryTotals[cat] || 0) + item.total_price;
             });
         });
@@ -120,7 +121,7 @@ const generatePDFHTML = async (
 
     transactions.forEach(t => {
         t.items?.forEach(item => {
-            const cat = item.category || 'other';
+            const cat = normalizeCategory(item.category);
             if (!categoryTotals[cat]) {
                 categoryTotals[cat] = { total: 0, count: 0 };
             }
@@ -170,8 +171,8 @@ const generatePDFHTML = async (
                 <td class="cell-price">${formatCurrency(item.item_price)}</td>
                 <td class="cell-total">${formatCurrency(item.total_price)}</td>
                 <td class="cell-category">
-                    <span class="badge" style="background-color: ${categoryColors[item.category] || '#6B7280'}20; color: ${categoryColors[item.category] || '#6B7280'};">
-                        ${item.category || 'other'}
+                    <span class="badge" style="background-color: ${categoryColors[normalizeCategory(item.category)] || '#6B7280'}20; color: ${categoryColors[normalizeCategory(item.category)] || '#6B7280'};">
+                        ${normalizeCategory(item.category)}
                     </span>
                 </td>
                 ${iIndex === 0 ? `

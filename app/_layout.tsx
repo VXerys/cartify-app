@@ -24,6 +24,18 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
   const [isReady, setIsReady] = useState(false);
   const previousAuthState = useRef<boolean | null>(null);
   const hasInitialNavigation = useRef(false);
+  const readyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (readyTimerRef.current) {
+        clearTimeout(readyTimerRef.current);
+        readyTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // Handle navigation logic
   useEffect(() => {
@@ -72,8 +84,13 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
       }
       
       // Small delay to ensure navigation completes before showing content
-      setTimeout(() => {
-        setIsReady(true);
+      if (readyTimerRef.current) {
+        clearTimeout(readyTimerRef.current);
+      }
+      readyTimerRef.current = setTimeout(() => {
+        if (isMountedRef.current) {
+          setIsReady(true);
+        }
       }, 100);
       return;
     }

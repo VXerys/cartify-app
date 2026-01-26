@@ -14,12 +14,43 @@ jest.mock("react-native/Libraries/Utilities/Dimensions", () => ({
   removeEventListener: jest.fn(),
 }));
 
+// Mock PixelRatio to avoid native calls in tests
+jest.mock("react-native/Libraries/Utilities/PixelRatio", () => ({
+  get: jest.fn(() => 1),
+  roundToNearestPixel: jest.fn((size) => size),
+}));
+
+// Mock react-native base module using RN Jest mock and override PixelRatio
+jest.mock("react-native", () => {
+  const rnMock = jest.requireActual("react-native/jest/mock");
+  rnMock.View = rnMock.View || "View";
+  rnMock.Text = rnMock.Text || "Text";
+  rnMock.ScrollView = rnMock.ScrollView || rnMock.View;
+  rnMock.TouchableOpacity = rnMock.TouchableOpacity || rnMock.View;
+  rnMock.PixelRatio = {
+    get: jest.fn(() => 1),
+    roundToNearestPixel: jest.fn((size) => size),
+  };
+  rnMock.StyleSheet = {
+    create: (styles) => styles,
+    hairlineWidth: 1,
+    absoluteFillObject: {},
+    flatten: (style) => style,
+  };
+  return rnMock;
+});
+
 // Mock @expo/vector-icons
 jest.mock("@expo/vector-icons", () => ({
   Ionicons: "Ionicons",
   MaterialIcons: "MaterialIcons",
   FontAwesome: "FontAwesome",
 }));
+
+// Mock MaterialIcons submodule directly (used by IconSymbol)
+jest.mock("@expo/vector-icons/MaterialIcons", () => {
+  return "MaterialIcons";
+});
 
 // Mock React Native Reanimated
 jest.mock("react-native-reanimated", () => {

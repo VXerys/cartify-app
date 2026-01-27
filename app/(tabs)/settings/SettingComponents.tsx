@@ -9,7 +9,7 @@ import { SettingItemProps, SettingSectionProps } from './settings.types';
 const COLORS = Layout.colors;
 
 // Animated Pressable Component
-export const AnimatedPressable = ({ onPress, style, children }: any) => {
+export const AnimatedPressable = ({ onPress, style, children, testID, accessibilityLabel }: any) => {
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
 
@@ -21,6 +21,9 @@ export const AnimatedPressable = ({ onPress, style, children }: any) => {
   return (
     <Pressable
       onPress={onPress}
+      testID={testID}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="button"
       onPressIn={() => {
         scale.value = withTiming(0.98, { duration: 100 });
         opacity.value = withTiming(0.7, { duration: 100 });
@@ -63,12 +66,17 @@ export const SettingItem: React.FC<SettingItemProps> = ({
   textColor = COLORS.text,
   iconColor = COLORS.primary,
   moderateScale,
+  testID,
+  accessibilityLabel,
 }) => (
   <TouchableOpacity
     style={[styles.item, { padding: moderateScale(18) }]}
     onPress={onPress}
     disabled={isSwitch}
     activeOpacity={0.7}
+    testID={testID}
+    accessibilityLabel={accessibilityLabel}
+    accessibilityRole="button"
   >
     <View style={[styles.iconContainer, { marginRight: moderateScale(12) }]}>
       <IconSymbol name={icon} size={moderateScale(24)} color={iconColor} />

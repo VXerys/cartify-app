@@ -162,7 +162,13 @@ export default function HistoryScreen() {
                     style={[styles.activeFilterBadge, { paddingHorizontal: moderateScale(10), paddingVertical: moderateScale(4), borderRadius: moderateScale(12) }]}
                 >
                     <Text style={[styles.activeFilterText, { fontSize: moderateScale(12) }]}>{formatDate(selectedDate, i18n.language)}</Text>
-                    <TouchableOpacity onPress={() => setSelectedDate('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    <TouchableOpacity
+                      onPress={() => setSelectedDate('')}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      testID="history-clear-date-filter"
+                      accessibilityLabel="Clear date filter"
+                      accessibilityRole="button"
+                    >
                         <IconSymbol name="xmark" size={moderateScale(12)} color="#FFF" />
                     </TouchableOpacity>
                 </Animated.View>
@@ -177,6 +183,9 @@ export default function HistoryScreen() {
             ]}
             onPress={() => setShowCalendar(!showCalendar)}
             activeOpacity={0.7}
+            testID="history-toggle-calendar"
+            accessibilityLabel="Toggle calendar"
+            accessibilityRole="button"
         >
             <IconSymbol 
                 name="calendar" 

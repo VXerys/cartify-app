@@ -6,6 +6,7 @@
 
 // Define __DEV__ for React Native
 global.__DEV__ = true;
+process.env.EXPO_OS = process.env.EXPO_OS || "ios";
 
 // Mock react-native modules that are commonly used
 jest.mock("react-native/Libraries/Utilities/Dimensions", () => ({
@@ -28,6 +29,13 @@ jest.mock("react-native", () => {
   rnMock.ScrollView = rnMock.ScrollView || rnMock.View;
   rnMock.TouchableOpacity = rnMock.TouchableOpacity || rnMock.View;
   rnMock.Pressable = rnMock.Pressable || rnMock.View;
+  if (!rnMock.FlatList) {
+    const React = require("react");
+    const { View } = rnMock;
+    rnMock.FlatList = ({ ListEmptyComponent }: any) => (
+      React.createElement(View, null, ListEmptyComponent || null)
+    );
+  }
   rnMock.RefreshControl = rnMock.RefreshControl || rnMock.View;
   rnMock.StatusBar = rnMock.StatusBar || "StatusBar";
   rnMock.PixelRatio = {
@@ -79,7 +87,15 @@ jest.mock("react-native-reanimated", () => {
     withTiming: jest.fn((value) => value),
     withSpring: jest.fn((value) => value),
     withDelay: jest.fn((_, animation) => animation),
-    FadeIn: { duration: () => ({ delay: () => ({}) }) },
+    Easing: {
+      in: (fn) => fn,
+      out: (fn) => fn,
+      cubic: jest.fn(),
+    },
+    FadeIn: {
+      duration: () => ({ delay: () => ({}) }),
+      delay: () => ({}),
+    },
     FadeInUp: {
       duration: () => ({ delay: () => ({}) }),
       delay: () => ({ duration: () => ({}) }),
@@ -87,6 +103,12 @@ jest.mock("react-native-reanimated", () => {
     FadeInDown: {
       duration: () => ({ delay: () => ({}) }),
       delay: () => ({ duration: () => ({}) }),
+    },
+    ZoomIn: {
+      duration: () => ({}),
+    },
+    ZoomOut: {
+      duration: () => ({}),
     },
     interpolate: jest.fn(),
     Extrapolate: { CLAMP: "clamp" },
@@ -170,6 +192,14 @@ jest.mock("react-native-safe-area-context", () => {
   };
 });
 
+// Mock expo-localization to avoid native module access in tests
+jest.mock("expo-localization", () => ({
+  locale: "en-US",
+  timezone: "UTC",
+  getLocales: () => [{ languageCode: "en", countryCode: "US", languageTag: "en-US" }],
+  getCalendars: () => [],
+}));
+
 // Mock sonner-native
 jest.mock("sonner-native", () => ({
   toast: {
@@ -189,6 +219,10 @@ jest.mock("react-i18next", () => ({
       changeLanguage: jest.fn(),
     },
   }),
+  initReactI18next: {
+    type: "3rdParty",
+    init: jest.fn(),
+  },
 }));
 
 // Global test timeout

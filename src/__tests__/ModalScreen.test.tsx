@@ -9,8 +9,8 @@ import { render } from "@testing-library/react-native";
 import React from "react";
 import { Text, View } from "react-native";
 
-const mockText = Text;
-const mockView = View;
+const MockText = Text;
+const MockView = View;
 
 jest.mock("expo-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -24,13 +24,13 @@ jest.mock("expo-router", () => ({
 
 jest.mock("@/src/components/themed-text", () => ({
   ThemedText: ({ children }: { children: React.ReactNode }) => (
-    <mockText>{children}</mockText>
+    <MockText>{children}</MockText>
   ),
 }));
 
 jest.mock("@/src/components/themed-view", () => ({
   ThemedView: ({ children }: { children: React.ReactNode }) => (
-    <mockView>{children}</mockView>
+    <MockView>{children}</MockView>
   ),
 }));
 

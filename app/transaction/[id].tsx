@@ -81,6 +81,9 @@ export default function TransactionDetailScreen() {
                     },
                     pressed && styles.backButtonPressed
                 ]}
+                testID="transaction-back-button"
+                accessibilityLabel="Back"
+                accessibilityRole="button"
             >
                 <IconSymbol name="chevron.left" size={moderateScale(24)} color="#FFF" /> 
             </Pressable>
@@ -167,6 +170,9 @@ export default function TransactionDetailScreen() {
                     },
                     pressed && styles.backButtonPressed
                 ]}
+                testID="transaction-back-button"
+                accessibilityLabel="Back"
+                accessibilityRole="button"
             >
                 <IconSymbol name="chevron.left" size={moderateScale(24)} color="#FFF" /> 
              </Pressable>

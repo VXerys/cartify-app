@@ -29,6 +29,12 @@ jest.mock("react-native", () => {
   rnMock.ScrollView = rnMock.ScrollView || rnMock.View;
   rnMock.TouchableOpacity = rnMock.TouchableOpacity || rnMock.View;
   rnMock.Pressable = rnMock.Pressable || rnMock.View;
+  rnMock.Dimensions = rnMock.Dimensions || {
+    get: () => ({ width: 375, height: 812 }),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  };
+  rnMock.ActivityIndicator = rnMock.ActivityIndicator || rnMock.View;
   if (!rnMock.FlatList) {
     const React = require("react");
     const { View } = rnMock;
@@ -97,12 +103,19 @@ jest.mock("react-native-reanimated", () => {
       delay: () => ({}),
     },
     FadeInUp: {
-      duration: () => ({ delay: () => ({}) }),
+      duration: () => ({
+        delay: () => ({}),
+        springify: () => ({ damping: () => ({ mass: () => ({ stiffness: () => ({}) }) }) }),
+      }),
       delay: () => ({ duration: () => ({}) }),
+      springify: () => ({ damping: () => ({ mass: () => ({ stiffness: () => ({}) }) }) }),
     },
     FadeInDown: {
-      duration: () => ({ delay: () => ({}) }),
+      duration: () => ({
+        delay: () => ({ damping: () => ({}) }),
+      }),
       delay: () => ({ duration: () => ({}) }),
+      damping: () => ({}),
     },
     ZoomIn: {
       duration: () => ({}),

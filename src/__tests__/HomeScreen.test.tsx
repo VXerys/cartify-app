@@ -4,9 +4,9 @@
  * UI tests for the Home screen (main screen).
  */
 
-import React from "react";
-import { render } from "@testing-library/react-native";
 import HomeScreen from "@/app/(tabs)/index";
+import { render } from "@testing-library/react-native";
+import React from "react";
 
 jest.mock("expo-sqlite", () => ({
   useSQLiteContext: () => ({}),

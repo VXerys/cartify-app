@@ -7,8 +7,12 @@
 import AuthPage from "@/app/auth";
 import { fireEvent, render } from "@testing-library/react-native";
 import React from "react";
+import { Text, TouchableOpacity, View } from "react-native";
 
 const mockReplace = jest.fn();
+const MockText = Text;
+const MockTouchableOpacity = TouchableOpacity;
+const MockView = View;
 
 jest.mock("expo-router", () => ({
   useRouter: () => ({
@@ -29,50 +33,46 @@ jest.mock("@/src/context/AuthContext", () => ({
   }),
 }));
 
-jest.mock("@/src/components/auth", () => {
-  const React = require("react");
-  const { Text, TouchableOpacity, View } = require("react-native");
-  return {
-    LoginScreen: ({ onLogin, onRegister }: { onLogin: () => void; onRegister: () => void }) => (
-      <View>
-        <Text>LoginScreen</Text>
-        <TouchableOpacity testID="auth-login-submit" onPress={() => onLogin("test@example.com", "Password123")}> 
-          <Text>Login</Text>
-        </TouchableOpacity>
-        <TouchableOpacity testID="auth-go-register" onPress={onRegister}>
-          <Text>Go Register</Text>
-        </TouchableOpacity>
-      </View>
-    ),
-    RegisterScreen: ({ onRegister, onLogin }: { onRegister: () => void; onLogin: () => void }) => (
-      <View>
-        <Text>RegisterScreen</Text>
-        <TouchableOpacity testID="auth-register-submit" onPress={() => onRegister("Test User", "test@example.com", "Password123")}>
-          <Text>Register</Text>
-        </TouchableOpacity>
-        <TouchableOpacity testID="auth-go-login" onPress={onLogin}>
-          <Text>Go Login</Text>
-        </TouchableOpacity>
-      </View>
-    ),
-    ForgotPasswordScreen: ({ onBackToLogin }: { onBackToLogin: () => void }) => (
-      <View>
-        <Text>ForgotPasswordScreen</Text>
-        <TouchableOpacity testID="auth-forgot-back" onPress={onBackToLogin}>
-          <Text>Back</Text>
-        </TouchableOpacity>
-      </View>
-    ),
-    VerificationPendingScreen: ({ onBackToLogin }: { onBackToLogin: () => void }) => (
-      <View>
-        <Text>VerificationPendingScreen</Text>
-        <TouchableOpacity testID="auth-verify-back" onPress={onBackToLogin}>
-          <Text>Back to login</Text>
-        </TouchableOpacity>
-      </View>
-    ),
-  };
-});
+jest.mock("@/src/components/auth", () => ({
+  LoginScreen: ({ onLogin, onRegister }: { onLogin: (email: string, password: string) => void; onRegister: () => void }) => (
+    <MockView>
+      <MockText>LoginScreen</MockText>
+      <MockTouchableOpacity testID="auth-login-submit" onPress={() => onLogin("test@example.com", "Password123")}>
+        <MockText>Login</MockText>
+      </MockTouchableOpacity>
+      <MockTouchableOpacity testID="auth-go-register" onPress={onRegister}>
+        <MockText>Go Register</MockText>
+      </MockTouchableOpacity>
+    </MockView>
+  ),
+  RegisterScreen: ({ onRegister, onLogin }: { onRegister: (fullName: string, email: string, password: string) => void; onLogin: () => void }) => (
+    <MockView>
+      <MockText>RegisterScreen</MockText>
+      <MockTouchableOpacity testID="auth-register-submit" onPress={() => onRegister("Test User", "test@example.com", "Password123")}>
+        <MockText>Register</MockText>
+      </MockTouchableOpacity>
+      <MockTouchableOpacity testID="auth-go-login" onPress={onLogin}>
+        <MockText>Go Login</MockText>
+      </MockTouchableOpacity>
+    </MockView>
+  ),
+  ForgotPasswordScreen: ({ onBackToLogin }: { onBackToLogin: () => void }) => (
+    <MockView>
+      <MockText>ForgotPasswordScreen</MockText>
+      <MockTouchableOpacity testID="auth-forgot-back" onPress={onBackToLogin}>
+        <MockText>Back</MockText>
+      </MockTouchableOpacity>
+    </MockView>
+  ),
+  VerificationPendingScreen: ({ onBackToLogin }: { onBackToLogin: () => void }) => (
+    <MockView>
+      <MockText>VerificationPendingScreen</MockText>
+      <MockTouchableOpacity testID="auth-verify-back" onPress={onBackToLogin}>
+        <MockText>Back to login</MockText>
+      </MockTouchableOpacity>
+    </MockView>
+  ),
+}));
 
 describe("AuthPage", () => {
   beforeEach(() => {

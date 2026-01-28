@@ -7,4 +7,10 @@ module.exports = defineConfig([
   {
     ignores: ['dist/*'],
   },
+  {
+    // Disable import/namespace rule - causes false positives with TypeScript JSX
+    rules: {
+      'import/namespace': 'off',
+    },
+  },
 ]);

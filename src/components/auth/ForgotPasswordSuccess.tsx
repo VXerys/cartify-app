@@ -44,7 +44,7 @@ export const ForgotPasswordSuccess: React.FC<ForgotPasswordSuccessProps> = ({
             entering={FadeInUp.delay(300).duration(500)}
             style={styles.successDescription}
           >
-            {"We've sent a password reset link to"}
+            {`We've sent a password reset link to`}
           </Animated.Text>
           <Animated.Text
             entering={FadeInUp.delay(350).duration(500)}
@@ -72,7 +72,7 @@ export const ForgotPasswordSuccess: React.FC<ForgotPasswordSuccessProps> = ({
               disabled={isLoading}
             >
               <Text style={styles.resendButtonText}>
-                {"Didn't receive? Resend"}
+                {`Didn't receive? Resend`}
               </Text>
             </TouchableOpacity>
           </Animated.View>

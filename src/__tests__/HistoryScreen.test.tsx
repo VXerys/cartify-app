@@ -24,11 +24,16 @@ jest.mock("expo-sqlite", () => ({
   useSQLiteContext: () => ({}),
 }));
 
-jest.mock("@react-navigation/native", () => ({
-  useFocusEffect: (cb: () => void) => {
-    React.useEffect(() => cb(), [cb]);
-  },
-}));
+// Mock useFocusEffect - use require inside factory to avoid out-of-scope variable error
+jest.mock("@react-navigation/native", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const ReactModule = require("react");
+  return {
+    useFocusEffect: (cb: () => void) => {
+      ReactModule.useEffect(() => cb(), [cb]);
+    },
+  };
+});
 
 jest.mock("@/src/hooks/useResponsive", () => ({
   useResponsive: () => ({

@@ -8,6 +8,16 @@
 global.__DEV__ = true;
 process.env.EXPO_OS = process.env.EXPO_OS || "ios";
 
+// Silence React 19 react-test-renderer deprecation warning in test output
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  const first = args[0];
+  if (typeof first === "string" && first.includes("react-test-renderer is deprecated")) {
+    return;
+  }
+  originalConsoleError(...args);
+};
+
 // Mock react-native modules that are commonly used
 jest.mock("react-native/Libraries/Utilities/Dimensions", () => ({
   get: jest.fn().mockReturnValue({ width: 375, height: 812 }),

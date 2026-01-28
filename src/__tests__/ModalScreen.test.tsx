@@ -7,6 +7,10 @@
 import ModalScreen from "@/app/modal";
 import { render } from "@testing-library/react-native";
 import React from "react";
+import { Text, View } from "react-native";
+
+const mockText = Text;
+const mockView = View;
 
 jest.mock("expo-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -18,25 +22,17 @@ jest.mock("expo-router", () => ({
   useLocalSearchParams: () => ({}),
 }));
 
-jest.mock("@/src/components/themed-text", () => {
-  const React = require("react");
-  const { Text } = require("react-native");
-  return {
-    ThemedText: ({ children }: { children: React.ReactNode }) => (
-      <Text>{children}</Text>
-    ),
-  };
-});
+jest.mock("@/src/components/themed-text", () => ({
+  ThemedText: ({ children }: { children: React.ReactNode }) => (
+    <mockText>{children}</mockText>
+  ),
+}));
 
-jest.mock("@/src/components/themed-view", () => {
-  const React = require("react");
-  const { View } = require("react-native");
-  return {
-    ThemedView: ({ children }: { children: React.ReactNode }) => (
-      <View>{children}</View>
-    ),
-  };
-});
+jest.mock("@/src/components/themed-view", () => ({
+  ThemedView: ({ children }: { children: React.ReactNode }) => (
+    <mockView>{children}</mockView>
+  ),
+}));
 
 describe("ModalScreen", () => {
   it("renders modal content", () => {

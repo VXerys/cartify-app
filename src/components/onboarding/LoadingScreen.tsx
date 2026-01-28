@@ -47,7 +47,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
     }, duration);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [duration, iconOpacity, onFinish, opacity, scale]);
 
   const containerStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],

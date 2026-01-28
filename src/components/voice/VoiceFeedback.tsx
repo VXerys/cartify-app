@@ -2,6 +2,7 @@ import { BlurView } from 'expo-blur';
 import React, { useEffect } from 'react';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
+    Easing,
     FadeInDown,
     FadeOutDown,
     Layout,
@@ -14,8 +15,6 @@ import Animated, {
 import { IconSymbol } from '../ui/icon-symbol';
 
 const { width } = Dimensions.get('window');
-
-import { Easing } from 'react-native-reanimated';
 
 // ... imports
 
@@ -90,7 +89,7 @@ function ProcessingIcon() {
             -1,
             false // reset to 0? No, continuous rotation.
         );
-    }, []);
+    }, [rotation]);
 
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [{ rotate: `${rotation.value}deg` }]
@@ -118,7 +117,7 @@ function PulsingIcon() {
             -1,
             true
         );
-    }, []);
+    }, [scale]);
 
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [{ scale: scale.value }]

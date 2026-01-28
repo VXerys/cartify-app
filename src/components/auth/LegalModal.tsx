@@ -2,7 +2,6 @@ import { Layout } from '@/src/constants/Layout';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
-    Dimensions,
     Modal,
     ScrollView,
     StyleSheet,
@@ -10,8 +9,6 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-
-const { height } = Dimensions.get('window');
 
 type LegalType = 'terms' | 'privacy';
 

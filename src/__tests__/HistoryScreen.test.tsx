@@ -24,14 +24,11 @@ jest.mock("expo-sqlite", () => ({
   useSQLiteContext: () => ({}),
 }));
 
-jest.mock("@react-navigation/native", () => {
-  const React = require("react");
-  return {
-    useFocusEffect: (cb: () => void) => {
-      React.useEffect(() => cb(), [cb]);
-    },
-  };
-});
+jest.mock("@react-navigation/native", () => ({
+  useFocusEffect: (cb: () => void) => {
+    React.useEffect(() => cb(), [cb]);
+  },
+}));
 
 jest.mock("@/src/hooks/useResponsive", () => ({
   useResponsive: () => ({

@@ -40,23 +40,25 @@ interface PasswordStrengthIndicatorProps {
 }
 
 export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({ result }) => {
-  // If no result (no password), we don't render anything to keep layout clean
-  if (!result) return null;
-
-  const { strength, label, color, requirements } = result;
-
-  // Derived animation values
   const progress = useSharedValue(0);
-  
-  // Update progress based on strength
+
+  const strength = result?.strength;
+  const label = result?.label;
+  const color = result?.color;
+  const requirements = result?.requirements;
+  const score = result?.score ?? 0;
+
+  const target = !strength
+    ? 0
+    : strength === 'weak'
+      ? 33
+      : strength === 'medium'
+        ? 66
+        : 100;
+
   React.useEffect(() => {
-    let target = 0;
-    if (strength === 'weak') target = 33;
-    else if (strength === 'medium') target = 66;
-    else if (strength === 'strong') target = 100;
-    
     progress.value = withTiming(target, { duration: 300 });
-  }, [strength]);
+  }, [progress, target]);
 
   const animatedBarStyle = useAnimatedStyle(() => {
     return {
@@ -64,6 +66,8 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
       backgroundColor: withTiming(color, { duration: 300 }),
     };
   });
+
+  if (!result || !requirements || !color || !label) return null;
 
   return (
     <Animated.View 
@@ -80,7 +84,7 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
       {/* Strength Label */}
       <View style={styles.strengthLabelRow}>
         <Text style={[styles.strengthLabel, { color }]}>{label}</Text>
-        <Text style={styles.strengthScore}>{result.score}/5 requirements</Text>
+        <Text style={styles.strengthScore}>{score}/5 requirements</Text>
       </View>
 
       {/* Requirements Checklist */}

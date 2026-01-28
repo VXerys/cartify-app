@@ -10,15 +10,16 @@ describe('AuthService', () => {
   let authService: typeof import('../../services/authService').authService;
   let firebaseAuth: typeof import('@react-native-firebase/auth').default;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     jest.resetModules();
 
-    // Re-require after resetModules so we stub the same mock instance
-    firebaseAuth = require('@react-native-firebase/auth').default;
-    
+    // Re-import after resetModules so we stub the same mock instance
+    const firebaseModule = await import('@react-native-firebase/auth');
+    firebaseAuth = firebaseModule.default;
+
     // Re-import to get fresh instance
-    const authModule = require('../../services/authService');
+    const authModule = await import('../../services/authService');
     authService = authModule.authService;
   });
 

@@ -19,7 +19,7 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 interface VerificationPendingScreenProps {
   email: string;
@@ -39,8 +39,6 @@ export const VerificationPendingScreen: React.FC<VerificationPendingScreenProps>
   
   // Animation for the email icon
   const scale = useSharedValue(1);
-  const rotation = useSharedValue(0);
-  
   useEffect(() => {
     // Pulse animation
     scale.value = withRepeat(
@@ -51,7 +49,7 @@ export const VerificationPendingScreen: React.FC<VerificationPendingScreenProps>
       -1,
       true
     );
-  }, []);
+  }, [scale]);
   
   // Cooldown timer
   useEffect(() => {
@@ -65,8 +63,7 @@ export const VerificationPendingScreen: React.FC<VerificationPendingScreenProps>
   
   const animatedIconStyle = useAnimatedStyle(() => ({
     transform: [
-      { scale: scale.value },
-      { rotate: `${rotation.value}deg` }
+      { scale: scale.value }
     ],
   }));
 
@@ -77,7 +74,7 @@ export const VerificationPendingScreen: React.FC<VerificationPendingScreenProps>
     try {
       await onResendEmail();
       setResendCooldown(60); // 60 second cooldown
-    } catch (error) {
+    } catch {
       // Error handled by parent
     } finally {
       setIsResending(false);
@@ -124,7 +121,7 @@ export const VerificationPendingScreen: React.FC<VerificationPendingScreenProps>
         >
           <Text style={styles.title}>Verify Your Email</Text>
           <Text style={styles.subtitle}>
-            We've sent a verification link to
+            We&apos;ve sent a verification link to
           </Text>
           <Text style={styles.emailText}>{email}</Text>
           <Text style={styles.description}>
@@ -139,7 +136,7 @@ export const VerificationPendingScreen: React.FC<VerificationPendingScreenProps>
         >
           <Ionicons name="information-circle" size={24} color={Layout.colors.primary} />
           <Text style={styles.infoText}>
-            Can't find the email? Check your spam or junk folder.
+            Can&apos;t find the email? Check your spam or junk folder.
           </Text>
         </Animated.View>
 
@@ -183,7 +180,7 @@ export const VerificationPendingScreen: React.FC<VerificationPendingScreenProps>
               activeOpacity={0.8}
             >
               <Ionicons name="checkmark-circle" size={20} color={Layout.colors.primary} />
-              <Text style={styles.verifiedButtonText}>I've Verified My Email</Text>
+              <Text style={styles.verifiedButtonText}>I&apos;ve Verified My Email</Text>
             </TouchableOpacity>
           )}
 

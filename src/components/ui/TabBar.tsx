@@ -6,15 +6,15 @@ import * as Haptics from "expo-haptics";
 import React, { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
-    withTiming,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-  const { colors } = useTheme();
+  useTheme();
   const { buildHref } = useLinkBuilder();
   const insets = useSafeAreaInsets();
 
@@ -98,7 +98,7 @@ function TabItem({
 
   useEffect(() => {
     scale.value = withSpring(isFocused ? 1 : 0, { duration: 300 });
-  }, [isFocused]);
+  }, [isFocused, scale]);
 
   const animatedIconStyle = useAnimatedStyle(() => {
     return {

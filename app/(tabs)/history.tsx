@@ -9,7 +9,7 @@ import { formatDate } from '@/src/utils/date';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, RefreshControl, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
@@ -63,7 +63,7 @@ export default function HistoryScreen() {
          calendarOpacity.value = withTiming(0, { duration: 200 });
          calendarMargin.value = withTiming(0, { duration: 300 });
      }
-  }, [showCalendar]);
+  }, [showCalendar, calendarHeight, calendarOpacity, calendarMargin, moderateScale]);
 
   const animatedCalendarStyle = useAnimatedStyle(() => {
       return {
@@ -73,14 +73,14 @@ export default function HistoryScreen() {
       };
   });
 
-  const fetchTransactions = async () => {
-    try {
-      const data = await getTransactionsWithItems(db);
-      setTransactions(data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    const fetchTransactions = useCallback(async () => {
+        try {
+            const data = await getTransactionsWithItems(db);
+            setTransactions(data);
+        } catch (error) {
+            console.error(error);
+        }
+    }, [db]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -97,8 +97,8 @@ export default function HistoryScreen() {
           setSelectedDate(today);
       }
       
-      fetchTransactions();
-    }, [selectedDate])
+            fetchTransactions();
+        }, [selectedDate, fetchTransactions])
   );
 
   const confirmDelete = async () => {
@@ -132,7 +132,7 @@ export default function HistoryScreen() {
       setRefreshing(true);
       await fetchTransactions();
       setRefreshing(false);
-  }, [db]);
+  }, [fetchTransactions]);
 
     const markedDates = transactions.reduce((acc, t) => {
         const dateKey = t.date.split('T')[0];

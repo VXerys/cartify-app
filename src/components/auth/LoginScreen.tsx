@@ -213,7 +213,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               entering={FadeIn.delay(500).duration(400)}
               style={styles.registerContainer}
             >
-              <Text style={styles.registerText}>Don't have an account? </Text>
+              <Text style={styles.registerText}>Don&apos;t have an account? </Text>
               <TouchableOpacity onPress={onRegister} disabled={isLoading}>
                 <Text style={styles.registerLink}>Sign Up</Text>
               </TouchableOpacity>

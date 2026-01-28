@@ -16,12 +16,12 @@ import { AnimatedPressable, SettingItem, SettingSection } from './settings/Setti
 import { styles } from './settings/settings.styles';
 import { ModalState, PasswordState, UserProfile } from './settings/settings.types';
 import {
-    AvatarModal,
-    EditProfileModal,
-    LanguageModal,
-    LogoutModal,
-    PasswordModal,
-    VoicePositionModal,
+  AvatarModal,
+  EditProfileModal,
+  LanguageModal,
+  LogoutModal,
+  PasswordModal,
+  VoicePositionModal,
 } from './settings/SettingsModals';
 
 const COLORS = Layout.colors;
@@ -87,6 +87,7 @@ export default function SettingsScreen() {
       closeModal();
       toast.success(t('profile.saved'));
     } catch (error) {
+      console.error(error);
       toast.error(t('common.error'));
     }
   };
@@ -116,6 +117,7 @@ export default function SettingsScreen() {
       closeModal();
       toast.success(t('profile.photoUpdated'));
     } catch (error) {
+      console.error(error);
       toast.error(t('common.error'));
     }
   };
@@ -131,6 +133,7 @@ export default function SettingsScreen() {
       closeModal();
       toast.success(t('settings.voicePositionSaved'));
     } catch (error) {
+      console.error(error);
       toast.error(t('common.error'));
     }
   };
@@ -141,6 +144,7 @@ export default function SettingsScreen() {
       await signOut();
       toast.success(t('settings.loggedOut'));
     } catch (error) {
+      console.error(error);
       toast.error(t('common.error'));
     }
   };

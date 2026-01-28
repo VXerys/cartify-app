@@ -2,13 +2,13 @@ import { validateEmail } from '@/src/types/auth';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -91,7 +91,7 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
               </View>
               <Text style={styles.title}>Forgot Password?</Text>
               <Text style={styles.subtitle}>
-                No worries! Enter your email address and we'll send you a link to reset your password.
+                No worries! Enter your email address and we&apos;ll send you a link to reset your password.
               </Text>
             </Animated.View>
 

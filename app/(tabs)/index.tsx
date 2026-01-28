@@ -1,6 +1,6 @@
 import { Layout } from '@/src/constants/Layout';
 import { useResponsive } from '@/src/hooks/useResponsive';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, RefreshControl, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -56,13 +56,6 @@ export default function HomeScreen() {
   const editingItem = items.find(i => i.id === editingId);
   const spent = items.reduce((sum, item) => sum + item.price, 0);
 
-  // Handle Voice Result
-  useEffect(() => {
-    if (finalResult) {
-      handleAnalyze(finalResult);
-    }
-  }, [finalResult]);
-
   // Database
     const db = useSQLiteContext();
 
@@ -103,7 +96,7 @@ export default function HomeScreen() {
         }
     };
 
-  const handleAnalyze = async (text: string) => {
+  const handleAnalyze = useCallback(async (text: string) => {
     setIsProcessing(true);
     try {
       console.log("Analyzing text:", text);
@@ -185,7 +178,14 @@ export default function HomeScreen() {
     } finally {
       setIsProcessing(false);
     }
-  };
+  }, [t]);
+
+  // Handle Voice Result
+  useEffect(() => {
+    if (finalResult) {
+      handleAnalyze(finalResult);
+    }
+  }, [finalResult, handleAnalyze]);
 
   const toggleRecording = () => {
     if (isListening) {

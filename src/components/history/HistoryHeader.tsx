@@ -11,11 +11,7 @@ const { width } = Dimensions.get('window');
 export function HistoryHeader() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { moderateScale, verticalScale, containerPadding, isTablet, contentContainerStyle } = useResponsive();
-
-  // Dynamic values
-  const circle1Size = moderateScale(120);
-  const circle2Size = moderateScale(200);
+  const { moderateScale, verticalScale, containerPadding, contentContainerStyle } = useResponsive();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + verticalScale(8) }]}>

@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Localization from 'expo-localization';
-import i18n from 'i18next';
+import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import en from './locales/en.json';
 import id from './locales/id.json';
@@ -42,7 +42,8 @@ const LANGUAGE_DETECTOR = {
   },
 };
 
-i18n
+// eslint-disable-next-line import/no-named-as-default-member
+i18next
   .use(LANGUAGE_DETECTOR as any)
   .use(initReactI18next)
   .init({
@@ -56,4 +57,4 @@ i18n
     }
   });
 
-export default i18n;
+export default i18next;

@@ -2,15 +2,15 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Text, View } from 'react-native';
 import Animated, {
-    FadeInDown,
-    useAnimatedStyle,
-    useSharedValue,
-    withTiming,
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
 } from 'react-native-reanimated';
 import { styles } from './RegisterScreen.styles';
 import { PasswordStrengthResult } from './RegisterScreen.types';
 
-import { calculatePasswordStrength } from './passwordStrength';
+import { calculatePasswordStrength } from './passwordStrength.util';
 
 export { calculatePasswordStrength };
 

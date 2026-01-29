@@ -4,7 +4,7 @@
  * Unit tests for the password strength calculation logic.
  */
 
-import { calculatePasswordStrength } from '../passwordStrength';
+import { calculatePasswordStrength } from '../passwordStrength.util';
 
 describe('Password Strength Calculator', () => {
   // ============================================

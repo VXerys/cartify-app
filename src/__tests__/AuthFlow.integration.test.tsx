@@ -75,7 +75,7 @@ describe("AuthPage integration flow", () => {
   it("registers and shows verification pending screen", async () => {
     mockSignUp.mockResolvedValueOnce({ requiresVerification: true });
 
-    const { getByTestId, getByText, queryByText } = render(<AuthPage />);
+    const { getByTestId, queryByText } = render(<AuthPage />);
 
     // Go to register
     fireEvent.press(getByTestId("login-go-register"));

@@ -1,3 +1,4 @@
+/* eslint-env jest */
 /**
  * Jest Setup File
  *
@@ -60,7 +61,7 @@ jest.mock("react-native", () => {
   if (!rnMock.FlatList) {
     const React = require("react");
     const { View } = rnMock;
-    rnMock.FlatList = ({ ListEmptyComponent }: any) => (
+    rnMock.FlatList = ({ ListEmptyComponent }) => (
       React.createElement(View, null, ListEmptyComponent || null)
     );
   }

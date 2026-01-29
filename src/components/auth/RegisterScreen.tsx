@@ -14,8 +14,8 @@ import {
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LegalModal } from './LegalModal';
-import { calculatePasswordStrength } from './passwordStrength';
-import { PasswordStrengthIndicator } from './PasswordStrength.tsx';
+import { PasswordStrengthIndicator } from './PasswordStrength';
+import { calculatePasswordStrength } from './passwordStrength.util';
 import { RegisterBackground } from './RegisterBackground';
 import { styles } from './RegisterScreen.styles';
 import { FormErrors, RegisterScreenProps } from './RegisterScreen.types';

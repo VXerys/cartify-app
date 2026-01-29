@@ -36,6 +36,10 @@ jest.mock("react-native", () => {
   const rnMock = jest.requireActual("react-native/jest/mock");
   rnMock.View = rnMock.View || "View";
   rnMock.Text = rnMock.Text || "Text";
+  rnMock.TextInput = rnMock.TextInput || rnMock.Text;
+  rnMock.Image = rnMock.Image || "Image";
+  rnMock.KeyboardAvoidingView = rnMock.KeyboardAvoidingView || rnMock.View;
+  rnMock.Modal = rnMock.Modal || rnMock.View;
   rnMock.ScrollView = rnMock.ScrollView || rnMock.View;
   rnMock.TouchableOpacity = rnMock.TouchableOpacity || rnMock.View;
   rnMock.Pressable = rnMock.Pressable || rnMock.View;
@@ -45,6 +49,14 @@ jest.mock("react-native", () => {
     removeEventListener: jest.fn(),
   };
   rnMock.ActivityIndicator = rnMock.ActivityIndicator || rnMock.View;
+  rnMock.Platform = rnMock.Platform || {
+    OS: process.env.EXPO_OS || "ios",
+    select: (options) => {
+      if (!options) return undefined;
+      const os = process.env.EXPO_OS || "ios";
+      return options[os] ?? options.default ?? options.android;
+    },
+  };
   if (!rnMock.FlatList) {
     const React = require("react");
     const { View } = rnMock;
@@ -81,6 +93,17 @@ jest.mock("@expo/vector-icons/MaterialIcons", () => {
 
 // Mock React Native Reanimated
 jest.mock("react-native-reanimated", () => {
+  const chainable = () => {
+    const chain = {};
+    chain.duration = () => chain;
+    chain.delay = () => chain;
+    chain.springify = () => ({
+      damping: () => ({ mass: () => ({ stiffness: () => ({}) }) }),
+    });
+    chain.damping = () => chain;
+    return chain;
+  };
+
   return {
     __esModule: true,
     default: {
@@ -93,46 +116,28 @@ jest.mock("react-native-reanimated", () => {
       set: jest.fn(),
       cond: jest.fn(),
       interpolate: jest.fn(),
-      View: "Animated.View",
-      Text: "Animated.Text",
-      Image: "Animated.Image",
-      ScrollView: "Animated.ScrollView",
+      View: "View",
+      Text: "Text",
+      Image: "Image",
+      ScrollView: "ScrollView",
     },
     useSharedValue: jest.fn(() => ({ value: 0 })),
     useAnimatedStyle: jest.fn(() => ({})),
     withTiming: jest.fn((value) => value),
     withSpring: jest.fn((value) => value),
     withDelay: jest.fn((_, animation) => animation),
+    withRepeat: jest.fn((animation) => animation),
+    withSequence: jest.fn((...animations) => animations[animations.length - 1]),
     Easing: {
       in: (fn) => fn,
       out: (fn) => fn,
       cubic: jest.fn(),
     },
-    FadeIn: {
-      duration: () => ({ delay: () => ({}) }),
-      delay: () => ({}),
-    },
-    FadeInUp: {
-      duration: () => ({
-        delay: () => ({}),
-        springify: () => ({ damping: () => ({ mass: () => ({ stiffness: () => ({}) }) }) }),
-      }),
-      delay: () => ({ duration: () => ({}) }),
-      springify: () => ({ damping: () => ({ mass: () => ({ stiffness: () => ({}) }) }) }),
-    },
-    FadeInDown: {
-      duration: () => ({
-        delay: () => ({ damping: () => ({}) }),
-      }),
-      delay: () => ({ duration: () => ({}) }),
-      damping: () => ({}),
-    },
-    ZoomIn: {
-      duration: () => ({}),
-    },
-    ZoomOut: {
-      duration: () => ({}),
-    },
+    FadeIn: chainable(),
+    FadeInUp: chainable(),
+    FadeInDown: chainable(),
+    ZoomIn: chainable(),
+    ZoomOut: chainable(),
     interpolate: jest.fn(),
     Extrapolate: { CLAMP: "clamp" },
   };
@@ -173,28 +178,6 @@ jest.mock("@react-native-google-signin/google-signin", () => ({
     signIn: jest.fn().mockResolvedValue({ data: { idToken: "mock-token" } }),
     signOut: jest.fn().mockResolvedValue(undefined),
   },
-}));
-
-// Mock local googleSignIn service to prevent environment var warnings
-jest.mock("@/src/services/googleSignIn", () => ({
-  configureGoogleSignIn: jest.fn(),
-  GoogleSignin: {
-    configure: jest.fn(),
-    hasPlayServices: jest.fn().mockResolvedValue(true),
-    signIn: jest.fn().mockResolvedValue({ data: { idToken: "mock-token" } }),
-    signOut: jest.fn().mockResolvedValue(undefined),
-  },
-}));
-
-// Mock expo-router
-jest.mock("expo-router", () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    back: jest.fn(),
-  }),
-  useLocalSearchParams: () => ({}),
-  Link: "Link",
 }));
 
 // Mock Async Storage

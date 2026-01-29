@@ -2,13 +2,13 @@ import { validateEmail } from '@/src/types/auth';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -76,6 +76,8 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
                 style={styles.backButton}
                 onPress={onBackToLogin}
                 activeOpacity={0.7}
+                testID="forgot-back"
+                accessibilityLabel="Back to Login"
               >
                 <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
               </TouchableOpacity>
@@ -106,6 +108,7 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
                 <View style={[styles.inputContainer, error && styles.inputError]}>
                   <Ionicons name="mail-outline" size={20} color="#9BA1A6" style={styles.inputIcon} />
                   <TextInput
+                    testID="forgot-email-input"
                     style={styles.input}
                     placeholder="Enter your email"
                     placeholderTextColor="#6B7280"
@@ -130,6 +133,8 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
                 onPress={handleSendReset}
                 activeOpacity={0.8}
                 disabled={isLoading}
+                testID="forgot-submit"
+                accessibilityLabel="Send Reset Link"
               >
                 {isLoading ? (
                   <Text style={styles.resetButtonText}>Sending...</Text>

@@ -1,3 +1,4 @@
+/* eslint-env jest */
 /**
  * Jest Setup File
  *
@@ -6,6 +7,17 @@
 
 // Define __DEV__ for React Native
 global.__DEV__ = true;
+process.env.EXPO_OS = process.env.EXPO_OS || "ios";
+
+// Silence React 19 react-test-renderer deprecation warning in test output
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  const first = args[0];
+  if (typeof first === "string" && first.includes("react-test-renderer is deprecated")) {
+    return;
+  }
+  originalConsoleError(...args);
+};
 
 // Mock react-native modules that are commonly used
 jest.mock("react-native/Libraries/Utilities/Dimensions", () => ({
@@ -14,6 +26,60 @@ jest.mock("react-native/Libraries/Utilities/Dimensions", () => ({
   removeEventListener: jest.fn(),
 }));
 
+// Mock PixelRatio to avoid native calls in tests
+jest.mock("react-native/Libraries/Utilities/PixelRatio", () => ({
+  get: jest.fn(() => 1),
+  roundToNearestPixel: jest.fn((size) => size),
+}));
+
+// Mock react-native base module using RN Jest mock and override PixelRatio
+jest.mock("react-native", () => {
+  const rnMock = jest.requireActual("react-native/jest/mock");
+  rnMock.View = rnMock.View || "View";
+  rnMock.Text = rnMock.Text || "Text";
+  rnMock.TextInput = rnMock.TextInput || rnMock.Text;
+  rnMock.Image = rnMock.Image || "Image";
+  rnMock.KeyboardAvoidingView = rnMock.KeyboardAvoidingView || rnMock.View;
+  rnMock.Modal = rnMock.Modal || rnMock.View;
+  rnMock.ScrollView = rnMock.ScrollView || rnMock.View;
+  rnMock.TouchableOpacity = rnMock.TouchableOpacity || rnMock.View;
+  rnMock.Pressable = rnMock.Pressable || rnMock.View;
+  rnMock.Dimensions = rnMock.Dimensions || {
+    get: () => ({ width: 375, height: 812 }),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  };
+  rnMock.ActivityIndicator = rnMock.ActivityIndicator || rnMock.View;
+  rnMock.Platform = rnMock.Platform || {
+    OS: process.env.EXPO_OS || "ios",
+    select: (options) => {
+      if (!options) return undefined;
+      const os = process.env.EXPO_OS || "ios";
+      return options[os] ?? options.default ?? options.android;
+    },
+  };
+  if (!rnMock.FlatList) {
+    const React = require("react");
+    const { View } = rnMock;
+    rnMock.FlatList = ({ ListEmptyComponent }) => (
+      React.createElement(View, null, ListEmptyComponent || null)
+    );
+  }
+  rnMock.RefreshControl = rnMock.RefreshControl || rnMock.View;
+  rnMock.StatusBar = rnMock.StatusBar || "StatusBar";
+  rnMock.PixelRatio = {
+    get: jest.fn(() => 1),
+    roundToNearestPixel: jest.fn((size) => size),
+  };
+  rnMock.StyleSheet = {
+    create: (styles) => styles,
+    hairlineWidth: 1,
+    absoluteFillObject: {},
+    flatten: (style) => style,
+  };
+  return rnMock;
+});
+
 // Mock @expo/vector-icons
 jest.mock("@expo/vector-icons", () => ({
   Ionicons: "Ionicons",
@@ -21,8 +87,24 @@ jest.mock("@expo/vector-icons", () => ({
   FontAwesome: "FontAwesome",
 }));
 
+// Mock MaterialIcons submodule directly (used by IconSymbol)
+jest.mock("@expo/vector-icons/MaterialIcons", () => {
+  return "MaterialIcons";
+});
+
 // Mock React Native Reanimated
 jest.mock("react-native-reanimated", () => {
+  const chainable = () => {
+    const chain = {};
+    chain.duration = () => chain;
+    chain.delay = () => chain;
+    chain.springify = () => ({
+      damping: () => ({ mass: () => ({ stiffness: () => ({}) }) }),
+    });
+    chain.damping = () => chain;
+    return chain;
+  };
+
   return {
     __esModule: true,
     default: {
@@ -35,25 +117,28 @@ jest.mock("react-native-reanimated", () => {
       set: jest.fn(),
       cond: jest.fn(),
       interpolate: jest.fn(),
-      View: "Animated.View",
-      Text: "Animated.Text",
-      Image: "Animated.Image",
-      ScrollView: "Animated.ScrollView",
+      View: "View",
+      Text: "Text",
+      Image: "Image",
+      ScrollView: "ScrollView",
     },
     useSharedValue: jest.fn(() => ({ value: 0 })),
     useAnimatedStyle: jest.fn(() => ({})),
     withTiming: jest.fn((value) => value),
     withSpring: jest.fn((value) => value),
     withDelay: jest.fn((_, animation) => animation),
-    FadeIn: { duration: () => ({ delay: () => ({}) }) },
-    FadeInUp: {
-      duration: () => ({ delay: () => ({}) }),
-      delay: () => ({ duration: () => ({}) }),
+    withRepeat: jest.fn((animation) => animation),
+    withSequence: jest.fn((...animations) => animations[animations.length - 1]),
+    Easing: {
+      in: (fn) => fn,
+      out: (fn) => fn,
+      cubic: jest.fn(),
     },
-    FadeInDown: {
-      duration: () => ({ delay: () => ({}) }),
-      delay: () => ({ duration: () => ({}) }),
-    },
+    FadeIn: chainable(),
+    FadeInUp: chainable(),
+    FadeInDown: chainable(),
+    ZoomIn: chainable(),
+    ZoomOut: chainable(),
     interpolate: jest.fn(),
     Extrapolate: { CLAMP: "clamp" },
   };
@@ -96,28 +181,6 @@ jest.mock("@react-native-google-signin/google-signin", () => ({
   },
 }));
 
-// Mock local googleSignIn service to prevent environment var warnings
-jest.mock("@/src/services/googleSignIn", () => ({
-  configureGoogleSignIn: jest.fn(),
-  GoogleSignin: {
-    configure: jest.fn(),
-    hasPlayServices: jest.fn().mockResolvedValue(true),
-    signIn: jest.fn().mockResolvedValue({ data: { idToken: "mock-token" } }),
-    signOut: jest.fn().mockResolvedValue(undefined),
-  },
-}));
-
-// Mock expo-router
-jest.mock("expo-router", () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    back: jest.fn(),
-  }),
-  useLocalSearchParams: () => ({}),
-  Link: "Link",
-}));
-
 // Mock Async Storage
 jest.mock("@react-native-async-storage/async-storage", () => ({
   setItem: jest.fn().mockResolvedValue(undefined),
@@ -135,6 +198,14 @@ jest.mock("react-native-safe-area-context", () => {
     useSafeAreaInsets: () => inset,
   };
 });
+
+// Mock expo-localization to avoid native module access in tests
+jest.mock("expo-localization", () => ({
+  locale: "en-US",
+  timezone: "UTC",
+  getLocales: () => [{ languageCode: "en", countryCode: "US", languageTag: "en-US" }],
+  getCalendars: () => [],
+}));
 
 // Mock sonner-native
 jest.mock("sonner-native", () => ({
@@ -155,6 +226,10 @@ jest.mock("react-i18next", () => ({
       changeLanguage: jest.fn(),
     },
   }),
+  initReactI18next: {
+    type: "3rdParty",
+    init: jest.fn(),
+  },
 }));
 
 // Global test timeout

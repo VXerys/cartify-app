@@ -16,12 +16,12 @@ export interface HistoryItemType {
   date: string;
   totalPrice: number;
   totalItems: number;
-  items: Array<{ 
+  items: { 
     name: string; 
     qty: number; 
     price: number; 
     category?: string; 
-  }>;
+  }[];
 }
 
 interface HistoryCardProps {

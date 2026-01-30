@@ -29,6 +29,8 @@ export type SettingItemProps = {
   textColor?: string;
   iconColor?: string;
   moderateScale: (size: number) => number;
+  testID?: string;
+  accessibilityLabel?: string;
 };
 
 export type SettingSectionProps = {

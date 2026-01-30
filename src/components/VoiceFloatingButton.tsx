@@ -1,16 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, {
-    Easing,
-    interpolateColor,
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withSequence,
-    withSpring,
-    withTiming
+  Easing,
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming
 } from 'react-native-reanimated';
 
 interface VoiceFloatingButtonProps {
@@ -35,23 +35,23 @@ export function VoiceFloatingButton({ isListening, isProcessing, onPress, positi
   const handleVisibility = useSharedValue(0); // 0: visible, 1: hidden (for animated handle)
 
   // Helper to clear any existing timer
-  const clearAutoHideTimer = () => {
+  const clearAutoHideTimer = useCallback(() => {
     if (autoHideTimerRef.current) {
       clearTimeout(autoHideTimerRef.current);
       autoHideTimerRef.current = null;
     }
-  };
+  }, []);
 
   // Helper to show the button with animation
-  const showButton = () => {
+  const showButton = useCallback(() => {
     clearAutoHideTimer();
     setIsVisible(true);
     handleVisibility.value = withTiming(0, { duration: 200 });
     translateX.value = withSpring(0, { damping: 15, stiffness: 100 });
-  };
+  }, [clearAutoHideTimer, handleVisibility, translateX]);
 
   // Helper to hide the button with animation
-  const hideButton = () => {
+  const hideButton = useCallback(() => {
     setIsVisible(false);
     handleVisibility.value = withTiming(1, { duration: 200 });
     const hideOffset = isLeft ? -44 : 44; // Negative for left, positive for right
@@ -59,7 +59,7 @@ export function VoiceFloatingButton({ isListening, isProcessing, onPress, positi
       damping: 15,
       stiffness: 90
     });
-  };
+  }, [handleVisibility, isLeft, translateX]);
 
   // Reset position and restart auto-hide timer when position prop changes
   useEffect(() => {
@@ -76,7 +76,7 @@ export function VoiceFloatingButton({ isListening, isProcessing, onPress, positi
     }
     
     return () => clearAutoHideTimer();
-  }, [position]);
+  }, [clearAutoHideTimer, hideButton, isListening, isProcessing, position, translateX]);
 
   // Auto-hide timer logic - triggers when idle and visible
   useEffect(() => {
@@ -90,7 +90,7 @@ export function VoiceFloatingButton({ isListening, isProcessing, onPress, positi
     }
     
     return () => clearAutoHideTimer();
-  }, [isListening, isProcessing, isVisible, isLeft]);
+  }, [clearAutoHideTimer, hideButton, isListening, isProcessing, isVisible]);
 
   // Handle Listening/Processing State Changes
   useEffect(() => {
@@ -126,7 +126,7 @@ export function VoiceFloatingButton({ isListening, isProcessing, onPress, positi
       recordingOpacity.value = withTiming(1);
       buttonColor.value = withTiming(0, { duration: 300 });
     }
-  }, [isListening, isProcessing]);
+  }, [buttonColor, expandWidth, isListening, isProcessing, recordingOpacity, showButton, translateX]);
 
   const handlePress = () => {
     // Haptic feedback for button press confirmation

@@ -14,7 +14,7 @@ const { width } = Dimensions.get('window');
 export function HomeHeader() {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { containerPadding, moderateScale, verticalScale, isTablet, contentContainerStyle } = useResponsive();
+  const { containerPadding, moderateScale, verticalScale, contentContainerStyle } = useResponsive();
   const [greetingKey, setGreetingKey] = useState('home.goodMorning');
   
   // Get user data from auth context

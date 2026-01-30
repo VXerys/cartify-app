@@ -9,7 +9,7 @@ import { formatDate } from '@/src/utils/date';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, RefreshControl, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
@@ -63,7 +63,7 @@ export default function HistoryScreen() {
          calendarOpacity.value = withTiming(0, { duration: 200 });
          calendarMargin.value = withTiming(0, { duration: 300 });
      }
-  }, [showCalendar]);
+  }, [showCalendar, calendarHeight, calendarOpacity, calendarMargin, moderateScale]);
 
   const animatedCalendarStyle = useAnimatedStyle(() => {
       return {
@@ -73,14 +73,14 @@ export default function HistoryScreen() {
       };
   });
 
-  const fetchTransactions = async () => {
-    try {
-      const data = await getTransactionsWithItems(db);
-      setTransactions(data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    const fetchTransactions = useCallback(async () => {
+        try {
+            const data = await getTransactionsWithItems(db);
+            setTransactions(data);
+        } catch (error) {
+            console.error(error);
+        }
+    }, [db]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -97,8 +97,8 @@ export default function HistoryScreen() {
           setSelectedDate(today);
       }
       
-      fetchTransactions();
-    }, [selectedDate])
+            fetchTransactions();
+        }, [selectedDate, fetchTransactions])
   );
 
   const confirmDelete = async () => {
@@ -132,7 +132,7 @@ export default function HistoryScreen() {
       setRefreshing(true);
       await fetchTransactions();
       setRefreshing(false);
-  }, [db]);
+  }, [fetchTransactions]);
 
     const markedDates = transactions.reduce((acc, t) => {
         const dateKey = t.date.split('T')[0];
@@ -162,7 +162,13 @@ export default function HistoryScreen() {
                     style={[styles.activeFilterBadge, { paddingHorizontal: moderateScale(10), paddingVertical: moderateScale(4), borderRadius: moderateScale(12) }]}
                 >
                     <Text style={[styles.activeFilterText, { fontSize: moderateScale(12) }]}>{formatDate(selectedDate, i18n.language)}</Text>
-                    <TouchableOpacity onPress={() => setSelectedDate('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    <TouchableOpacity
+                      onPress={() => setSelectedDate('')}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      testID="history-clear-date-filter"
+                      accessibilityLabel="Clear date filter"
+                      accessibilityRole="button"
+                    >
                         <IconSymbol name="xmark" size={moderateScale(12)} color="#FFF" />
                     </TouchableOpacity>
                 </Animated.View>
@@ -177,6 +183,9 @@ export default function HistoryScreen() {
             ]}
             onPress={() => setShowCalendar(!showCalendar)}
             activeOpacity={0.7}
+            testID="history-toggle-calendar"
+            accessibilityLabel="Toggle calendar"
+            accessibilityRole="button"
         >
             <IconSymbol 
                 name="calendar" 

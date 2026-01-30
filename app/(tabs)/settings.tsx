@@ -87,6 +87,7 @@ export default function SettingsScreen() {
       closeModal();
       toast.success(t('profile.saved'));
     } catch (error) {
+      console.error(error);
       toast.error(t('common.error'));
     }
   };
@@ -116,6 +117,7 @@ export default function SettingsScreen() {
       closeModal();
       toast.success(t('profile.photoUpdated'));
     } catch (error) {
+      console.error(error);
       toast.error(t('common.error'));
     }
   };
@@ -131,6 +133,7 @@ export default function SettingsScreen() {
       closeModal();
       toast.success(t('settings.voicePositionSaved'));
     } catch (error) {
+      console.error(error);
       toast.error(t('common.error'));
     }
   };
@@ -141,6 +144,7 @@ export default function SettingsScreen() {
       await signOut();
       toast.success(t('settings.loggedOut'));
     } catch (error) {
+      console.error(error);
       toast.error(t('common.error'));
     }
   };
@@ -171,6 +175,8 @@ export default function SettingsScreen() {
             onPress={() => setModalVisible({ type: 'language', isOpen: true })}
             iconColor="#3B82F6"
             moderateScale={moderateScale}
+            testID="settings-language"
+            accessibilityLabel="Language"
           />
           <View style={[styles.separator, { marginLeft: moderateScale(74) }]} />
           <SettingItem
@@ -180,27 +186,66 @@ export default function SettingsScreen() {
             onPress={() => setModalVisible({ type: 'voicePosition', isOpen: true })}
             iconColor="#10B981"
             moderateScale={moderateScale}
+            testID="settings-voice-position"
+            accessibilityLabel="Voice Button Position"
           />
         </SettingSection>
 
         {/* Account Section */}
         <SettingSection title={t('settings.account')} moderateScale={moderateScale}>
-          <SettingItem icon="lock.fill" label={t('settings.changePassword')} onPress={handleChangePassword} iconColor={COLORS.primary} moderateScale={moderateScale} />
+          <SettingItem
+            icon="lock.fill"
+            label={t('settings.changePassword')}
+            onPress={handleChangePassword}
+            iconColor={COLORS.primary}
+            moderateScale={moderateScale}
+            testID="settings-change-password"
+            accessibilityLabel="Change Password"
+          />
           <View style={[styles.separator, { marginLeft: moderateScale(74) }]} />
-          <SettingItem icon="shield.fill" label={t('settings.securityPrivacy')} onPress={() => router.push('/security-privacy')} iconColor={COLORS.primary} moderateScale={moderateScale} />
+          <SettingItem
+            icon="shield.fill"
+            label={t('settings.securityPrivacy')}
+            onPress={() => router.push('/security-privacy')}
+            iconColor={COLORS.primary}
+            moderateScale={moderateScale}
+            testID="settings-security-privacy"
+            accessibilityLabel="Security & Privacy"
+          />
         </SettingSection>
 
         {/* Support Section */}
         <SettingSection title={t('settings.support')} moderateScale={moderateScale}>
-          <SettingItem icon="questionmark.circle.fill" label={t('settings.helpCenter')} onPress={() => router.push('/help-center')} iconColor="#8B5CF6" moderateScale={moderateScale} />
+          <SettingItem
+            icon="questionmark.circle.fill"
+            label={t('settings.helpCenter')}
+            onPress={() => router.push('/help-center')}
+            iconColor="#8B5CF6"
+            moderateScale={moderateScale}
+            testID="settings-help-center"
+            accessibilityLabel="Help Center"
+          />
           <View style={[styles.separator, { marginLeft: moderateScale(74) }]} />
-          <SettingItem icon="doc.text.fill" label={t('settings.termsPolicy')} onPress={() => router.push('/terms-policy')} iconColor="#8B5CF6" moderateScale={moderateScale} />
+          <SettingItem
+            icon="doc.text.fill"
+            label={t('settings.termsPolicy')}
+            onPress={() => router.push('/terms-policy')}
+            iconColor="#8B5CF6"
+            moderateScale={moderateScale}
+            testID="settings-terms-policy"
+            accessibilityLabel="Terms & Policy"
+          />
         </SettingSection>
 
         {/* Logout Button */}
         <View style={[styles.section, { marginBottom: moderateScale(40) }]}>
           <View style={[styles.sectionContent, { borderRadius: moderateScale(20) }]}>
-            <AnimatedPressable style={[styles.logoutTouchable, { padding: moderateScale(18) }]} onPress={() => setModalVisible({ type: 'logout', isOpen: true })}>
+            <AnimatedPressable
+              style={[styles.logoutTouchable, { padding: moderateScale(18) }]}
+              onPress={() => setModalVisible({ type: 'logout', isOpen: true })}
+              testID="settings-logout"
+              accessibilityLabel="Log out"
+            >
               <IconSymbol name="rectangle.portrait.and.arrow.right.fill" size={moderateScale(22)} color={COLORS.danger} />
               <Text style={[styles.logoutText, { fontSize: moderateScale(16) }]}>{t('settings.logOut')}</Text>
             </AnimatedPressable>

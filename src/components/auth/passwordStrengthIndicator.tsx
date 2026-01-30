@@ -2,17 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Text, View, type ViewStyle } from 'react-native';
 import Animated, {
-  FadeInDown,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
+    FadeInDown,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
 } from 'react-native-reanimated';
 import { styles } from './RegisterScreen.styles';
 import { PasswordStrengthResult } from './RegisterScreen.types';
-
-import { calculatePasswordStrength } from './passwordStrength.util';
-
-export { calculatePasswordStrength };
 
 interface RequirementItemProps {
   met: boolean;
@@ -21,15 +17,12 @@ interface RequirementItemProps {
 
 const RequirementItem: React.FC<RequirementItemProps> = ({ met, label }) => (
   <View style={styles.requirementRow}>
-    <Ionicons 
-      name={met ? "checkmark-circle" : "ellipse-outline"} 
-      size={14} 
-      color={met ? '#10B981' : 'rgba(255,255,255,0.4)'} 
+    <Ionicons
+      name={met ? 'checkmark-circle' : 'ellipse-outline'}
+      size={14}
+      color={met ? '#10B981' : 'rgba(255,255,255,0.4)'}
     />
-    <Text style={[
-      styles.requirementText,
-      met && styles.requirementMet
-    ]}>
+    <Text style={[styles.requirementText, met && styles.requirementMet]}>
       {label}
     </Text>
   </View>
@@ -69,24 +62,21 @@ export const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps>
   if (!result || !requirements || !color || !label) return null;
 
   return (
-    <Animated.View 
-      entering={FadeInDown.duration(300)} 
+    <Animated.View
+      entering={FadeInDown.duration(300)}
       style={styles.strengthContainer}
     >
-      {/* Strength Bar */}
       <View style={styles.strengthBarContainer}>
         <Animated.View
           style={[styles.strengthBar, { backgroundColor: color }, animatedBarStyle]}
         />
       </View>
-      
-      {/* Strength Label */}
+
       <View style={styles.strengthLabelRow}>
         <Text style={[styles.strengthLabel, { color }]}>{label}</Text>
         <Text style={styles.strengthScore}>{score}/5 requirements</Text>
       </View>
 
-      {/* Requirements Checklist */}
       <View style={styles.requirementsContainer}>
         <RequirementItem met={requirements.minLength} label="At least 8 characters" />
         <RequirementItem met={requirements.hasUppercase} label="One uppercase letter" />

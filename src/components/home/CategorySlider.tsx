@@ -43,7 +43,7 @@ const CategoryChip = ({ categoryKey, label, isSelected, onSelect, index }: {
 
     useEffect(() => {
         progress.value = withTiming(isSelected ? 1 : 0, { duration: 300 });
-    }, [isSelected]);
+    }, [isSelected, progress]);
 
     const rStyle = useAnimatedStyle(() => {
         const backgroundColor = interpolateColor(

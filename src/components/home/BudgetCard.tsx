@@ -25,7 +25,7 @@ interface BudgetCardProps {
 
 export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCardProps) {
   const { t } = useTranslation();
-  const { moderateScale, horizontalScale, verticalScale, isTablet, contentContainerStyle } = useResponsive();
+  const { moderateScale, contentContainerStyle } = useResponsive();
   const percentage = Math.min(spent / budget, 1);
   const progressWidth = useSharedValue(0);
   
@@ -47,7 +47,7 @@ export function BudgetCard({ budget, spent, children, onEditBudget }: BudgetCard
         damping: 15,
         stiffness: 100,
     }));
-  }, [percentage]);
+  }, [percentage, progressWidth]);
 
   const progressStyle = useAnimatedStyle(() => {
     return {

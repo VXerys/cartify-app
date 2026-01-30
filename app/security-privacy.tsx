@@ -1,20 +1,31 @@
-import { useRouter } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
-import React, { useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { toast } from 'sonner-native';
+import { useRouter } from "expo-router";
+import { useSQLiteContext } from "expo-sqlite";
+import React, { useState } from "react";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
 
-import { IconSymbol } from '@/src/components/ui/icon-symbol';
-import { Layout } from '@/src/constants/Layout';
-import { deleteAllTransactions, getTransactionsWithItems } from '@/src/services/db';
-import { exportToCSV, exportToPDF } from '@/src/services/pdfExportService';
+import { IconSymbol } from "@/src/components/ui/icon-symbol";
+import { Layout } from "@/src/constants/Layout";
+import {
+    deleteAllTransactions,
+    getTransactionsWithItems,
+} from "@/src/services/db";
+import { exportToCSV, exportToPDF } from "@/src/services/pdfExportService";
 
-import { ExportDataModal } from './security-privacy/ExportDataModal';
-import { styles } from './security-privacy/security-privacy.styles';
-import { DateRange, ExportFormat, ModalState } from './security-privacy/security-privacy.types';
-import { SecurityItem } from './security-privacy/SecurityItem';
-import { AppLockModal, ClearHistoryModal, DeleteAccountModal } from './security-privacy/SecurityModals';
+import { ExportDataModal } from "./security-privacy/ExportDataModal";
+import { styles } from "./security-privacy/security-privacy.styles";
+import {
+    DateRange,
+    ExportFormat,
+    ModalState,
+} from "./security-privacy/security-privacy.types";
+import { SecurityItem } from "./security-privacy/SecurityItem";
+import {
+    AppLockModal,
+    ClearHistoryModal,
+    DeleteAccountModal,
+} from "./security-privacy/SecurityModals";
 
 const COLORS = Layout.colors;
 
@@ -28,12 +39,15 @@ export default function SecurityPrivacyScreen() {
   const [isExporting, setIsExporting] = useState(false);
 
   // Modal State
-  const [modalVisible, setModalVisible] = useState<ModalState>({ type: null, isOpen: false });
+  const [modalVisible, setModalVisible] = useState<ModalState>({
+    type: null,
+    isOpen: false,
+  });
 
   // Export Options State
-  const [exportFormat, setExportFormat] = useState<ExportFormat>('pdf');
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("pdf");
   const [includeAISummary, setIncludeAISummary] = useState(true);
-  const [dateRange, setDateRange] = useState<DateRange>('all');
+  const [dateRange, setDateRange] = useState<DateRange>("all");
 
   // Stats for preview
   const [transactionCount, setTransactionCount] = useState(0);
@@ -42,17 +56,17 @@ export default function SecurityPrivacyScreen() {
   // Toggle App Lock
   const handleAppLockToggle = (value: boolean) => {
     if (value) {
-      setModalVisible({ type: 'appLock', isOpen: true });
+      setModalVisible({ type: "appLock", isOpen: true });
     } else {
       setAppLockEnabled(false);
-      toast.success('Kunci aplikasi dinonaktifkan');
+      toast.success("Kunci aplikasi dinonaktifkan");
     }
   };
 
   const confirmAppLockEnable = () => {
     setAppLockEnabled(true);
     setModalVisible({ type: null, isOpen: false });
-    toast.success('Kunci aplikasi diaktifkan');
+    toast.success("Kunci aplikasi diaktifkan");
   };
 
   const handleAnalyticsToggle = (value: boolean) => {
@@ -66,10 +80,10 @@ export default function SecurityPrivacyScreen() {
       const now = new Date();
 
       let filteredTx = transactions;
-      if (dateRange === '7days') {
+      if (dateRange === "7days") {
         const cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         filteredTx = transactions.filter((t) => new Date(t.date) >= cutoff);
-      } else if (dateRange === '30days') {
+      } else if (dateRange === "30days") {
         const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         filteredTx = transactions.filter((t) => new Date(t.date) >= cutoff);
       }
@@ -77,21 +91,21 @@ export default function SecurityPrivacyScreen() {
       setTransactionCount(filteredTx.length);
       setTotalAmount(filteredTx.reduce((sum, t) => sum + t.total_amount, 0));
     } catch (error) {
-      console.error('Load stats error:', error);
+      console.error("Load stats error:", error);
     }
   };
 
   const handleExportData = async () => {
     await loadExportStats();
-    setModalVisible({ type: 'exportData', isOpen: true });
+    setModalVisible({ type: "exportData", isOpen: true });
   };
 
   const handleClearHistory = () => {
-    setModalVisible({ type: 'clearHistory', isOpen: true });
+    setModalVisible({ type: "clearHistory", isOpen: true });
   };
 
   const handleDeleteAccount = () => {
-    setModalVisible({ type: 'deleteAccount', isOpen: true });
+    setModalVisible({ type: "deleteAccount", isOpen: true });
   };
 
   const confirmExportData = async () => {
@@ -101,23 +115,27 @@ export default function SecurityPrivacyScreen() {
       const now = new Date();
 
       let transactions = allTransactions;
-      if (dateRange === '7days') {
+      if (dateRange === "7days") {
         const cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        transactions = allTransactions.filter((t) => new Date(t.date) >= cutoff);
-      } else if (dateRange === '30days') {
+        transactions = allTransactions.filter(
+          (t) => new Date(t.date) >= cutoff,
+        );
+      } else if (dateRange === "30days") {
         const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        transactions = allTransactions.filter((t) => new Date(t.date) >= cutoff);
+        transactions = allTransactions.filter(
+          (t) => new Date(t.date) >= cutoff,
+        );
       }
 
       if (transactions.length === 0) {
-        toast.error('Tidak ada data transaksi untuk periode ini.');
+        toast.error("Tidak ada data transaksi untuk periode ini.");
         setModalVisible({ type: null, isOpen: false });
         setIsExporting(false);
         return;
       }
 
       let result;
-      if (exportFormat === 'pdf') {
+      if (exportFormat === "pdf") {
         result = await exportToPDF(transactions, { includeAISummary });
       } else {
         result = await exportToCSV(transactions);
@@ -129,8 +147,8 @@ export default function SecurityPrivacyScreen() {
         toast.error(result.message);
       }
     } catch (error) {
-      console.error('Export error:', error);
-      toast.error('Gagal mengekspor data.');
+      console.error("Export error:", error);
+      toast.error("Gagal mengekspor data.");
     } finally {
       setIsExporting(false);
       setModalVisible({ type: null, isOpen: false });
@@ -141,37 +159,55 @@ export default function SecurityPrivacyScreen() {
     try {
       await deleteAllTransactions(db);
       setModalVisible({ type: null, isOpen: false });
-      toast.success('Riwayat transaksi berhasil dihapus');
+      toast.success("Riwayat transaksi berhasil dihapus");
     } catch (error) {
       console.error(error);
-      toast.error('Gagal menghapus riwayat');
+      toast.error("Gagal menghapus riwayat");
     }
   };
 
   const confirmDeleteAccount = () => {
     setModalVisible({ type: null, isOpen: false });
-    toast.success('Akun Anda telah dihapus');
+    toast.success("Akun Anda telah dihapus");
     setTimeout(() => {
-      router.replace('/');
+      router.replace("/");
     }, 1000);
   };
 
   const closeModal = () => setModalVisible({ type: null, isOpen: false });
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
+    <SafeAreaView
+      style={styles.container}
+      edges={["top", "bottom", "left", "right"]}
+    >
       {/* Custom Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+          testID="security-privacy-back-button"
+          accessibilityLabel="Back"
+          accessibilityRole="button"
+        >
           <IconSymbol name="chevron.left" size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Keamanan & Privasi</Text>
         <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.headerInfo}>
-          <IconSymbol name="shield.fill" size={48} color={COLORS.primary} style={{ opacity: 0.8 }} />
+          <IconSymbol
+            name="shield.fill"
+            size={48}
+            color={COLORS.primary}
+            style={{ opacity: 0.8 }}
+          />
           <Text style={styles.headerText}>
             Kelola keamanan akun dan preferensi privasi Anda di sini.
           </Text>
@@ -219,7 +255,12 @@ export default function SecurityPrivacyScreen() {
         {/* Section: Zona Bahaya */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>ZONA BAHAYA</Text>
-          <View style={[styles.card, { borderColor: COLORS.danger + '30', borderWidth: 1 }]}>
+          <View
+            style={[
+              styles.card,
+              { borderColor: COLORS.danger + "30", borderWidth: 1 },
+            ]}
+          >
             <SecurityItem
               icon="trash.fill"
               label="Hapus Riwayat Transaksi"
@@ -239,7 +280,7 @@ export default function SecurityPrivacyScreen() {
 
       {/* Modals */}
       <ExportDataModal
-        visible={modalVisible.type === 'exportData' && modalVisible.isOpen}
+        visible={modalVisible.type === "exportData" && modalVisible.isOpen}
         onClose={closeModal}
         onExport={confirmExportData}
         isExporting={isExporting}
@@ -257,19 +298,19 @@ export default function SecurityPrivacyScreen() {
       />
 
       <ClearHistoryModal
-        visible={modalVisible.type === 'clearHistory' && modalVisible.isOpen}
+        visible={modalVisible.type === "clearHistory" && modalVisible.isOpen}
         onClose={closeModal}
         onConfirm={confirmClearHistory}
       />
 
       <DeleteAccountModal
-        visible={modalVisible.type === 'deleteAccount' && modalVisible.isOpen}
+        visible={modalVisible.type === "deleteAccount" && modalVisible.isOpen}
         onClose={closeModal}
         onConfirm={confirmDeleteAccount}
       />
 
       <AppLockModal
-        visible={modalVisible.type === 'appLock' && modalVisible.isOpen}
+        visible={modalVisible.type === "appLock" && modalVisible.isOpen}
         onClose={closeModal}
         onConfirm={confirmAppLockEnable}
       />

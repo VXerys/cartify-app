@@ -111,6 +111,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 ]}>
                   <Ionicons name="mail-outline" size={20} color="#9BA1A6" style={styles.inputIcon} />
                   <TextInput
+                    testID="login-email-input"
                     style={styles.input}
                     placeholder="Enter your email"
                     placeholderTextColor="#6B7280"
@@ -139,6 +140,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 ]}>
                   <Ionicons name="lock-closed-outline" size={20} color="#9BA1A6" style={styles.inputIcon} />
                   <TextInput
+                    testID="login-password-input"
                     style={styles.input}
                     placeholder="Enter your password"
                     placeholderTextColor="#6B7280"
@@ -171,6 +173,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 style={styles.forgotPasswordButton}
                 onPress={onForgotPassword}
                 disabled={isLoading}
+                testID="login-forgot-password"
+                accessibilityLabel="Forgot Password"
               >
                 <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
               </TouchableOpacity>
@@ -181,6 +185,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 onPress={handleLogin}
                 activeOpacity={0.8}
                 disabled={isLoading}
+                testID="login-submit"
+                accessibilityLabel="Sign In"
               >
                 {isLoading ? (
                   <Text style={styles.loginButtonText}>Signing in...</Text>
@@ -202,6 +208,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 onPress={onGoogleLogin}
                 activeOpacity={0.8}
                 disabled={isLoading}
+                testID="login-google"
+                accessibilityLabel="Continue with Google"
               >
                 <Ionicons name="logo-google" size={20} color="#FFFFFF" />
                 <Text style={styles.googleButtonText}>Continue with Google</Text>
@@ -213,8 +221,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               entering={FadeIn.delay(500).duration(400)}
               style={styles.registerContainer}
             >
-              <Text style={styles.registerText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={onRegister} disabled={isLoading}>
+              <Text style={styles.registerText}>Don&apos;t have an account? </Text>
+              <TouchableOpacity
+                onPress={onRegister}
+                disabled={isLoading}
+                testID="login-go-register"
+                accessibilityLabel="Sign Up"
+              >
                 <Text style={styles.registerLink}>Sign Up</Text>
               </TouchableOpacity>
             </Animated.View>

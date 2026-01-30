@@ -39,7 +39,6 @@ let currentAuthState: AuthState = {
 };
 
 let didInitialize = false;
-let unsubscribeAuthListener: null | (() => void) = null;
 
 // Notify all listeners of state change
 const notifyListeners = () => {
@@ -84,7 +83,7 @@ const ensureInitialized = () => {
   }
 
   // Subscribe to Firebase auth state
-  unsubscribeAuthListener = auth().onAuthStateChanged((user) => {
+  auth().onAuthStateChanged((user) => {
     const userProfile = userToProfile(user);
 
     // For email/password users, check if email is verified

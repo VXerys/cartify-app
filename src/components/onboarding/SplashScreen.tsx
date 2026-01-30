@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { Dimensions, Image, StyleSheet, View } from 'react-native';
 import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withTiming,
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withDelay,
+    withTiming,
 } from 'react-native-reanimated';
 
 interface SplashScreenProps {
@@ -43,7 +43,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
     }, duration);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [duration, logoOpacity, logoScale, onFinish, textOpacity, textTranslateX]);
 
   const logoAnimatedStyle = useAnimatedStyle(() => ({
     opacity: logoOpacity.value,

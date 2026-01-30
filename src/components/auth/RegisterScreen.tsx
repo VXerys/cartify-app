@@ -2,19 +2,20 @@ import { validateEmail, validateFullName, validatePassword } from '@/src/types/a
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import {
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LegalModal } from './LegalModal';
-import { PasswordStrengthIndicator, calculatePasswordStrength } from './PasswordStrength';
+import { calculatePasswordStrength } from './passwordStrength.util';
+import { PasswordStrengthIndicator } from './passwordStrengthIndicator';
 import { RegisterBackground } from './RegisterBackground';
 import { styles } from './RegisterScreen.styles';
 import { FormErrors, RegisterScreenProps } from './RegisterScreen.types';
@@ -139,6 +140,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 ]}>
                   <Ionicons name="person-outline" size={20} color="#9BA1A6" style={styles.inputIcon} />
                   <TextInput
+                    testID="register-fullname-input"
                     style={styles.input}
                     placeholder="Enter your full name"
                     placeholderTextColor="#6B7280"
@@ -168,6 +170,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 ]}>
                   <Ionicons name="mail-outline" size={20} color="#9BA1A6" style={styles.inputIcon} />
                   <TextInput
+                    testID="register-email-input"
                     style={styles.input}
                     placeholder="Enter your email"
                     placeholderTextColor="#6B7280"
@@ -199,6 +202,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 ]}>
                   <Ionicons name="lock-closed-outline" size={20} color="#9BA1A6" style={styles.inputIcon} />
                   <TextInput
+                    testID="register-password-input"
                     style={styles.input}
                     placeholder="Create a password"
                     placeholderTextColor="#6B7280"
@@ -238,6 +242,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 ]}>
                   <Ionicons name="lock-closed-outline" size={20} color="#9BA1A6" style={styles.inputIcon} />
                   <TextInput
+                    testID="register-confirm-password-input"
                     style={styles.input}
                     placeholder="Confirm your password"
                     placeholderTextColor="#6B7280"
@@ -278,6 +283,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                   onPress={() => setAgreedToTerms(!agreedToTerms)}
                   activeOpacity={0.7}
                   disabled={isLoading}
+                  testID="register-terms-checkbox"
+                  accessibilityLabel="Agree to Terms"
                 >
                   <View style={[
                     styles.checkbox,
@@ -315,6 +322,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 onPress={handleRegister}
                 activeOpacity={0.8}
                 disabled={isLoading || !agreedToTerms}
+                testID="register-submit"
+                accessibilityLabel="Create Account"
               >
                 {isLoading ? (
                   <Text style={styles.registerButtonText}>Creating account...</Text>
@@ -336,6 +345,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 onPress={onGoogleRegister}
                 activeOpacity={0.8}
                 disabled={isLoading}
+                testID="register-google"
+                accessibilityLabel="Continue with Google"
               >
                 <Ionicons name="logo-google" size={20} color="#FFFFFF" />
                 <Text style={styles.googleButtonText}>Continue with Google</Text>
@@ -348,7 +359,12 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
               style={styles.loginContainer}
             >
               <Text style={styles.loginText}>Already have an account? </Text>
-              <TouchableOpacity onPress={onLogin} disabled={isLoading}>
+              <TouchableOpacity
+                onPress={onLogin}
+                disabled={isLoading}
+                testID="register-go-login"
+                accessibilityLabel="Sign In"
+              >
                 <Text style={styles.loginLink}>Sign In</Text>
               </TouchableOpacity>
             </Animated.View>

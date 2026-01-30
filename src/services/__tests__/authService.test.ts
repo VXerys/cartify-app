@@ -10,16 +10,19 @@ describe('AuthService', () => {
   let authService: typeof import('../../services/authService').authService;
   let firebaseAuth: typeof import('@react-native-firebase/auth').default;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.clearAllMocks();
     jest.resetModules();
 
     // Re-import after resetModules so we stub the same mock instance
-    const firebaseModule = await import('@react-native-firebase/auth');
+    // Use require to avoid ESM dynamic import in Jest
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const firebaseModule = require('@react-native-firebase/auth');
     firebaseAuth = firebaseModule.default;
 
     // Re-import to get fresh instance
-    const authModule = await import('../../services/authService');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const authModule = require('../../services/authService');
     authService = authModule.authService;
   });
 

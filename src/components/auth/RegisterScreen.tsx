@@ -2,20 +2,20 @@ import { validateEmail, validateFullName, validatePassword } from '@/src/types/a
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import {
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LegalModal } from './LegalModal';
-import { PasswordStrengthIndicator } from './PasswordStrength';
 import { calculatePasswordStrength } from './passwordStrength.util';
+import { PasswordStrengthIndicator } from './passwordStrengthIndicator';
 import { RegisterBackground } from './RegisterBackground';
 import { styles } from './RegisterScreen.styles';
 import { FormErrors, RegisterScreenProps } from './RegisterScreen.types';

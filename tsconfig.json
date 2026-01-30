@@ -15,6 +15,7 @@
     "expo-env.d.ts"
   ],
   "exclude": [
-    "src/components/auth/passwordStrength.ts"
+    "src/components/auth/passwordStrength.ts",
+    "src/components/auth/PasswordStrength.tsx"
   ]
 }

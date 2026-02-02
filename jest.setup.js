@@ -13,8 +13,11 @@ process.env.EXPO_OS = process.env.EXPO_OS || "ios";
 const originalConsoleError = console.error;
 console.error = (...args) => {
   const first = args[0];
-  if (typeof first === "string" && first.includes("react-test-renderer is deprecated")) {
-    return;
+  if (typeof first === "string") {
+    // Suppress known noisy warnings from react-test-renderer and "not wrapped in act" during tests
+    if (first.includes("react-test-renderer is deprecated") || first.includes("not wrapped in act")) {
+      return;
+    }
   }
   originalConsoleError(...args);
 };
